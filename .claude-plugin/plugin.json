@@ -1,0 +1,7 @@
+{
+  "name": "shipwright",
+  "description": "Adaptive agentic development framework for RAI engineering teams",
+  "version": "0.1.0",
+  "repository": "https://github.com/RelationalAI/shipwright",
+  "license": "MIT"
+}
