@@ -10,7 +10,7 @@
 
 ## 1. The Problem
 
-AI coding agents are powerful but undisciplined. They skip design, write code before tests, claim "done" without verifying, and lose all context when the conversation gets long. Teams get inconsistent results — one developer's agent produces clean, tested code; another's produces a mess.
+AI coding agents are powerful but undisciplined. They skip design, write code before tests, claim "done" without verifying, and lose all context when the conversation gets long.
 
 Existing frameworks either impose heavy process without enforcing the right disciplines (formal pipelines that still let agents skip tests and claim "done" without evidence) or provide good discipline guides that agents can rationalize their way around (skills with no enforcement mechanism). None solve the context loss problem well. And none provide a clean way to inject org-specific artifacts, templates, and practices — RAI's threat modeling requirements, documentation standards, and observability patterns have no natural home in any existing framework.
 
