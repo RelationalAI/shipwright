@@ -167,10 +167,10 @@ Three commands usable outside the orchestrated workflow. Stateless — no `.work
 
 | Input | Example | Behavior |
 |-------|---------|----------|
-| No args | `/shipwright:report` | Ask user to pick type (bug, enhancement, suggestion, feedback), then collect title and description |
+| No args | `/shipwright:report` | Ask user to pick type (bug, feature, suggestion, feedback), then collect title and description |
 | Free-form | `/shipwright:report clicking more details throws a null pointer` | Decipher the type from the text (this is a bug), confirm with the user, then collect any missing details |
 
-Creates a GitHub issue on `RelationalAI/shipwright` using `gh issue create` with the appropriate label (bug, enhancement, suggestion, feedback).
+Creates a GitHub issue on `RelationalAI/shipwright` using `gh issue create` with the appropriate label (bug, feature, suggestion, feedback).
 
 ---
 
