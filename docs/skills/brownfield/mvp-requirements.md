@@ -2,7 +2,7 @@
 
 **Date:** 2026-02-24
 **Status:** Draft
-**Source:** GSD idea #14, adapted for Shipwright
+**Source:** Adapted from [GSD](https://github.com/gsd-build/get-shit-done) `gsd-codebase-mapper` agent by gsd-build
 
 ---
 
@@ -14,11 +14,14 @@ Analyzes an existing codebase and produces a set of focused profile documents co
 
 ```
 docs/codebase-profile/
-├── tech-stack.md       # Languages, frameworks, dependencies, build tools
-├── architecture.md     # Module structure, key abstractions, data flow
-├── conventions.md      # Naming, patterns, file organization, test conventions
-├── concerns.md         # Known debt, fragile areas, security-sensitive zones
-└── .last-analyzed      # Commit SHA of last full analysis
+├── STACK.md            # Languages, frameworks, dependencies, build tools
+├── INTEGRATIONS.md     # External APIs, databases, services, auth providers
+├── ARCHITECTURE.md     # Module structure, key abstractions, data flow
+├── STRUCTURE.md        # Directory layout, file locations, where to add new code
+├── CONVENTIONS.md      # Naming, patterns, file organization, code style
+├── TESTING.md          # Test framework, commands, file organization, mocking
+├── CONCERNS.md         # Known debt, fragile areas, security-sensitive zones
+└── .last-analyzed      # JSON tracking last full and fast-path commit SHAs
 ```
 
 Each file targets one aspect of the codebase. CLAUDE.md references the directory so agents are aware of it.
@@ -37,7 +40,7 @@ Each file targets one aspect of the codebase. CLAUDE.md references the directory
 - After many fast-paths without a full run, profiles can drift. If 10+ commits have accumulated since the last full analysis, auto-trigger a full analysis instead. (10 is an arbitrary starting point — tweak based on experience.)
 
 ### 3. Full analysis
-- Analyzes the whole repo from scratch across all 4 aspects
+- Analyzes the whole repo from scratch across all 7 documents
 - Rewrites all profile files completely
 - Triggered by: fast-path threshold exceeded (10+ commits since last full), or manual re-run
 
