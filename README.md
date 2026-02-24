@@ -9,10 +9,9 @@ Shipwright orchestrates a disciplined bug fix workflow: triage, TDD implementati
 ## Installation
 
 ```bash
-# From the Claude Code plugin marketplace
-/install shipwright
-
-# Restart your session
+# Add the plugin registry and install
+/plugin marketplace add https://github.com/RelationalAI/claude-plugins
+/plugin install shipwright@rai-claude-plugins
 ```
 
 ## Usage

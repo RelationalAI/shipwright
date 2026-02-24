@@ -33,7 +33,7 @@ Verify that the implementation actually solves the reported problem.
    Read the Implementer's root cause analysis. Then read the actual code change. Do they align? A fix that masks symptoms without addressing the root cause is not acceptable.
 
 3. **Were LOCKED decisions respected?**
-   Check every LOCKED decision from the Planner. If the Implementer deviated from any LOCKED decision, that is an automatic CHALLENGE. LOCKED means locked.
+   Check every LOCKED decision from Triage. If the Implementer deviated from any LOCKED decision, that is an automatic CHALLENGE. LOCKED means locked.
 
 4. **Are the tests testing the right thing?**
    Tests must exercise the specific behavior that was broken. Tests that pass before and after the fix prove nothing about the fix. Look for:

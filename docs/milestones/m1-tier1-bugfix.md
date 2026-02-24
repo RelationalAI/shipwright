@@ -106,7 +106,6 @@ Single file: `commands/shipwright.md`. Pure dispatcher — never does work itsel
 - Never does work itself — only routes
 - Reads recovery files before every subagent spawn
 - Writes `state.json` + `CONTEXT.md` after every step
-- Tracks token usage from each subagent return
 - Detects Jira ticket patterns and checks for Atlassian MCP before attempting fetch
 
 ---
