@@ -161,6 +161,16 @@ Three commands usable outside the orchestrated workflow. Stateless — no `.work
 | `/shipwright:codebase-analyze` | Triage | Brownfield analysis | Full codebase analysis regardless of staleness. Writes 7 profile docs to `docs/codebase-profile/`. |
 | `/shipwright:doc-digest` | Doc Digest | — | Walk through any document section by section for interactive review. |
 | `/shipwright:debug` | Implementer | Systematic debugging | Standalone 4-phase debugging: root cause → pattern analysis → hypothesis testing → fix. No Triage/Reviewer/Validator. |
+| `/shipwright:report` | — | — | File bugs, enhancements, suggestions, and feedback as GitHub issues on `RelationalAI/shipwright`. |
+
+### `/shipwright:report` behavior
+
+| Input | Example | Behavior |
+|-------|---------|----------|
+| No args | `/shipwright:report` | Ask user to pick type (bug, enhancement, suggestion, feedback), then collect title and description |
+| Free-form | `/shipwright:report clicking more details throws a null pointer` | Decipher the type from the text (this is a bug), confirm with the user, then collect any missing details |
+
+Creates a GitHub issue on `RelationalAI/shipwright` using `gh issue create` with the appropriate label (bug, enhancement, suggestion, feedback).
 
 ---
 
@@ -187,6 +197,7 @@ plugins/shipwright/
     shipwright-codebase-analyze.md   # standalone brownfield analysis
     shipwright-doc-digest.md         # standalone doc walkthrough
     shipwright-debug.md              # standalone systematic debugging
+    shipwright-report.md             # file issues on Shipwright repo
 ```
 
 **Install:**
@@ -223,4 +234,5 @@ plugins/shipwright/
 - Reviewer reviews the fix
 - Validator discovers the test command and runs full regression
 - If context is lost mid-session, the orchestrator recovers from state.json + CONTEXT.md
-- `/shipwright:codebase-analyze`, `/shipwright:doc-digest`, and `/shipwright:debug` work standalone
+- `/shipwright:codebase-analyze`, `/shipwright:doc-digest`, `/shipwright:debug`, and `/shipwright:report` work standalone
+- `/shipwright:report` creates a GitHub issue on `RelationalAI/shipwright` with the correct label
