@@ -9,10 +9,13 @@ Shipwright orchestrates a disciplined bug fix workflow: triage, TDD implementati
 ## Installation
 
 ```bash
-# Add the plugin registry and install
-/plugin marketplace add https://github.com/RelationalAI/claude-plugins
-/plugin install shipwright@rai-claude-plugins
+# Clone the repo and install locally
+git clone git@github.com:RelationalAI/shipwright.git
+cd shipwright
+/install-plugin .
 ```
+
+> **Coming soon:** Plugin marketplace install via `RelationalAI/claude-plugins` registry. For now, use the local install above.
 
 ## Usage
 

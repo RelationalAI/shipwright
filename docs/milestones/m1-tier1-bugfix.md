@@ -199,13 +199,16 @@ plugins/shipwright/
     shipwright-report.md             # file issues on Shipwright repo
 ```
 
-**Install:**
+**Install (local):**
 ```bash
-/plugin marketplace add https://github.com/RelationalAI/claude-plugins
-/plugin install shipwright@rai-claude-plugins
+git clone git@github.com:RelationalAI/shipwright.git
+cd shipwright
+/install-plugin .
 # restart session
 /shipwright
 ```
+
+> Marketplace install via `RelationalAI/claude-plugins` registry is planned but not yet available.
 
 ---
 
