@@ -3,5 +3,27 @@
   "description": "Adaptive agentic development framework for RAI engineering teams",
   "version": "0.1.0",
   "repository": "https://github.com/RelationalAI/shipwright",
-  "license": "MIT"
+  "license": "MIT",
+  "skills": [
+    "skills/tdd.md",
+    "skills/verification-before-completion.md",
+    "skills/systematic-debugging.md",
+    "skills/anti-rationalization.md",
+    "skills/decision-categorization.md",
+    "skills/brownfield-analysis.md"
+  ],
+  "agents": [
+    "agents/triage.md",
+    "agents/implementer.md",
+    "agents/reviewer.md",
+    "agents/validator.md",
+    "agents/doc-digest.md"
+  ],
+  "commands": [
+    "commands/shipwright.md",
+    "commands/shipwright-codebase-analyze.md",
+    "commands/shipwright-doc-digest.md",
+    "commands/shipwright-debug.md",
+    "commands/shipwright-report.md"
+  ]
 }
