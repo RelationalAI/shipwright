@@ -9,13 +9,14 @@ Shipwright orchestrates a disciplined bug fix workflow: triage, TDD implementati
 ## Installation
 
 ```bash
-# Clone the repo and install locally
-git clone git@github.com:RelationalAI/shipwright.git
-cd shipwright
-/install-plugin .
+# Add the RAI marketplace (one-time setup)
+/plugin marketplace add RelationalAI/claude-plugins
+
+# Install the beta plugin
+/plugin install shipwright-beta@rai-claude-plugins
 ```
 
-> **Coming soon:** Plugin marketplace install via `RelationalAI/claude-plugins` registry. For now, use the local install above.
+> **Stable release** coming soon. For now, Shipwright is available as a beta plugin.
 
 ## Usage
 
@@ -37,6 +38,7 @@ cd shipwright
 | `/shipwright:doc-digest <path>` | Walk through any document section by section |
 | `/shipwright:debug` | Standalone systematic debugging (4-phase) |
 | `/shipwright:report [description]` | File bugs, feedback, and suggestions on Shipwright |
+| `/promote [comment]` | Cherry-pick skills/agents/commands from beta to stable |
 
 ## Agents
 

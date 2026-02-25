@@ -1,6 +1,6 @@
 {
-  "name": "shipwright-beta",
-  "description": "Adaptive agentic development framework for RAI engineering teams (beta)",
+  "name": "shipwright",
+  "description": "Adaptive agentic development framework for RAI engineering teams",
   "version": "0.1.0",
   "author": {
     "name": "Owais Mohamed",
