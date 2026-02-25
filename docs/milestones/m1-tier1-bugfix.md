@@ -199,16 +199,13 @@ plugins/shipwright/
     shipwright-report.md             # file issues on Shipwright repo
 ```
 
-**Install (local):**
+**Install (beta):**
 ```bash
-git clone git@github.com:RelationalAI/shipwright.git
-cd shipwright
-/install-plugin .
+/plugin marketplace add RelationalAI/claude-plugins
+/plugin install shipwright-beta@rai-claude-plugins
 # restart session
 /shipwright
 ```
-
-> Marketplace install via `RelationalAI/claude-plugins` registry is planned but not yet available.
 
 ---
 
@@ -228,7 +225,7 @@ cd shipwright
 
 ## Success Criteria
 
-- A developer can install Shipwright from the plugin marketplace
+- A developer can install Shipwright from the RAI plugin marketplace (beta)
 - `/shipwright` starts a Tier 1 workflow for a bug fix
 - `/shipwright fix bug RAI-XXXX` fetches Jira ticket details (if Atlassian MCP available)
 - Triage reads codebase profiles (runs analysis if stale) and confirms tier

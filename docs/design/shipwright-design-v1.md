@@ -453,10 +453,10 @@ plugins/shipwright/
     codebase-analyze.md          (standalone assessment)
 ```
 
-**Install:**
+**Install (beta):**
 ```bash
-/plugin marketplace add https://github.com/RelationalAI/claude-plugins
-/plugin install shipwright@rai-claude-plugins
+/plugin marketplace add RelationalAI/claude-plugins
+/plugin install shipwright-beta@rai-claude-plugins
 # restart session
 /shipwright
 ```
