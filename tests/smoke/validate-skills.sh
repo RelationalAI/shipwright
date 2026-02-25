@@ -9,12 +9,12 @@ PASS=0
 FAIL=0
 
 SKILLS=(
-  tdd.md
-  verification-before-completion.md
-  systematic-debugging.md
-  anti-rationalization.md
-  decision-categorization.md
-  brownfield-analysis.md
+  tdd
+  verification-before-completion
+  systematic-debugging
+  anti-rationalization
+  decision-categorization
+  brownfield-analysis
 )
 
 pass() { echo "  PASS  $1"; PASS=$((PASS + 1)); }
@@ -23,7 +23,7 @@ fail() { echo "  FAIL  $1"; FAIL=$((FAIL + 1)); }
 echo "=== validate-skills ==="
 
 for skill in "${SKILLS[@]}"; do
-  filepath="$REPO_ROOT/skills/$skill"
+  filepath="$REPO_ROOT/skills/$skill/SKILL.md"
   echo ""
   echo "$skill:"
 

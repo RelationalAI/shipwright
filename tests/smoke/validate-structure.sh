@@ -25,12 +25,12 @@ echo "=== validate-structure ==="
 # --- Skills (6) ---
 echo ""
 echo "Skills:"
-check "skills/tdd.md"                        "$REPO_ROOT/skills/tdd.md"
-check "skills/verification-before-completion.md" "$REPO_ROOT/skills/verification-before-completion.md"
-check "skills/systematic-debugging.md"       "$REPO_ROOT/skills/systematic-debugging.md"
-check "skills/anti-rationalization.md"       "$REPO_ROOT/skills/anti-rationalization.md"
-check "skills/decision-categorization.md"    "$REPO_ROOT/skills/decision-categorization.md"
-check "skills/brownfield-analysis.md"        "$REPO_ROOT/skills/brownfield-analysis.md"
+check "skills/tdd/SKILL.md"                        "$REPO_ROOT/skills/tdd/SKILL.md"
+check "skills/verification-before-completion/SKILL.md" "$REPO_ROOT/skills/verification-before-completion/SKILL.md"
+check "skills/systematic-debugging/SKILL.md"       "$REPO_ROOT/skills/systematic-debugging/SKILL.md"
+check "skills/anti-rationalization/SKILL.md"       "$REPO_ROOT/skills/anti-rationalization/SKILL.md"
+check "skills/decision-categorization/SKILL.md"    "$REPO_ROOT/skills/decision-categorization/SKILL.md"
+check "skills/brownfield-analysis/SKILL.md"        "$REPO_ROOT/skills/brownfield-analysis/SKILL.md"
 
 # --- Agents (5) ---
 echo ""
@@ -57,7 +57,7 @@ check "plugin.json exists" "$REPO_ROOT/.claude-plugin/plugin.json"
 
 # Validate plugin.json has required keys
 if [ -f "$REPO_ROOT/.claude-plugin/plugin.json" ]; then
-  for key in name description version skills agents commands; do
+  for key in name description version author; do
     if grep -q "\"$key\"" "$REPO_ROOT/.claude-plugin/plugin.json"; then
       echo "  PASS  plugin.json contains \"$key\""
       PASS=$((PASS + 1))
