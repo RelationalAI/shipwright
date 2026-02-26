@@ -23,7 +23,9 @@ Read all provided context before starting review passes.
 
 ## Review Passes
 
-Run all three passes. They are independent and can execute in parallel.
+Run each pass in a separate agent/context. This is mandatory, not optional.
+
+**Why separate contexts:** The same reasoning behind independent confidence scoring applies here — findings from one pass must not bias another. A correctness bug found in Pass 1 should not make Pass 2 scrutinize that file's conventions more harshly. Isolation also keeps each pass's context focused, reducing noise.
 
 ### Pass 1: Correctness
 
