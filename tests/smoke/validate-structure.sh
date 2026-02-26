@@ -52,11 +52,11 @@ check "internal/agents/validator.md"    "$REPO_ROOT/internal/agents/validator.md
 # --- Commands (5) ---
 echo ""
 echo "Commands:"
-check "commands/shipwright.md"                "$REPO_ROOT/commands/shipwright.md"
-check "commands/shipwright-codebase-analyze.md" "$REPO_ROOT/commands/shipwright-codebase-analyze.md"
-check "commands/shipwright-doc-digest.md"     "$REPO_ROOT/commands/shipwright-doc-digest.md"
-check "commands/shipwright-debug.md"          "$REPO_ROOT/commands/shipwright-debug.md"
-check "commands/shipwright-report.md"         "$REPO_ROOT/commands/shipwright-report.md"
+check "commands/shipwright.md"        "$REPO_ROOT/commands/shipwright.md"
+check "commands/codebase-analyze.md" "$REPO_ROOT/commands/codebase-analyze.md"
+check "commands/doc-digest.md"       "$REPO_ROOT/commands/doc-digest.md"
+check "commands/debug.md"            "$REPO_ROOT/commands/debug.md"
+check "commands/report.md"           "$REPO_ROOT/commands/report.md"
 
 # --- plugin.json ---
 echo ""
