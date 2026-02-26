@@ -1,5 +1,3 @@
-> **Attribution:** Adapted from [Superpowers](https://github.com/obra/superpowers) by Jesse Vincent. Licensed under Apache 2.0.
-
 ---
 name: systematic-debugging
 description: Use when encountering any bug, test failure, or unexpected behavior, before proposing fixes. Part of the Shipwright adaptive development framework.

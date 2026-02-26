@@ -1,7 +1,5 @@
 # Anti-Rationalization
 
-> **Attribution:** Extracted from patterns in [Superpowers](https://github.com/obra/superpowers) by Jesse Vincent. Licensed under Apache 2.0.
-
 ## Overview
 
 Rationalization is the process of constructing a plausible justification for a decision you have already made. In code review and validation, rationalization means approving work without sufficient evidence that it is correct.

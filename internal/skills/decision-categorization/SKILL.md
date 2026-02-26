@@ -1,7 +1,5 @@
 # Decision Categorization
 
-> **Attribution:** Adapted from [GSD](https://github.com/gsd-build/get-shit-done) by gsd-build.
-
 ## Purpose
 
 During triage, the developer and agent brainstorm how to approach a fix. This skill

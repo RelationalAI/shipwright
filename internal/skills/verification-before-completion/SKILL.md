@@ -1,5 +1,3 @@
-> **Attribution:** Adapted from [Superpowers](https://github.com/obra/superpowers) by Jesse Vincent. Licensed under Apache 2.0.
-
 ---
 name: shipwright-verification-before-completion
 description: Shipwright skill — use when about to claim work is complete, fixed, or passing, before committing or creating PRs. Requires running verification commands and confirming output before making any success claims. Evidence before assertions, always.

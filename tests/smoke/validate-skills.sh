@@ -8,13 +8,16 @@ REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 PASS=0
 FAIL=0
 
-SKILLS=(
+USER_SKILLS=(
+  brownfield-analysis
+)
+
+INTERNAL_SKILLS=(
   tdd
   verification-before-completion
   systematic-debugging
   anti-rationalization
   decision-categorization
-  brownfield-analysis
 )
 
 pass() { echo "  PASS  $1"; PASS=$((PASS + 1)); }
@@ -22,8 +25,45 @@ fail() { echo "  FAIL  $1"; FAIL=$((FAIL + 1)); }
 
 echo "=== validate-skills ==="
 
-for skill in "${SKILLS[@]}"; do
+# Validate user-facing skills
+echo ""
+echo "User-facing skills:"
+for skill in "${USER_SKILLS[@]}"; do
   filepath="$REPO_ROOT/skills/$skill/SKILL.md"
+
+  echo ""
+  echo "$skill:"
+
+  if [ ! -s "$filepath" ]; then
+    fail "$skill is missing or empty"
+    continue
+  fi
+  pass "$skill exists and is non-empty"
+
+  if grep -q '> \*\*Attribution:\*\*' "$filepath"; then
+    pass "$skill has attribution header"
+  else
+    fail "$skill missing attribution header (expected '> **Attribution:**')"
+  fi
+
+  if grep -qi 'superpowers:' "$filepath"; then
+    fail "$skill references superpowers: namespace"
+  else
+    pass "$skill does not reference superpowers: namespace"
+  fi
+
+  if grep -q '\.planning/' "$filepath"; then
+    fail "$skill references .planning/ (GSD internal)"
+  else
+    pass "$skill does not reference .planning/"
+  fi
+done
+
+# Validate internal skills
+echo ""
+echo "Internal skills:"
+for skill in "${INTERNAL_SKILLS[@]}"; do
+  filepath="$REPO_ROOT/internal/skills/$skill/SKILL.md"
   echo ""
   echo "$skill:"
 

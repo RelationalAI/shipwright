@@ -22,33 +22,41 @@ check() {
 
 echo "=== validate-structure ==="
 
-# --- Skills (6) ---
+# --- User-facing skills (1) ---
 echo ""
-echo "Skills:"
-check "skills/tdd/SKILL.md"                        "$REPO_ROOT/skills/tdd/SKILL.md"
-check "skills/verification-before-completion/SKILL.md" "$REPO_ROOT/skills/verification-before-completion/SKILL.md"
-check "skills/systematic-debugging/SKILL.md"       "$REPO_ROOT/skills/systematic-debugging/SKILL.md"
-check "skills/anti-rationalization/SKILL.md"       "$REPO_ROOT/skills/anti-rationalization/SKILL.md"
-check "skills/decision-categorization/SKILL.md"    "$REPO_ROOT/skills/decision-categorization/SKILL.md"
+echo "User-facing skills:"
 check "skills/brownfield-analysis/SKILL.md"        "$REPO_ROOT/skills/brownfield-analysis/SKILL.md"
 
-# --- Agents (5) ---
+# --- Internal skills (5) ---
 echo ""
-echo "Agents:"
-check "agents/triage.md"       "$REPO_ROOT/agents/triage.md"
-check "agents/implementer.md"  "$REPO_ROOT/agents/implementer.md"
-check "agents/reviewer.md"     "$REPO_ROOT/agents/reviewer.md"
-check "agents/validator.md"    "$REPO_ROOT/agents/validator.md"
+echo "Internal skills:"
+check "internal/skills/tdd/SKILL.md"                        "$REPO_ROOT/internal/skills/tdd/SKILL.md"
+check "internal/skills/verification-before-completion/SKILL.md" "$REPO_ROOT/internal/skills/verification-before-completion/SKILL.md"
+check "internal/skills/systematic-debugging/SKILL.md"       "$REPO_ROOT/internal/skills/systematic-debugging/SKILL.md"
+check "internal/skills/anti-rationalization/SKILL.md"       "$REPO_ROOT/internal/skills/anti-rationalization/SKILL.md"
+check "internal/skills/decision-categorization/SKILL.md"    "$REPO_ROOT/internal/skills/decision-categorization/SKILL.md"
+
+# --- User-facing agents (1) ---
+echo ""
+echo "User-facing agents:"
 check "agents/doc-digest.md"   "$REPO_ROOT/agents/doc-digest.md"
+
+# --- Internal agents (4) ---
+echo ""
+echo "Internal agents:"
+check "internal/agents/triage.md"       "$REPO_ROOT/internal/agents/triage.md"
+check "internal/agents/implementer.md"  "$REPO_ROOT/internal/agents/implementer.md"
+check "internal/agents/reviewer.md"     "$REPO_ROOT/internal/agents/reviewer.md"
+check "internal/agents/validator.md"    "$REPO_ROOT/internal/agents/validator.md"
 
 # --- Commands (5) ---
 echo ""
 echo "Commands:"
-check "commands/shipwright.md"                "$REPO_ROOT/commands/shipwright.md"
-check "commands/shipwright-codebase-analyze.md" "$REPO_ROOT/commands/shipwright-codebase-analyze.md"
-check "commands/shipwright-doc-digest.md"     "$REPO_ROOT/commands/shipwright-doc-digest.md"
-check "commands/shipwright-debug.md"          "$REPO_ROOT/commands/shipwright-debug.md"
-check "commands/shipwright-report.md"         "$REPO_ROOT/commands/shipwright-report.md"
+check "commands/shipwright.md"        "$REPO_ROOT/commands/shipwright.md"
+check "commands/codebase-analyze.md" "$REPO_ROOT/commands/codebase-analyze.md"
+check "commands/doc-digest.md"       "$REPO_ROOT/commands/doc-digest.md"
+check "commands/debug.md"            "$REPO_ROOT/commands/debug.md"
+check "commands/report.md"           "$REPO_ROOT/commands/report.md"
 
 # --- plugin.json ---
 echo ""
