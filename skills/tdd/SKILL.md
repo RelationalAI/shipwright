@@ -1,5 +1,3 @@
-> **Attribution:** Adapted from [Superpowers](https://github.com/obra/superpowers) by Jesse Vincent. Licensed under Apache 2.0.
-
 ---
 name: tdd
 description: Shipwright TDD skill — use when implementing any feature or bugfix, before writing implementation code
