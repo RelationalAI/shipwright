@@ -10,10 +10,10 @@ FAIL=0
 
 COMMANDS=(
   shipwright.md
-  shipwright-codebase-analyze.md
-  shipwright-doc-digest.md
-  shipwright-debug.md
-  shipwright-report.md
+  codebase-analyze.md
+  doc-digest.md
+  debug.md
+  report.md
 )
 
 pass() { echo "  PASS  $1"; PASS=$((PASS + 1)); }

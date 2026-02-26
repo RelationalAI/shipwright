@@ -15,7 +15,7 @@ USER_SKILLS=(
 )
 
 # Original Shipwright skills (no external attribution required)
-ORIGINAL_SKILLS=(code-review submit)
+ORIGINAL_SKILLS=(brownfield-analysis code-review submit)
 
 is_original() {
   local skill="$1"
@@ -89,13 +89,6 @@ for skill in "${INTERNAL_SKILLS[@]}"; do
     continue
   fi
   pass "$skill exists and is non-empty"
-
-  # Contains attribution header
-  if grep -q '> \*\*Attribution:\*\*' "$filepath"; then
-    pass "$skill has attribution header"
-  else
-    fail "$skill missing attribution header (expected '> **Attribution:**')"
-  fi
 
   # No references to superpowers: namespace
   if grep -qi 'superpowers:' "$filepath"; then

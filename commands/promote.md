@@ -11,7 +11,7 @@ You are running the Shipwright promote command. Your job is to help the user che
 
 - **Beta** (active development): `skills/`, `agents/`, `commands/`, `internal/skills/`, `internal/agents/`
 - **Stable** (promoted): `stable/skills/`, `stable/agents/`, `stable/commands/`, `stable/internal/skills/`, `stable/internal/agents/`
-- **Beta manifest**: `.claude-plugin/plugin.json` (name: `shipwright-beta`)
+- **Beta manifest**: `.claude-plugin/plugin.json` (name: `shipwright`)
 - **Stable manifest**: `internal/plugin.stable.json` (name: `shipwright`) — not active until copied to `.claude-plugin/` during release
 
 ## Workflow
