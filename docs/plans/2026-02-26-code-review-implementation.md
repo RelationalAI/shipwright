@@ -1796,7 +1796,7 @@ Search for context that explains the intent behind the changes. This is optional
 
 ## Step 2: Run Code Review
 
-Invoke the `shipwright-beta:code-review` skill and follow its process exactly.
+Invoke the `shipwright:code-review` skill and follow its process exactly.
 
 **Model selection for this step:**
 - Review passes: use Opus (higher quality, fewer false positives — developer is paying and waiting)
