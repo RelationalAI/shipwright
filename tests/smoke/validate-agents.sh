@@ -8,12 +8,15 @@ REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 PASS=0
 FAIL=0
 
-AGENTS=(
+USER_AGENTS=(
+  doc-digest.md
+)
+
+INTERNAL_AGENTS=(
   triage.md
   implementer.md
   reviewer.md
   validator.md
-  doc-digest.md
 )
 
 pass() { echo "  PASS  $1"; PASS=$((PASS + 1)); }
@@ -21,8 +24,49 @@ fail() { echo "  FAIL  $1"; FAIL=$((FAIL + 1)); }
 
 echo "=== validate-agents ==="
 
-for agent in "${AGENTS[@]}"; do
+# Validate user-facing agents
+echo ""
+echo "User-facing agents:"
+for agent in "${USER_AGENTS[@]}"; do
   filepath="$REPO_ROOT/agents/$agent"
+
+  echo ""
+  echo "$agent:"
+
+  if [ ! -s "$filepath" ]; then
+    fail "$agent is missing or empty"
+    continue
+  fi
+  pass "$agent exists and is non-empty"
+
+  if grep -qi 'you are\|agent' "$filepath"; then
+    pass "$agent contains role description"
+  else
+    fail "$agent missing role description (expected 'You are' or 'agent')"
+  fi
+
+  if [ "$agent" = "doc-digest.md" ]; then
+    pass "$agent is self-contained (no skill injection expected)"
+  else
+    if grep -q 'skills/' "$filepath"; then
+      pass "$agent references at least one skill"
+    else
+      fail "$agent does not reference any skill"
+    fi
+  fi
+
+  if grep -qiE '## (Output|Return|Result|Returning)' "$filepath"; then
+    pass "$agent contains output/return format section"
+  else
+    fail "$agent missing output/return format section (expected ## Output, ## Return, or ## Result heading)"
+  fi
+done
+
+# Validate internal agents
+echo ""
+echo "Internal agents:"
+for agent in "${INTERNAL_AGENTS[@]}"; do
+  filepath="$REPO_ROOT/internal/agents/$agent"
   echo ""
   echo "$agent:"
 
