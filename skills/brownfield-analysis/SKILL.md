@@ -1,7 +1,5 @@
 # Brownfield Analysis
 
-> **Attribution:** Adapted from [GSD](https://github.com/gsd-build/get-shit-done) by gsd-build. Codebase mapper agent and map-codebase command.
-
 ## Purpose
 
 Analyze an existing codebase and produce focused profile documents covering technology stack, architecture, conventions, and concerns. These profiles give every Shipwright agent baseline context about the repository they are working in.
