@@ -117,7 +117,7 @@ The local developer flow. A single command from "done coding" to "draft PR ready
 
 - Fix loop uses sub-agents to keep the main context clean.
 - One auto-fix cycle, then hand back to developer. No infinite loops.
-- Override is always available — developer can skip review or push past blockers. CI catches it.
+- Review always runs — there is no flag to skip it. After seeing results, the developer can choose to proceed past blockers, but the review itself is mandatory.
 - Draft PR is the default. Author reviews on GitHub before marking ready for review.
 
 ### 3. CI Action (GitHub Action Workflow)
