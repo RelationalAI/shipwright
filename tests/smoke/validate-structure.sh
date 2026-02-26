@@ -22,10 +22,11 @@ check() {
 
 echo "=== validate-structure ==="
 
-# --- User-facing skills (1) ---
+# --- User-facing skills (2) ---
 echo ""
 echo "User-facing skills:"
 check "skills/brownfield-analysis/SKILL.md"        "$REPO_ROOT/skills/brownfield-analysis/SKILL.md"
+check "skills/code-review/SKILL.md"                "$REPO_ROOT/skills/code-review/SKILL.md"
 
 # --- Internal skills (5) ---
 echo ""
