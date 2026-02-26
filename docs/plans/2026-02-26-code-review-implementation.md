@@ -4,29 +4,37 @@
 
 **Goal:** Implement the two-layer AI-assisted code review system (local submit + CI automation) defined in `docs/plans/2026-02-26-code-review-design.md`.
 
-**Architecture:** Three components — a code-review skill (core review logic used by both flows), a submit command (local developer flow: review → fix → PR), and a CI GitHub Action (automated PR review with inline comments). The skill is model-agnostic; the invoking system controls model selection (Opus local, Sonnet CI, Haiku scoring).
+**Architecture:** Three components — a code-review skill (shared review logic in Shipwright), upgrades to `dev-review-agent` at `~/Dev/dev-review-agent` (CI review with three-pass structure, independent confidence scoring, structured output), and a submit skill (local developer flow: review → fix → PR). The skill is model-agnostic; the invoking system controls model selection (Opus local, Sonnet CI, Haiku scoring).
 
-**Tech Stack:** Markdown prompt engineering (skills, commands), GitHub Actions YAML (CI workflow), bash (smoke tests)
+**Tech Stack:** Markdown prompt engineering (Shipwright skills), TypeScript/LangChain (dev-review-agent), Jest (dev-review-agent tests), Bash (Shipwright smoke tests)
+
+**Repos:**
+- **Shipwright** — `/Users/tpaddock/Dev/shipwright` (Phases 1 & 3)
+- **dev-review-agent** — `/Users/tpaddock/Dev/dev-review-agent` (Phase 2)
 
 ---
 
-### Task 1: Add code-review skill to smoke tests (RED)
+## Phase 1: Shipwright — Code Review Skill
+
+### Task 1: Update smoke tests for code-review skill (RED)
 
 **Files:**
-- Modify: `tests/smoke/validate-structure.sh:27-33`
-- Modify: `tests/smoke/validate-skills.sh:11-18`
+- Modify: `tests/smoke/validate-structure.sh:33`
+- Modify: `tests/smoke/validate-skills.sh:11-18,37-42`
 
 **Step 1: Add code-review to validate-structure.sh**
 
-In `tests/smoke/validate-structure.sh`, add after line 33 (the last skill check):
+In `tests/smoke/validate-structure.sh`, add after line 33 (after `brownfield-analysis` check):
 
 ```bash
 check "skills/code-review/SKILL.md"             "$REPO_ROOT/skills/code-review/SKILL.md"
 ```
 
-**Step 2: Add code-review to validate-skills.sh**
+Also update the comment on line 25 from `# --- Skills (6) ---` to `# --- Skills (7) ---`.
 
-In `tests/smoke/validate-skills.sh`, add `code-review` to the end of the SKILLS array:
+**Step 2: Add code-review to the SKILLS array in validate-skills.sh**
+
+In `tests/smoke/validate-skills.sh`, add `code-review` to the end of the SKILLS array (after `brownfield-analysis` on line 17):
 
 ```bash
 SKILLS=(
@@ -40,12 +48,14 @@ SKILLS=(
 )
 ```
 
-**Step 3: Make attribution check optional for original skills**
+**Step 3: Make attribution check skip original skills**
 
-In `tests/smoke/validate-skills.sh`, add an `ORIGINAL_SKILLS` array and helper function after the `SKILLS` array:
+The code-review skill is original Shipwright work (no external attribution). Add an `ORIGINAL_SKILLS` array and helper after the SKILLS array (after line 18), and modify the attribution check.
+
+Add after the SKILLS array:
 
 ```bash
-# Skills without external attribution (original Shipwright work)
+# Original Shipwright skills (no external attribution required)
 ORIGINAL_SKILLS=(code-review)
 
 is_original() {
@@ -57,7 +67,7 @@ is_original() {
 }
 ```
 
-Then replace the existing attribution check block:
+Replace lines 37-42 (the existing attribution check block):
 
 ```bash
   # Contains attribution header
@@ -100,13 +110,11 @@ git commit -m "test: add code-review skill to smoke validation (RED)"
 **Files:**
 - Create: `skills/code-review/SKILL.md`
 
-**Step 1: Create skill directory**
+**Step 1: Create the skill file**
 
 ```bash
 mkdir -p skills/code-review
 ```
-
-**Step 2: Write the code-review skill**
 
 Create `skills/code-review/SKILL.md` with the following content:
 
@@ -122,7 +130,7 @@ description: Structured three-pass code review (correctness, conventions, test q
 
 Find real issues that a human reviewer should care about. Do not waste reviewer time with noise. Every finding must survive independent scrutiny.
 
-The skill is model-agnostic — the invoking system controls model selection (Opus local, Sonnet CI, Haiku scoring).
+This skill is model-agnostic — the invoking system controls model selection (Opus local, Sonnet CI, Haiku scoring).
 
 ## Inputs
 
@@ -245,12 +253,12 @@ These rules are mandatory. Violating them produces noise that wastes human revie
 6. **Do not flag removed code.** If code was deleted, do not flag issues in the deleted code. It no longer exists.
 ````
 
-**Step 3: Run smoke tests to verify they pass**
+**Step 2: Run smoke tests to verify they pass**
 
 Run: `bash tests/smoke/run-all.sh`
 Expected: PASS — all checks including new code-review skill
 
-**Step 4: Commit**
+**Step 3: Commit**
 
 ```bash
 git add skills/code-review/SKILL.md
@@ -259,67 +267,1498 @@ git commit -m "feat: add code-review skill — three-pass review with confidence
 
 ---
 
-### Task 3: Add submit command to smoke tests (RED)
+### Task 3: Add root package.json for npm installability
+
+The dev-review-agent (Phase 2) will depend on Shipwright as a git-based npm dependency. For `npm install github:RelationalAI/shipwright#<tag>` to work and for the skill file to appear at `node_modules/shipwright/skills/code-review/SKILL.md`, Shipwright needs a root `package.json`.
 
 **Files:**
-- Modify: `tests/smoke/validate-structure.sh:47-51`
-- Modify: `tests/smoke/validate-commands.sh:11-17`
+- Create: `package.json`
 
-**Step 1: Add shipwright-submit to validate-structure.sh**
+**Step 1: Create a minimal package.json**
 
-In `tests/smoke/validate-structure.sh`, add after line 51 (the last command check):
+Create `package.json` at the repo root:
 
-```bash
-check "commands/shipwright-submit.md"    "$REPO_ROOT/commands/shipwright-submit.md"
+```json
+{
+  "name": "shipwright",
+  "version": "0.1.0",
+  "description": "Adaptive agentic development framework for engineering teams",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RelationalAI/shipwright.git"
+  }
+}
 ```
 
-**Step 2: Add shipwright-submit to validate-commands.sh**
-
-In `tests/smoke/validate-commands.sh`, add `shipwright-submit.md` to the end of the COMMANDS array:
+**Step 2: Commit**
 
 ```bash
-COMMANDS=(
-  shipwright.md
-  shipwright-codebase-analyze.md
-  shipwright-doc-digest.md
-  shipwright-debug.md
-  shipwright-report.md
-  shipwright-submit.md
+git add package.json
+git commit -m "chore: add root package.json for npm dependency resolution"
+```
+
+---
+
+## Phase 2: dev-review-agent Upgrades
+
+**Working directory:** `~/Dev/dev-review-agent`
+
+Before starting Phase 2, create a feature branch:
+
+```bash
+cd ~/Dev/dev-review-agent
+git checkout -b feat/shipwright-review-integration
+```
+
+### Task 4: Add Shipwright dependency and build-time skill embedding (design 3a)
+
+**Files:**
+- Modify: `package.json` (add dependency + scripts)
+- Create: `scripts/generate-skill.ts`
+- Create: `scripts/generate-skill.test.ts`
+- Modify: `.gitignore`
+
+**Step 1: Write the failing test**
+
+Create `scripts/generate-skill.test.ts`:
+
+```typescript
+import { describe, it, expect } from "@jest/globals";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { execSync } from "node:child_process";
+
+describe("generate-skill", () => {
+  const generatedPath = path.resolve(
+    __dirname,
+    "../src/generated/review-skill.ts",
+  );
+
+  it("generates review-skill.ts from shipwright dependency", () => {
+    execSync("npx ts-node scripts/generate-skill.ts", { stdio: "pipe" });
+
+    expect(fs.existsSync(generatedPath)).toBe(true);
+
+    const content = fs.readFileSync(generatedPath, "utf-8");
+    expect(content).toContain("export const REVIEW_SKILL_CONTENT");
+    expect(content).toContain("Code Review");
+    expect(content).toContain("Correctness");
+    expect(content).toContain("Conventions");
+    expect(content).toContain("Test Quality");
+    expect(content).toContain("Confidence Scoring");
+    expect(content).toContain("False Positive Avoidance");
+  });
+});
+```
+
+**Step 2: Run test to verify it fails**
+
+Run: `npx jest scripts/generate-skill.test.ts`
+Expected: FAIL — script doesn't exist
+
+**Step 3: Add Shipwright as a git dependency**
+
+In `package.json`, add to `dependencies`:
+
+```json
+"shipwright": "github:RelationalAI/shipwright#main"
+```
+
+Run: `npm install`
+
+Verify: `ls node_modules/shipwright/skills/code-review/SKILL.md` — should exist.
+
+**Step 4: Create the generate-skill script**
+
+Create `scripts/generate-skill.ts`:
+
+```typescript
+import * as fs from "node:fs";
+import * as path from "node:path";
+
+const SKILL_PATH = path.resolve(
+  __dirname,
+  "../node_modules/shipwright/skills/code-review/SKILL.md",
+);
+const OUTPUT_PATH = path.resolve(
+  __dirname,
+  "../src/generated/review-skill.ts",
+);
+
+function main(): void {
+  if (!fs.existsSync(SKILL_PATH)) {
+    throw new Error(
+      `Shipwright code-review skill not found at ${SKILL_PATH}. ` +
+        `Run 'npm install' to fetch the shipwright dependency.`,
+    );
+  }
+
+  const content = fs.readFileSync(SKILL_PATH, "utf-8");
+  // Strip YAML frontmatter if present
+  const stripped = content.replace(/^---[\s\S]*?---\n/, "");
+
+  const output = `// AUTO-GENERATED — do not edit manually.
+// Source: shipwright/skills/code-review/SKILL.md
+// Regenerate with: npx ts-node scripts/generate-skill.ts
+
+export const REVIEW_SKILL_CONTENT = ${JSON.stringify(stripped)};
+`;
+
+  const dir = path.dirname(OUTPUT_PATH);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+
+  fs.writeFileSync(OUTPUT_PATH, output, "utf-8");
+  console.log(`Generated ${OUTPUT_PATH}`);
+}
+
+main();
+```
+
+**Step 5: Add scripts to package.json**
+
+In `package.json`, add/modify scripts:
+
+```json
+"generate": "npx ts-node scripts/generate-skill.ts",
+"prepackage": "npm run generate"
+```
+
+The existing `package` script (`npx ncc build src/index.ts -o dist --source-map`) stays unchanged — `prepackage` runs automatically before it.
+
+**Step 6: Add src/generated/ to .gitignore**
+
+Append to `.gitignore`:
+
+```
+src/generated/
+```
+
+**Step 7: Run the generate script and test**
+
+Run: `npm run generate`
+Expected: Creates `src/generated/review-skill.ts`
+
+Run: `npx jest scripts/generate-skill.test.ts`
+Expected: PASS
+
+**Step 8: Commit**
+
+```bash
+git add package.json scripts/generate-skill.ts scripts/generate-skill.test.ts .gitignore
+git commit -m "feat: add shipwright dependency and build-time skill embedding (3a)"
+```
+
+---
+
+### Task 5: Read CLAUDE.md content and extend config (design 3c)
+
+**Files:**
+- Modify: `src/agent/types.ts` — add `claudeMdContent` to `AgentConfig`
+- Modify: `src/context.ts` — read `CLAUDE.md` and pass content
+- Modify: `src/run.test.ts` — add test for CLAUDE.md reading
+
+**Step 1: Write the failing test**
+
+In `src/run.test.ts`, add a new test case inside the `describe("run", ...)` block:
+
+```typescript
+  it("should include CLAUDE.md content in system prompt when file exists", async () => {
+    process.env["INPUT_ANTHROPIC_API_KEY"] = "some-key";
+    mockExistsSync.mockImplementation((path) => {
+      if (typeof path === "string" && path.endsWith("CLAUDE.md")) return true;
+      return true; // dev-agent.yml also exists
+    });
+    mockReadFileSync.mockImplementation((path) => {
+      if (typeof path === "string" && path.toString().endsWith("CLAUDE.md")) {
+        return "## Test Rules\nAlways use snake_case for variables.";
+      }
+      return `version: 1`;
+    });
+
+    mockGithubContext({
+      eventName: "pull_request",
+      repo: { owner: "test-owner", repo: "test-repo" },
+      payload: {
+        action: "ready_for_review",
+        pull_request: {
+          number: 42,
+          base: { ref: "main", sha: "base-sha" },
+          head: { sha: "head-sha" },
+        },
+      },
+    });
+
+    await run();
+
+    const streamArgs =
+      (agentMock as jest.Mocked<langchain.ReactAgent>).stream.mock
+        .calls[0][0] ?? {};
+    const messages = (streamArgs as { messages: Message[] }).messages;
+    const systemContent = messages[0].content;
+    // The system prompt should contain the CLAUDE.md content
+    const fullText = Array.isArray(systemContent)
+      ? systemContent.map((c: ContentBlock) => c.text).join(" ")
+      : systemContent;
+    expect(fullText).toContain("Always use snake_case for variables");
+  });
+```
+
+**Step 2: Run test to verify it fails**
+
+Run: `npx jest src/run.test.ts --testNamePattern "CLAUDE.md"`
+Expected: FAIL
+
+**Step 3: Add claudeMdContent to AgentConfig**
+
+In `src/agent/types.ts`, add to the `AgentConfig` type (after `workspace: string`):
+
+```typescript
+  claudeMdContent?: string;
+```
+
+**Step 4: Read CLAUDE.md in context.ts**
+
+In `src/context.ts`, inside `createContext()`, after reading `dev-agent.yml` (after line 46), add:
+
+```typescript
+  // Auto-read CLAUDE.md for convention review context
+  const claudeMdPath = `${workspace}/CLAUDE.md`;
+  let claudeMdContent: string | undefined;
+  if (fs.existsSync(claudeMdPath)) {
+    claudeMdContent = fs.readFileSync(claudeMdPath, "utf-8");
+    console.log("Found CLAUDE.md — will include in review context");
+  }
+```
+
+Then in the returned `agentConfig` object (around line 57), add `claudeMdContent`:
+
+```typescript
+    agentConfig: {
+      workspace,
+      anthropicApiKey: core.getInput("anthropic_api_key") || undefined,
+      ollamaBaseUrl: process.env["OLLAMA_BASE_URL"] || undefined,
+      ollamaModel: process.env["OLLAMA_MODEL"] || undefined,
+      claudeMdContent,
+      repoConfig,
+    },
+```
+
+**Step 5: Run test to verify it passes**
+
+Run: `npx jest src/run.test.ts --testNamePattern "CLAUDE.md"`
+Expected: PASS (the content is now available in config, but not yet in the prompt — that comes in Task 6)
+
+Note: If the test expects the content in the system prompt already, it may still fail at this point. In that case, move the test assertion to Task 6 and just verify here that `claudeMdContent` is populated in the config. Add a unit test for `createContext` instead.
+
+**Step 6: Commit**
+
+```bash
+git add src/agent/types.ts src/context.ts src/run.test.ts
+git commit -m "feat: auto-read CLAUDE.md into agent config (3c)"
+```
+
+---
+
+### Task 6: Restructure system prompt with skill content + citation rules (design 3b, 3e)
+
+Replace the hardcoded review instructions in `InstructionsBuilder` with the shared skill content from the generated file, plus CI-specific framing.
+
+**Files:**
+- Modify: `src/agent/instructions.ts:84-143`
+- Modify: `src/run.test.ts` — update system prompt assertions
+
+**Step 1: Update the test expectations**
+
+The existing test at line 104 (`"should create agent and build user & system prompt"`) asserts on the old prompt content. Update it to assert on the new skill-based content instead.
+
+Replace the system prompt assertion (lines 139-181) with:
+
+```typescript
+    const systemText = (messages[0].content[0] as ContentBlock).text;
+    // Skill-based content
+    expect(systemText).toContain("Code Review");
+    expect(systemText).toContain("Pass 1: Correctness");
+    expect(systemText).toContain("Pass 2: Conventions");
+    expect(systemText).toContain("Pass 3: Test Quality");
+    expect(systemText).toContain("False Positive Avoidance");
+    // CI-specific framing
+    expect(systemText).toContain("get_pull_request_diff");
+    expect(systemText).toContain("get_file_content");
+    expect(systemText).toContain("get_review_comments");
+```
+
+**Step 2: Run test to verify it fails**
+
+Run: `npx jest src/run.test.ts --testNamePattern "system prompt"`
+Expected: FAIL — old prompt content doesn't match new assertions
+
+**Step 3: Restructure the devAgentSystemPrompt getter**
+
+In `src/agent/instructions.ts`, replace the `devAgentSystemPrompt` getter (lines 84-143) with:
+
+```typescript
+  get devAgentSystemPrompt(): ContentBlock.Text {
+    if (!this.devAgentTools) {
+      throw new Error(
+        "DevReviewAgentTools must be provided to build dev agent prompts.",
+      );
+    }
+
+    const basePrompt = `You are a Senior Software Engineer acting as a code reviewer. Today's date is ${new Date().toISOString().split("T")[0]}.
+
+Your goal is to provide high-signal, low-noise feedback. You must understand the *intent* of the changes before criticizing the *implementation*.
+
+## Shared Review Guidelines
+
+${REVIEW_SKILL_CONTENT}
+
+## CI-Specific Instructions
+
+### Context Verification
+- Do not assume a variable is undefined just because you don't see it in the diff.
+- If you suspect a bug (missing import, undefined variable), you MUST use \`${this.devAgentTools.getFileContent.name}\` to check the full file first.
+- Use \`${this.devAgentTools.getFileContent.name}\` ONLY for files relevant to the changed files.
+
+${this.config.claudeMdContent ? `### Project Standards (CLAUDE.md)\n\nThe following project standards apply. For convention findings, you MUST cite the exact text from these standards:\n\n${this.config.claudeMdContent}\n` : "### Project Standards\n\nNo CLAUDE.md found. Convention checking is limited to code comment compliance and codebase pattern consistency.\n"}
+
+### Output Format
+Use the structured format from \`${this.devAgentTools.getPullRequestDiff.name}\`.
+For every comment, you must provide:
+- **path**: Relative file path matching the diff exactly. Context files must not be referenced.
+- **line**: Line number in the NEW file corresponding to the diff.
+- **side**: 'RIGHT'.
+- **body**: The comment with:
+  - **Severity badge**: Start with \`[blocker]\`, \`[warning]\`, or \`[nit]\`
+  - **Category tag**: Include \`(correctness)\`, \`(convention)\`, or \`(test-quality)\`
+  - **Be specific**: "This causes a re-render loop because X" not "Fix this."
+  - **Show, don't tell**: Include a brief code snippet of the fix when possible.
+  - **Tone**: Professional, constructive, humble. ("Consider..." not "You must...")
+  - **Citation**: For convention findings, include the exact CLAUDE.md quote.
+- **confidence**: 1 (least) to 5 (most confident).
+Include all file names from the diff in the response.
+
+### Execution Steps
+1. Fetch changes using \`${this.devAgentTools.getPullRequestDiff.name}\`.
+2. Fetch previous comments using \`${this.devAgentTools.getDevAgentReviewComments.name}\`.
+3. Analyze strictly based on the diff and verified full-file context.
+4. Run all three review passes (Correctness, Conventions, Test Quality).
+5. Generate review comments. Eliminate duplicates and comments with confidence < ${DEFAULT_CONFIDENCE_THRESHOLD}.
+6. Include an overall recommendation: NEEDS_CHANGES if any blocker, otherwise APPROVE.
+7. The main review body should be ≤100 words and include the recommendation.
+`;
+
+    return {
+      type: "text",
+      text: basePrompt,
+      cache_control: { type: "ephemeral" },
+    };
+  }
+```
+
+Add the import at the top of `src/agent/instructions.ts`:
+
+```typescript
+import { REVIEW_SKILL_CONTENT } from "../generated/review-skill";
+```
+
+Also add `claudeMdContent` to the `RepoConfig` usage — the `InstructionsBuilder` constructor already receives `config: RepoConfig`, but `claudeMdContent` is on `AgentConfig`. Update the constructor to also accept `claudeMdContent`:
+
+In the constructor, change the config type or add a separate parameter. The simplest approach: extend the constructor options:
+
+```typescript
+  private claudeMdContent?: string;
+
+  constructor({
+    config,
+    claudeMdContent,
+    devAgentTools,
+    evaluationAgentTools,
+  }: {
+    config: RepoConfig;
+    claudeMdContent?: string;
+    devAgentTools?: DevReviewAgentTools;
+    evaluationAgentTools?: EvaluationAgentTools;
+  }) {
+    this.config = config;
+    this.claudeMdContent = claudeMdContent;
+    this.devAgentTools = devAgentTools;
+    this.evaluationAgentTools = evaluationAgentTools;
+  }
+```
+
+Then replace `this.config.claudeMdContent` with `this.claudeMdContent` in the prompt template above.
+
+Update the caller in `src/agent/index.ts` (line 37-40) to pass `claudeMdContent`:
+
+```typescript
+    this.instructionsBuilder = new InstructionsBuilder({
+      config: this.config.repoConfig,
+      claudeMdContent: this.config.claudeMdContent,
+      devAgentTools: this.tools,
+    });
+```
+
+**Step 4: Run tests**
+
+Run: `npx jest src/run.test.ts`
+Expected: PASS (after updating all affected test assertions)
+
+**Step 5: Commit**
+
+```bash
+git add src/agent/instructions.ts src/agent/index.ts src/run.test.ts
+git commit -m "feat: restructure system prompt with shared skill content (3b, 3e)"
+```
+
+---
+
+### Task 7: Update output schema for severity, category, and recommendation (design 3f)
+
+Change the review comment schema to include severity, category, and overall recommendation.
+
+**Files:**
+- Modify: `src/tools/github/tools.ts:155-181` — update `submitPullRequestReviewSchema`
+- Modify: `src/tools/github/tools.ts:230-235` — update comment filtering
+- Modify: `src/run.test.ts` — update mock structured response
+
+**Step 1: Write the failing test**
+
+Update the `agentMock` structured response (around line 68-83 in `src/run.test.ts`) to include the new fields:
+
+```typescript
+const agentMock: DeepPartial<langchain.ReactAgent> = {
+  stream: jest.fn().mockImplementation(function* () {
+    yield {
+      structuredResponse: {
+        owner: "test-owner",
+        repo: "test-repo",
+        pull_number: 42,
+        body: "Looks good to me!",
+        recommendation: "APPROVE",
+        event: "COMMENT",
+        commit: "head-sha",
+        files: [],
+        comments: [],
+      },
+      messages: [],
+    };
+  }),
+};
+```
+
+Add a test that verifies the recommendation appears in the review body:
+
+```typescript
+  it("should include recommendation in review body", async () => {
+    process.env["INPUT_ANTHROPIC_API_KEY"] = "some-key";
+    mockGithubContext({
+      eventName: "pull_request",
+      repo: { owner: "test-owner", repo: "test-repo" },
+      payload: {
+        action: "ready_for_review",
+        pull_request: {
+          number: 42,
+          base: { ref: "main", sha: "base-sha" },
+          head: { sha: "head-sha" },
+        },
+      },
+    });
+
+    await run();
+
+    expect(octokitMock.rest.pulls.createReview).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.stringContaining("APPROVE"),
+      }),
+    );
+  });
+```
+
+**Step 2: Run test to verify it fails**
+
+Run: `npx jest src/run.test.ts --testNamePattern "recommendation"`
+Expected: FAIL
+
+**Step 3: Update the schema**
+
+In `src/tools/github/tools.ts`, update `submitPullRequestReviewSchema` (lines 155-181):
+
+```typescript
+export const submitPullRequestReviewSchema = z.object({
+  owner: z.string().describe("The owner of the repository"),
+  repo: z.string().describe("The name of the repository"),
+  pull_number: z.number().describe("The number of the pull request"),
+  body: z.string().describe("The body text of the review (≤100 words)"),
+  recommendation: z
+    .enum(["APPROVE", "NEEDS_CHANGES"])
+    .describe(
+      "Overall recommendation: NEEDS_CHANGES if any blocker, otherwise APPROVE",
+    ),
+  event: z.enum(["COMMENT"]).describe("The review action"),
+  commit: z.string().describe("The commit SHA the review is for"),
+  files: z
+    .array(z.string())
+    .describe("The list of files in the pull request diff"),
+  comments: z
+    .array(
+      z.object({
+        path: z.string().describe("The relative path to the file"),
+        line: z.number().describe("The line number in the file"),
+        side: z.enum(["RIGHT"]).describe("The side of the diff"),
+        body: z.string().describe("The comment text"),
+        severity: z
+          .enum(["blocker", "warning", "nit"])
+          .describe("Finding severity"),
+        category: z
+          .enum(["correctness", "convention", "test-quality"])
+          .describe("Finding category"),
+        confidence: z
+          .number()
+          .min(1)
+          .max(5)
+          .describe("The confidence level of the comment"),
+      }),
+    )
+    .describe("Line-specific comments"),
+});
+```
+
+**Step 4: Update review submission to include recommendation**
+
+In `src/agent/index.ts`, in the `reviewPullRequest` method, after parsing the review (around line 193-195), prepend the recommendation to the body:
+
+```typescript
+            const review = submitPullRequestReviewSchema.parse(response);
+
+            // Prepend recommendation badge
+            const badge =
+              review.recommendation === "APPROVE"
+                ? "✅ **APPROVE**"
+                : "🚫 **NEEDS_CHANGES**";
+            review.body = `${badge}\n\n${review.body}`;
+```
+
+**Step 5: Run tests**
+
+Run: `npx jest`
+Expected: PASS
+
+**Step 6: Commit**
+
+```bash
+git add src/tools/github/tools.ts src/agent/index.ts src/run.test.ts
+git commit -m "feat: structured output with severity, category, recommendation (3f)"
+```
+
+---
+
+### Task 8: Independent confidence scoring module (design 3d)
+
+Create a new module that scores each finding independently using Haiku, replacing the self-assigned confidence from the review agent.
+
+**Files:**
+- Create: `src/agent/confidence.ts`
+- Create: `src/agent/confidence.test.ts`
+- Modify: `src/agent/llm.ts` — add Haiku model factory
+- Modify: `src/agent/utils.ts` — add Haiku cost entry
+- Modify: `src/agent/constants.ts` — add Haiku model constant
+
+**Step 1: Write the failing test**
+
+Create `src/agent/confidence.test.ts`:
+
+```typescript
+import { describe, it, expect, jest } from "@jest/globals";
+import { scoreFindings, type RawFinding } from "./confidence";
+import { ChatAnthropic } from "@langchain/anthropic";
+
+jest.mock("@langchain/anthropic");
+
+describe("scoreFindings", () => {
+  const mockInvoke = jest.fn();
+
+  beforeEach(() => {
+    (ChatAnthropic as jest.MockedClass<typeof ChatAnthropic>).mockImplementation(
+      () =>
+        ({
+          withStructuredOutput: jest.fn().mockReturnValue({
+            invoke: mockInvoke,
+          }),
+        }) as any,
+    );
+  });
+
+  const finding: RawFinding = {
+    path: "src/auth.ts",
+    line: 42,
+    side: "RIGHT" as const,
+    body: "[blocker] (correctness) Missing null check on user lookup",
+    severity: "blocker" as const,
+    category: "correctness" as const,
+    confidence: 4,
+  };
+
+  it("keeps findings scoring 80+", async () => {
+    mockInvoke.mockResolvedValue({ score: 90 });
+
+    const results = await scoreFindings({
+      findings: [finding],
+      diffContext: "diff --git a/src/auth.ts",
+      apiKey: "test-key",
+    });
+
+    expect(results).toHaveLength(1);
+    expect(results[0].confidence).toBe(90);
+  });
+
+  it("drops findings scoring below 80", async () => {
+    mockInvoke.mockResolvedValue({ score: 50 });
+
+    const results = await scoreFindings({
+      findings: [finding],
+      diffContext: "diff --git a/src/auth.ts",
+      apiKey: "test-key",
+    });
+
+    expect(results).toHaveLength(0);
+  });
+
+  it("handles empty findings list", async () => {
+    const results = await scoreFindings({
+      findings: [],
+      diffContext: "",
+      apiKey: "test-key",
+    });
+
+    expect(results).toHaveLength(0);
+    expect(mockInvoke).not.toHaveBeenCalled();
+  });
+});
+```
+
+**Step 2: Run test to verify it fails**
+
+Run: `npx jest src/agent/confidence.test.ts`
+Expected: FAIL — module doesn't exist
+
+**Step 3: Add Haiku model constant and cost**
+
+In `src/agent/constants.ts`, add:
+
+```typescript
+export const DEFAULT_HAIKU_MODEL = "claude-haiku-4-5-20251001";
+export const CONFIDENCE_THRESHOLD = 80;
+```
+
+In `src/agent/utils.ts`, add Haiku to `MODEL_COSTS_PER_1M_TOKENS`:
+
+```typescript
+  "claude-haiku-4-5": {
+    inputTokenCostPer1M: 0.8,
+    outputTokenCostPer1M: 4,
+  },
+```
+
+**Step 4: Create the confidence scoring module**
+
+Create `src/agent/confidence.ts`:
+
+```typescript
+import { ChatAnthropic } from "@langchain/anthropic";
+import { z } from "zod";
+import { CONFIDENCE_THRESHOLD, DEFAULT_HAIKU_MODEL } from "./constants";
+
+export type RawFinding = {
+  path: string;
+  line: number;
+  side: "RIGHT";
+  body: string;
+  severity: "blocker" | "warning" | "nit";
+  category: "correctness" | "convention" | "test-quality";
+  confidence: number;
+};
+
+export type ScoredFinding = RawFinding & {
+  confidence: number; // 0-100 from independent scoring
+};
+
+const scoreSchema = z.object({
+  score: z
+    .number()
+    .min(0)
+    .max(100)
+    .describe("Confidence score for this finding"),
+});
+
+const SCORING_PROMPT = `You are an independent code review evaluator. Your job is to score a single review finding on a 0-100 scale.
+
+## Scoring Rubric
+
+| Score | Meaning |
+|-------|---------|
+| 0 | False positive — does not hold up to scrutiny, or pre-existing issue |
+| 25 | Might be real — could not verify with available context |
+| 50 | Verified real — but nitpick, rare in practice, or cosmetic |
+| 75 | Verified — very likely real, important, should be addressed |
+| 100 | Definitely real — evidence directly confirms, happens frequently |
+
+## Instructions
+
+1. Read the finding description and the diff context carefully.
+2. Evaluate whether the finding is real and important.
+3. Consider: Is this a real bug or a false positive? Is it pre-existing? Would a linter catch it?
+4. Return a single score.
+
+## Finding
+
+File: {path}
+Line: {line}
+Severity: {severity}
+Category: {category}
+Description: {body}
+
+## Diff Context
+
+{diffContext}
+`;
+
+export const scoreFindings = async ({
+  findings,
+  diffContext,
+  apiKey,
+  model = DEFAULT_HAIKU_MODEL,
+}: {
+  findings: RawFinding[];
+  diffContext: string;
+  apiKey: string;
+  model?: string;
+}): Promise<ScoredFinding[]> => {
+  if (findings.length === 0) return [];
+
+  const llm = new ChatAnthropic({
+    apiKey,
+    model,
+    temperature: 0,
+    maxTokens: 256,
+  });
+
+  const structuredLlm = llm.withStructuredOutput(scoreSchema);
+
+  const scored = await Promise.all(
+    findings.map(async (finding): Promise<ScoredFinding | null> => {
+      try {
+        const prompt = SCORING_PROMPT.replace("{path}", finding.path)
+          .replace("{line}", String(finding.line))
+          .replace("{severity}", finding.severity)
+          .replace("{category}", finding.category)
+          .replace("{body}", finding.body)
+          .replace("{diffContext}", diffContext);
+
+        const result = await structuredLlm.invoke(prompt);
+        const score = result.score;
+
+        if (score < CONFIDENCE_THRESHOLD) {
+          console.log(
+            `Dropping finding (${finding.path}:${finding.line}): score ${score} < ${CONFIDENCE_THRESHOLD}`,
+          );
+          return null;
+        }
+
+        return { ...finding, confidence: score };
+      } catch (error) {
+        console.warn(
+          `Failed to score finding at ${finding.path}:${finding.line}: ${String(error)}`,
+        );
+        // On scoring failure, keep the finding with original confidence mapped to 0-100
+        return { ...finding, confidence: finding.confidence * 20 };
+      }
+    }),
+  );
+
+  return scored.filter((f): f is ScoredFinding => f !== null);
+};
+```
+
+**Step 5: Run the test**
+
+Run: `npx jest src/agent/confidence.test.ts`
+Expected: PASS
+
+**Step 6: Commit**
+
+```bash
+git add src/agent/confidence.ts src/agent/confidence.test.ts src/agent/constants.ts src/agent/utils.ts
+git commit -m "feat: independent confidence scoring module with Haiku (3d)"
+```
+
+---
+
+### Task 9: Wire confidence scoring into the review flow
+
+Integrate the confidence scoring module into the review pipeline. After the review agent produces findings, run the Haiku scorer and filter.
+
+**Files:**
+- Modify: `src/agent/index.ts` — call `scoreFindings` after agent response
+- Modify: `src/run.test.ts` — verify scoring integration
+
+**Step 1: Write the failing test**
+
+Add to `src/run.test.ts`:
+
+```typescript
+  it("should filter findings through confidence scoring", async () => {
+    process.env["INPUT_ANTHROPIC_API_KEY"] = "some-key";
+    // Mock agent to return findings
+    agentMock.stream = jest.fn().mockImplementation(function* () {
+      yield {
+        structuredResponse: {
+          owner: "test-owner",
+          repo: "test-repo",
+          pull_number: 42,
+          body: "Found issues",
+          recommendation: "NEEDS_CHANGES",
+          event: "COMMENT",
+          commit: "head-sha",
+          files: ["src/auth.ts"],
+          comments: [
+            {
+              path: "src/auth.ts",
+              line: 10,
+              side: "RIGHT",
+              body: "[blocker] (correctness) Real bug",
+              severity: "blocker",
+              category: "correctness",
+              confidence: 5,
+            },
+          ],
+        },
+        messages: [],
+      };
+    });
+
+    mockGithubContext({
+      eventName: "pull_request",
+      repo: { owner: "test-owner", repo: "test-repo" },
+      payload: {
+        action: "ready_for_review",
+        pull_request: {
+          number: 42,
+          base: { ref: "main", sha: "base-sha" },
+          head: { sha: "head-sha" },
+        },
+      },
+    });
+
+    await run();
+
+    // Verify createReview was called (confidence scoring may filter or keep)
+    expect(octokitMock.rest.pulls.createReview).toHaveBeenCalled();
+  });
+```
+
+**Step 2: Run test to verify it fails**
+
+Run: `npx jest src/run.test.ts --testNamePattern "confidence scoring"`
+Expected: FAIL or PASS depending on mocking — adjust as needed
+
+**Step 3: Integrate scoring into the review flow**
+
+In `src/agent/index.ts`, add the import:
+
+```typescript
+import { scoreFindings } from "./confidence";
+```
+
+After parsing the review response (around line 193), before submitting:
+
+```typescript
+            const review = submitPullRequestReviewSchema.parse(response);
+
+            // Independent confidence scoring with Haiku
+            if (review.comments.length > 0 && this.config.anthropicApiKey) {
+              try {
+                const scored = await scoreFindings({
+                  findings: review.comments,
+                  diffContext: `PR #${pullNumber} in ${owner}/${repo}`,
+                  apiKey: this.config.anthropicApiKey,
+                });
+                review.comments = scored;
+                console.log(
+                  `Confidence scoring: ${review.comments.length} findings kept out of original`,
+                );
+
+                // Update recommendation based on remaining blockers
+                const hasBlockers = review.comments.some(
+                  (c) => c.severity === "blocker",
+                );
+                review.recommendation = hasBlockers
+                  ? "NEEDS_CHANGES"
+                  : "APPROVE";
+              } catch (error) {
+                console.warn(
+                  `Confidence scoring failed, keeping original findings: ${String(error)}`,
+                );
+              }
+            }
+```
+
+**Step 4: Run tests**
+
+Run: `npx jest`
+Expected: PASS
+
+**Step 5: Commit**
+
+```bash
+git add src/agent/index.ts src/run.test.ts
+git commit -m "feat: wire confidence scoring into review pipeline"
+```
+
+---
+
+### Task 10: Stale comment resolution on re-run (design 3g)
+
+On re-run (subsequent pushes), find previous DevAgent review comments and append a "resolved" note to ones that no longer apply.
+
+**Files:**
+- Modify: `src/tools/github/client.ts` — add `listPullRequestComments` method
+- Create: `src/stale.ts` — stale comment resolution logic
+- Create: `src/stale.test.ts`
+- Modify: `src/review.ts` — call stale resolution after review
+
+**Step 1: Write the failing test**
+
+Create `src/stale.test.ts`:
+
+```typescript
+import { describe, it, expect, jest } from "@jest/globals";
+import { resolveStaleComments } from "./stale";
+
+describe("resolveStaleComments", () => {
+  const mockListPullRequestReviews = jest.fn();
+  const mockListPullRequestReviewComments = jest.fn();
+  const mockUpdateComment = jest.fn();
+
+  const mockClient = {
+    listPullRequestReviews: mockListPullRequestReviews,
+    listPullRequestReviewComments: mockListPullRequestReviewComments,
+    updateComment: mockUpdateComment,
+  } as any;
+
+  it("resolves comments on files no longer in the diff", async () => {
+    mockListPullRequestReviews.mockResolvedValue({
+      data: [
+        {
+          id: 1,
+          user: { id: 253531320, type: "Bot" },
+        },
+      ],
+    });
+    mockListPullRequestReviewComments.mockResolvedValue({
+      data: [
+        {
+          id: 100,
+          body: "[blocker] Old issue",
+          path: "src/removed.ts",
+          position: 10,
+        },
+      ],
+    });
+
+    await resolveStaleComments({
+      githubClient: mockClient,
+      owner: "test-owner",
+      repo: "test-repo",
+      pullNumber: 42,
+      currentDiffFiles: ["src/auth.ts", "src/api.ts"],
+    });
+
+    expect(mockUpdateComment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        comment_id: 100,
+        body: expect.stringContaining("Resolved"),
+      }),
+    );
+  });
+
+  it("does not resolve comments on files still in the diff", async () => {
+    mockListPullRequestReviews.mockResolvedValue({
+      data: [
+        {
+          id: 1,
+          user: { id: 253531320, type: "Bot" },
+        },
+      ],
+    });
+    mockListPullRequestReviewComments.mockResolvedValue({
+      data: [
+        {
+          id: 100,
+          body: "[blocker] Current issue",
+          path: "src/auth.ts",
+          position: 10,
+        },
+      ],
+    });
+
+    await resolveStaleComments({
+      githubClient: mockClient,
+      owner: "test-owner",
+      repo: "test-repo",
+      pullNumber: 42,
+      currentDiffFiles: ["src/auth.ts"],
+    });
+
+    expect(mockUpdateComment).not.toHaveBeenCalled();
+  });
+});
+```
+
+**Step 2: Run test to verify it fails**
+
+Run: `npx jest src/stale.test.ts`
+Expected: FAIL
+
+**Step 3: Create the stale resolution module**
+
+Create `src/stale.ts`:
+
+```typescript
+import { GithubClient } from "./tools/github";
+
+const DEV_AGENT_BOT_ID = 253531320;
+
+export const resolveStaleComments = async ({
+  githubClient,
+  owner,
+  repo,
+  pullNumber,
+  currentDiffFiles,
+}: {
+  githubClient: GithubClient;
+  owner: string;
+  repo: string;
+  pullNumber: number;
+  currentDiffFiles: string[];
+}): Promise<number> => {
+  const { data: reviews } = await githubClient.listPullRequestReviews({
+    owner,
+    repo,
+    pull_number: pullNumber,
+    per_page: 100,
+  });
+
+  const devAgentReviews = reviews.filter(
+    (r) => r.user?.id === DEV_AGENT_BOT_ID && r.user?.type === "Bot",
+  );
+
+  let resolvedCount = 0;
+  const currentFiles = new Set(currentDiffFiles);
+
+  for (const review of devAgentReviews) {
+    const { data: comments } =
+      await githubClient.listPullRequestReviewComments({
+        owner,
+        repo,
+        pull_number: pullNumber,
+        review_id: review.id,
+        per_page: 100,
+      });
+
+    for (const comment of comments) {
+      if (
+        comment.path &&
+        !currentFiles.has(comment.path) &&
+        !comment.body?.includes("~Resolved~")
+      ) {
+        try {
+          await githubClient.updateComment({
+            owner,
+            repo,
+            comment_id: comment.id,
+            body: `${comment.body}\n\n---\n~Resolved: this file is no longer in the diff.~`,
+          });
+          resolvedCount++;
+        } catch (error) {
+          console.warn(
+            `Failed to resolve comment ${comment.id}: ${String(error)}`,
+          );
+        }
+      }
+    }
+  }
+
+  console.log(`Resolved ${resolvedCount} stale review comments`);
+  return resolvedCount;
+};
+```
+
+Note: The `updateComment` method on `GithubClient` uses `issues.updateComment`. PR review comments require `pulls.updateReviewComment` instead. Check if `GithubClient` needs a new method. If so, add:
+
+In `src/tools/github/types.ts`, add:
+
+```typescript
+export type UpdatePullRequestCommentParams =
+  RestEndpointMethodTypes["pulls"]["updateReviewComment"]["parameters"];
+export type UpdatePullRequestCommentResponse =
+  RestEndpointMethodTypes["pulls"]["updateReviewComment"]["response"];
+```
+
+In `src/tools/github/client.ts`, add to the class:
+
+```typescript
+  updatePullRequestComment: (
+    params: UpdatePullRequestCommentParams,
+  ) => Promise<UpdatePullRequestCommentResponse>;
+```
+
+And in the constructor:
+
+```typescript
+    this.updatePullRequestComment =
+      this.octokit.rest.pulls.updateReviewComment;
+```
+
+Then use `githubClient.updatePullRequestComment` instead of `updateComment` in `stale.ts`.
+
+**Step 4: Run tests**
+
+Run: `npx jest src/stale.test.ts`
+Expected: PASS
+
+**Step 5: Wire into review flow**
+
+In `src/review.ts`, after the review completes, call stale resolution. This requires the review agent to also return the list of files it reviewed. Since the `submitPullRequestReviewSchema` already includes `files`, extract them:
+
+```typescript
+import { resolveStaleComments } from "./stale";
+
+export const handleReview = async (
+  context: PullRequestContext,
+): Promise<void> =>
+  await traceAsync("handleReview", async () => {
+    const { owner, repo } = context;
+    const pullRequest = context.pullRequest;
+    const pullNumber = pullRequest.number;
+    const pullRequestTitle = pullRequest.title;
+    const pullRequestBody = pullRequest.body || undefined;
+
+    const githubClient = new GithubClient(context.githubToken);
+    const devAgent = new DevReviewAgent(context.agentConfig, githubClient);
+
+    const reviewResult = await devAgent.reviewPullRequest({
+      owner,
+      repo,
+      pullNumber,
+      pullRequestTitle,
+      pullRequestBody,
+      headCommit: pullRequest.head.sha,
+      baseCommit: pullRequest.base.sha,
+    });
+
+    // Resolve stale comments from previous reviews
+    if (reviewResult?.files) {
+      try {
+        await resolveStaleComments({
+          githubClient,
+          owner,
+          repo,
+          pullNumber,
+          currentDiffFiles: reviewResult.files,
+        });
+      } catch (error) {
+        console.warn(`Stale comment resolution failed: ${String(error)}`);
+      }
+    }
+  });
+```
+
+This requires `reviewPullRequest` to return the files list. Update its return type in `src/agent/index.ts` from `Promise<void>` to `Promise<{ files: string[] } | undefined>` and return `{ files: review.files }` after submitting.
+
+**Step 6: Run all tests**
+
+Run: `npx jest`
+Expected: PASS
+
+**Step 7: Commit**
+
+```bash
+git add src/stale.ts src/stale.test.ts src/review.ts src/agent/index.ts src/tools/github/client.ts src/tools/github/types.ts
+git commit -m "feat: resolve stale review comments on re-run (3g)"
+```
+
+---
+
+### Task 11: Cost reporting breakdown in summary (design 3h)
+
+Surface per-phase cost breakdown in the review summary comment.
+
+**Files:**
+- Modify: `src/agent/index.ts` — format cost breakdown with review vs scoring phases
+- Modify: `src/agent/utils.ts` — no changes needed (already tracks per-model costs)
+
+**Step 1: Update cost reporting**
+
+In `src/agent/index.ts`, after confidence scoring (where cost is already tracked), build a more detailed footer. Replace the existing cost footer section (lines 195-210) with:
+
+```typescript
+            // Build cost footer with phase breakdown
+            const reviewCost = Object.values(totalUsage).reduce(
+              (sum, usage) => sum + usage.estimated_cost,
+              0,
+            );
+
+            const badge =
+              review.recommendation === "APPROVE"
+                ? "✅ **APPROVE**"
+                : "🚫 **NEEDS_CHANGES**";
+            review.body = `${badge}\n\n${review.body}`;
+
+            review.body += `\n\n---\n`;
+            review.body += `| Phase | Cost |\n|-------|------|\n`;
+            review.body += `| Review | $${reviewCost.toFixed(2)} |\n`;
+            if (scoringCost > 0) {
+              review.body += `| Confidence scoring | $${scoringCost.toFixed(2)} |\n`;
+            }
+            review.body += `| **Total** | **$${(reviewCost + scoringCost).toFixed(2)}** |\n`;
+
+            if (modelsUsed.size > 0) {
+              review.body += `\n*Models: ${Array.from(modelsUsed).join(", ")}*`;
+            }
+            review.body += `\n*[DevAgent Docs](https://github.com/RelationalAI/dev-review-agent/blob/main/docs/dev-agent.md)*`;
+```
+
+To track `scoringCost`, have `scoreFindings` return it, or track it in the calling code. The simplest approach: make `scoreFindings` return `{ findings, cost }`.
+
+**Step 2: Run tests**
+
+Run: `npx jest`
+Expected: PASS
+
+**Step 3: Commit**
+
+```bash
+git add src/agent/index.ts
+git commit -m "feat: per-phase cost breakdown in review summary (3h)"
+```
+
+---
+
+### Task 12: Push-to-open-PR trigger + eligibility re-check (design 3i)
+
+Add `synchronize` action handling (push to PR branch) and re-check PR eligibility before posting results.
+
+**Files:**
+- Modify: `src/run.ts:14-28` — update `shouldReview` to accept `synchronize`
+- Modify: `src/run.ts:58-127` — add eligibility re-check before posting
+- Modify: `src/run.test.ts` — add tests for new trigger
+
+**Step 1: Write the failing test**
+
+Add to `src/run.test.ts`:
+
+```typescript
+  it("should review on synchronize action for non-draft PR targeting main", async () => {
+    process.env["INPUT_ANTHROPIC_API_KEY"] = "some-key";
+    mockGithubContext({
+      eventName: "pull_request",
+      repo: { owner: "test-owner", repo: "test-repo" },
+      payload: {
+        action: "synchronize",
+        pull_request: {
+          number: 42,
+          draft: false,
+          base: { ref: "main", sha: "base-sha" },
+          head: { sha: "head-sha" },
+        },
+      },
+    });
+
+    await run();
+
+    expect(agentMock.stream).toHaveBeenCalled();
+  });
+
+  it("should skip synchronize for draft PRs", async () => {
+    process.env["INPUT_ANTHROPIC_API_KEY"] = "some-key";
+    mockGithubContext({
+      eventName: "pull_request",
+      repo: { owner: "test-owner", repo: "test-repo" },
+      payload: {
+        action: "synchronize",
+        pull_request: {
+          number: 42,
+          draft: true,
+          base: { ref: "main", sha: "base-sha" },
+          head: { sha: "head-sha" },
+        },
+      },
+    });
+
+    await run();
+
+    expect(agentMock.stream).not.toHaveBeenCalled();
+  });
+```
+
+**Step 2: Run test to verify it fails**
+
+Run: `npx jest src/run.test.ts --testNamePattern "synchronize"`
+Expected: FAIL — `synchronize` is currently ignored (test at line 412 verifies this)
+
+**Step 3: Update shouldReview**
+
+In `src/run.ts`, update `shouldReview` (lines 14-28):
+
+```typescript
+const shouldReview = (context: PullRequestContext): boolean => {
+  const action = context.action;
+  const pullRequest = context.pullRequest;
+  const baseBranch = pullRequest.base.ref;
+
+  // Only review PRs targeting the main or master branch
+  if (baseBranch !== "main" && baseBranch !== "master") {
+    return false;
+  }
+
+  // Skip draft PRs
+  if (pullRequest.draft) {
+    return false;
+  }
+
+  return (
+    action === "ready_for_review" ||
+    action === "opened" ||
+    action === "synchronize"
+  );
+};
+```
+
+**Step 4: Update or remove the old "should ignore synchronize" test**
+
+The test at line 412 (`"should ignore unsupported pull request events"`) uses `action: "synchronize"`. This should now trigger a review. Either remove this test or change it to use a different action (e.g., `"edited"`):
+
+```typescript
+  it("should ignore unsupported pull request events", async () => {
+    mockGithubContext({
+      eventName: "pull_request",
+      repo: { owner: "test-owner", repo: "test-repo" },
+      payload: {
+        action: "edited",
+        pull_request: {
+          draft: false,
+          base: { ref: "main", sha: "base-sha" },
+          head: { sha: "head-sha" },
+        },
+      },
+    });
+
+    await run();
+
+    expect(agentMock.stream).not.toHaveBeenCalled();
+  });
+```
+
+**Step 5: Run tests**
+
+Run: `npx jest`
+Expected: PASS
+
+**Step 6: Commit**
+
+```bash
+git add src/run.ts src/run.test.ts
+git commit -m "feat: trigger review on synchronize (push to PR branch) (3i)"
+```
+
+---
+
+## Phase 3: Shipwright — Submit Skill
+
+**Working directory:** Back to Shipwright repo.
+
+```bash
+cd /Users/tpaddock/Dev/shipwright
+```
+
+### Task 13: Update smoke tests for submit skill (RED)
+
+**Files:**
+- Modify: `tests/smoke/validate-structure.sh:34`
+- Modify: `tests/smoke/validate-skills.sh:11-19`
+
+**Step 1: Add submit to validate-structure.sh**
+
+In `tests/smoke/validate-structure.sh`, add after the `code-review` check (added in Task 1):
+
+```bash
+check "skills/submit/SKILL.md"                   "$REPO_ROOT/skills/submit/SKILL.md"
+```
+
+Update the skills count comment to `# --- Skills (8) ---`.
+
+**Step 2: Add submit to the SKILLS array in validate-skills.sh**
+
+Add `submit` to the end of the SKILLS array:
+
+```bash
+SKILLS=(
+  tdd
+  verification-before-completion
+  systematic-debugging
+  anti-rationalization
+  decision-categorization
+  brownfield-analysis
+  code-review
+  submit
 )
+```
+
+Add `submit` to the `ORIGINAL_SKILLS` array (added in Task 1):
+
+```bash
+ORIGINAL_SKILLS=(code-review submit)
 ```
 
 **Step 3: Run smoke tests to verify they fail**
 
 Run: `bash tests/smoke/run-all.sh`
-Expected: FAIL — `commands/shipwright-submit.md` does not exist yet
+Expected: FAIL — `skills/submit/SKILL.md` does not exist yet
 
 **Step 4: Commit**
 
 ```bash
-git add tests/smoke/validate-structure.sh tests/smoke/validate-commands.sh
-git commit -m "test: add shipwright-submit command to smoke validation (RED)"
+git add tests/smoke/validate-structure.sh tests/smoke/validate-skills.sh
+git commit -m "test: add submit skill to smoke validation (RED)"
 ```
 
 ---
 
-### Task 4: Create submit command (GREEN)
+### Task 14: Create submit skill (GREEN)
 
 **Files:**
-- Create: `commands/shipwright-submit.md`
+- Create: `skills/submit/SKILL.md`
 
-**Step 1: Write the submit command**
+**Step 1: Create the skill file**
 
-Create `commands/shipwright-submit.md` with the following content:
+```bash
+mkdir -p skills/submit
+```
+
+Create `skills/submit/SKILL.md` with the following content:
 
 ````markdown
 ---
-description: Review code, auto-fix blockers, generate PR description, and create a draft PR
-argument-hint: "[optional: base branch, default main]"
+name: submit
+description: Review code, auto-fix findings, generate PR description, and create a draft PR. Use when done coding and ready to submit.
 ---
 
-# Shipwright Submit
+# Submit
 
-You are running the Shipwright Submit command. This is the local developer flow from "done coding" to "draft PR ready."
+You are running the Shipwright Submit flow. This is the local developer flow from "done coding" to "draft PR ready."
 
 **Review always runs.** There is no flag to skip it. After seeing results, the developer can choose to proceed past blockers, but the review itself is mandatory.
 
@@ -327,7 +1766,7 @@ You are running the Shipwright Submit command. This is the local developer flow 
 
 Before starting, verify:
 
-1. You are on a feature branch (not `main` or `master`). If on main/master, stop: "You are on the main branch. Create a feature branch first."
+1. You are on a feature branch (not `main` or `master`). If on main/master, stop and tell the developer: "You are on the main branch. Create a feature branch first."
 2. There are committed changes on this branch relative to the base branch. If no changes, stop: "No changes to submit. Commit your changes first."
 3. `gh` CLI is available and authenticated. Run `gh auth status` to check. If not authenticated, stop: "GitHub CLI is not authenticated. Run `gh auth login` first."
 
@@ -335,15 +1774,17 @@ If any prerequisite fails, inform the developer with the specific message and st
 
 ## Step 1: Gather Context
 
-### Determine the diff
+### Determine the base branch and diff
 
 ```bash
-# Base branch: use $ARGUMENTS if provided, otherwise "main"
-BASE_BRANCH="${ARGUMENTS:-main}"
+# Base branch defaults to "main"
+BASE_BRANCH="main"
 
-# Get the diff
+# Get the diff of committed changes
 git diff "$BASE_BRANCH"...HEAD
 ```
+
+If the diff is empty, stop: "No committed changes found relative to $BASE_BRANCH. Commit your changes first."
 
 ### Collect rationale context
 
@@ -389,9 +1830,7 @@ Invoke the `shipwright-beta:code-review` skill and follow its process exactly.
 
 ## Step 3: Fix Loop
 
-**Only runs if findings were reported.**
-
-If the review is APPROVE with no findings, skip to Step 4.
+**Only runs if findings were reported.** If the review is APPROVE with no findings, skip to Step 4.
 
 ### Prompt developer for selection
 
@@ -505,317 +1944,95 @@ Present the draft PR URL to the developer. Remind them:
 **Step 2: Run smoke tests to verify they pass**
 
 Run: `bash tests/smoke/run-all.sh`
-Expected: PASS — all checks including new submit command
+Expected: PASS — all checks including new submit skill
 
 **Step 3: Commit**
 
 ```bash
-git add commands/shipwright-submit.md
-git commit -m "feat: add shipwright-submit command — review, fix, PR flow"
+git add skills/submit/SKILL.md
+git commit -m "feat: add submit skill — review, fix, PR flow"
 ```
 
 ---
 
-### Task 5: Create CI GitHub Action workflow
+## Phase 4: Validation
 
-**Files:**
-- Create: `.github/workflows/code-review.yml`
-
-**Dependencies:** This workflow requires:
-- A Claude API key stored as a GitHub Actions secret (e.g., `CLAUDE_API_KEY`)
-- Claude Code available in the CI environment (installed as a step or pre-installed on runner)
-- `gh` CLI available (standard on GitHub-hosted runners)
-
-**Step 1: Create the workflow directory**
-
-```bash
-mkdir -p .github/workflows
-```
-
-**Step 2: Write the workflow**
-
-Create `.github/workflows/code-review.yml` with the following content:
-
-```yaml
-name: Code Review
-
-on:
-  pull_request:
-    types: [ready_for_review]
-  push:
-    branches-ignore:
-      - main
-      - master
-
-permissions:
-  contents: read
-  pull-requests: write
-
-jobs:
-  review:
-    name: AI Code Review
-    runs-on: ubuntu-latest
-    # Skip if: draft PR, bot author, or no open PR for this branch
-    if: >-
-      github.event_name == 'pull_request' && !github.event.pull_request.draft ||
-      github.event_name == 'push'
-    timeout-minutes: 15
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Check for open non-draft PR
-        id: pr-check
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [ "${{ github.event_name }}" = "push" ]; then
-            # For push events, find an open non-draft PR for this branch
-            BRANCH="${GITHUB_REF_NAME}"
-            PR_JSON=$(gh pr list --head "$BRANCH" --state open --json number,isDraft,author --limit 1)
-            PR_NUMBER=$(echo "$PR_JSON" | jq -r '.[0].number // empty')
-            IS_DRAFT=$(echo "$PR_JSON" | jq -r '.[0].isDraft // empty')
-            AUTHOR_TYPE=$(echo "$PR_JSON" | jq -r '.[0].author.type // empty')
-
-            if [ -z "$PR_NUMBER" ]; then
-              echo "No open PR for branch $BRANCH. Skipping."
-              echo "skip=true" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-
-            if [ "$IS_DRAFT" = "true" ]; then
-              echo "PR #$PR_NUMBER is a draft. Skipping."
-              echo "skip=true" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-
-            if [ "$AUTHOR_TYPE" = "Bot" ]; then
-              echo "PR #$PR_NUMBER is from a bot. Skipping."
-              echo "skip=true" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-
-            echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          else
-            # For ready_for_review events, use the PR from the event
-            echo "pr_number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Get PR diff
-        if: steps.pr-check.outputs.skip != 'true'
-        id: diff
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PR_NUMBER="${{ steps.pr-check.outputs.pr_number }}"
-          gh pr diff "$PR_NUMBER" > /tmp/pr-diff.txt
-
-          # Check diff size — bail if too large
-          DIFF_LINES=$(wc -l < /tmp/pr-diff.txt)
-          if [ "$DIFF_LINES" -gt 5000 ]; then
-            echo "too_large=true" >> "$GITHUB_OUTPUT"
-            gh pr comment "$PR_NUMBER" --body "$(cat <<'COMMENT'
-          ## Code Review: Skipped
-
-          This PR is too large for automated review (>5000 diff lines). Please break it into smaller PRs or request manual review.
-          COMMENT
-          )"
-            exit 0
-          fi
-
-          echo "too_large=false" >> "$GITHUB_OUTPUT"
-
-      - name: Install Claude Code
-        if: steps.pr-check.outputs.skip != 'true' && steps.diff.outputs.too_large != 'true'
-        run: npm install -g @anthropic-ai/claude-code
-
-      - name: Run code review
-        if: steps.pr-check.outputs.skip != 'true' && steps.diff.outputs.too_large != 'true'
-        id: review
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
-        run: |
-          # Read CLAUDE.md for project context (if exists)
-          CLAUDE_MD=""
-          if [ -f "CLAUDE.md" ]; then
-            CLAUDE_MD=$(cat CLAUDE.md)
-          fi
-
-          PR_DIFF=$(cat /tmp/pr-diff.txt)
-
-          # Run Claude Code with the code-review skill
-          # The skill is loaded as context, the diff is the input
-          # Model: Sonnet for CI (cost/speed across the org)
-          claude --model sonnet --output-format json --max-turns 10 \
-            --allowedTools "Read,Glob,Grep" \
-            --print \
-            "You are a code reviewer. Read and follow the skill defined in skills/code-review/SKILL.md exactly.
-
-          Project context (CLAUDE.md):
-          $CLAUDE_MD
-
-          Review this diff:
-          $PR_DIFF
-
-          Output your findings as JSON with this structure:
-          {
-            \"recommendation\": \"APPROVE\" or \"NEEDS_CHANGES\",
-            \"findings\": [
-              {
-                \"file\": \"path/to/file\",
-                \"line_start\": 10,
-                \"line_end\": 15,
-                \"severity\": \"blocker|warning|nit\",
-                \"category\": \"correctness|convention|test-quality\",
-                \"confidence\": 85,
-                \"description\": \"...\",
-                \"suggested_fix\": \"...\",
-                \"citation\": \"...\" // only for convention findings
-              }
-            ],
-            \"summary\": \"...\"
-          }" > /tmp/review-output.json
-
-      - name: Post review comments
-        if: steps.pr-check.outputs.skip != 'true' && steps.diff.outputs.too_large != 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PR_NUMBER="${{ steps.pr-check.outputs.pr_number }}"
-          REVIEW_OUTPUT="/tmp/review-output.json"
-
-          # Parse the review output
-          RECOMMENDATION=$(jq -r '.recommendation' "$REVIEW_OUTPUT")
-          SUMMARY=$(jq -r '.summary' "$REVIEW_OUTPUT")
-          FINDING_COUNT=$(jq '.findings | length' "$REVIEW_OUTPUT")
-          BLOCKER_COUNT=$(jq '[.findings[] | select(.severity == "blocker")] | length' "$REVIEW_OUTPUT")
-          WARNING_COUNT=$(jq '[.findings[] | select(.severity == "warning")] | length' "$REVIEW_OUTPUT")
-          NIT_COUNT=$(jq '[.findings[] | select(.severity == "nit")] | length' "$REVIEW_OUTPUT")
-
-          # Post inline comments for each finding
-          jq -c '.findings[]' "$REVIEW_OUTPUT" | while read -r finding; do
-            FILE=$(echo "$finding" | jq -r '.file')
-            LINE=$(echo "$finding" | jq -r '.line_start')
-            SEVERITY=$(echo "$finding" | jq -r '.severity')
-            CATEGORY=$(echo "$finding" | jq -r '.category')
-            CONFIDENCE=$(echo "$finding" | jq -r '.confidence')
-            DESCRIPTION=$(echo "$finding" | jq -r '.description')
-            SUGGESTED_FIX=$(echo "$finding" | jq -r '.suggested_fix')
-            CITATION=$(echo "$finding" | jq -r '.citation // empty')
-
-            SEVERITY_ICON="💡"
-            if [ "$SEVERITY" = "blocker" ]; then SEVERITY_ICON="🚫"; fi
-            if [ "$SEVERITY" = "warning" ]; then SEVERITY_ICON="⚠️"; fi
-
-            COMMENT_BODY="$SEVERITY_ICON **$SEVERITY** ($CATEGORY, confidence: $CONFIDENCE)
-
-          $DESCRIPTION
-
-          **Suggested fix:** $SUGGESTED_FIX"
-
-            if [ -n "$CITATION" ]; then
-              COMMENT_BODY="$COMMENT_BODY
-
-          **CLAUDE.md:** > $CITATION"
-            fi
-
-            # Post as PR review comment on specific line
-            gh api \
-              "repos/${{ github.repository }}/pulls/$PR_NUMBER/comments" \
-              -f body="$COMMENT_BODY" \
-              -f path="$FILE" \
-              -F line="$LINE" \
-              -f commit_id="${{ github.sha }}" || true
-          done
-
-          # Post summary comment
-          gh pr comment "$PR_NUMBER" --body "$(cat <<SUMMARY_EOF
-          ## Code Review: $RECOMMENDATION
-
-          | Severity | Count |
-          |----------|-------|
-          | Blockers | $BLOCKER_COUNT |
-          | Warnings | $WARNING_COUNT |
-          | Nits | $NIT_COUNT |
-
-          $SUMMARY
-
-          ---
-          *Shipwright Code Review (Sonnet) — $FINDING_COUNT findings*
-          SUMMARY_EOF
-          )"
-
-      - name: Resolve stale comments on re-review
-        if: steps.pr-check.outputs.skip != 'true' && steps.diff.outputs.too_large != 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PR_NUMBER="${{ steps.pr-check.outputs.pr_number }}"
-
-          # Find previous Shipwright review comments that are now stale
-          # A comment is stale if the file+line it references no longer appears in the current diff
-          CURRENT_DIFF_FILES=$(cat /tmp/pr-diff.txt | grep '^diff --git' | sed 's|.*b/||' | sort -u)
-
-          gh api "repos/${{ github.repository }}/pulls/$PR_NUMBER/comments" \
-            --jq '.[] | select(.body | contains("Shipwright")) | {id: .id, path: .path}' | \
-          while read -r comment; do
-            COMMENT_ID=$(echo "$comment" | jq -r '.id')
-            COMMENT_PATH=$(echo "$comment" | jq -r '.path')
-            if ! echo "$CURRENT_DIFF_FILES" | grep -q "^${COMMENT_PATH}$"; then
-              # File no longer in diff — resolve the comment by minimizing
-              gh api \
-                "repos/${{ github.repository }}/pulls/comments/$COMMENT_ID" \
-                -X PATCH \
-                -f body="$(gh api "repos/${{ github.repository }}/pulls/comments/$COMMENT_ID" --jq '.body')
-
-          ---
-          *Resolved: this file is no longer in the diff.*" || true
-            fi
-          done
-```
-
-**Step 3: Commit**
-
-```bash
-git add .github/workflows/code-review.yml
-git commit -m "feat: add CI code review GitHub Action workflow"
-```
-
----
-
-### Task 6: Final validation
+### Task 15: End-to-end validation
 
 **Files:** None (validation only)
 
-**Step 1: Run all smoke tests**
-
-Run: `bash tests/smoke/run-all.sh`
-Expected: PASS — all suites pass
-
-**Step 2: Verify file structure**
-
-Run: `ls -la skills/code-review/SKILL.md commands/shipwright-submit.md .github/workflows/code-review.yml`
-Expected: All three files exist
-
-**Step 3: Review the diff**
-
-Run: `git diff main --stat`
-Expected: Changes in:
-- `skills/code-review/SKILL.md` (new)
-- `commands/shipwright-submit.md` (new)
-- `.github/workflows/code-review.yml` (new)
-- `tests/smoke/validate-structure.sh` (modified)
-- `tests/smoke/validate-skills.sh` (modified)
-- `tests/smoke/validate-commands.sh` (modified)
-
-**Step 4: Final commit (if any uncommitted changes remain)**
+**Step 1: Run Shipwright smoke tests**
 
 ```bash
-git status
-# If clean, nothing to do. If any unstaged changes, review and commit.
+cd /Users/tpaddock/Dev/shipwright
+bash tests/smoke/run-all.sh
 ```
+
+Expected: PASS — all suites pass
+
+**Step 2: Verify Shipwright file structure**
+
+Run: `ls -la skills/code-review/SKILL.md skills/submit/SKILL.md package.json`
+Expected: All three files exist
+
+**Step 3: Run dev-review-agent tests**
+
+```bash
+cd ~/Dev/dev-review-agent
+npx jest
+```
+
+Expected: All tests pass
+
+**Step 4: Verify dev-review-agent build**
+
+```bash
+cd ~/Dev/dev-review-agent
+npm run all
+```
+
+Expected: Format, lint, test, coverage, and package all succeed
+
+**Step 5: Review Shipwright diff**
+
+```bash
+cd /Users/tpaddock/Dev/shipwright
+git diff main --stat
+```
+
+Expected changes:
+- `skills/code-review/SKILL.md` (new)
+- `skills/submit/SKILL.md` (new)
+- `package.json` (new)
+- `tests/smoke/validate-structure.sh` (modified)
+- `tests/smoke/validate-skills.sh` (modified)
+
+**Step 6: Review dev-review-agent diff**
+
+```bash
+cd ~/Dev/dev-review-agent
+git diff main --stat
+```
+
+Expected changes:
+- `package.json` (modified — new dep + scripts)
+- `.gitignore` (modified)
+- `scripts/generate-skill.ts` (new)
+- `scripts/generate-skill.test.ts` (new)
+- `src/agent/instructions.ts` (modified — skill-based prompt)
+- `src/agent/index.ts` (modified — confidence scoring + recommendation)
+- `src/agent/types.ts` (modified — claudeMdContent)
+- `src/agent/constants.ts` (modified — Haiku model + threshold)
+- `src/agent/utils.ts` (modified — Haiku costs)
+- `src/agent/confidence.ts` (new)
+- `src/agent/confidence.test.ts` (new)
+- `src/agent/llm.ts` (possibly modified)
+- `src/context.ts` (modified — CLAUDE.md reading)
+- `src/review.ts` (modified — stale resolution)
+- `src/stale.ts` (new)
+- `src/stale.test.ts` (new)
+- `src/run.ts` (modified — synchronize trigger)
+- `src/run.test.ts` (modified — updated tests)
+- `src/tools/github/tools.ts` (modified — schema update)
+- `src/tools/github/client.ts` (modified — updatePullRequestComment)
+- `src/tools/github/types.ts` (modified — new types)
