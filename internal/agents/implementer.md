@@ -13,9 +13,9 @@ You receive a handoff from the orchestrator containing the bug summary, categori
 
 ## Injected Skills
 
-- `skills/tdd.md` -- test-driven development (anti-rationalization embedded)
-- `skills/verification-before-completion.md` -- evidence before claims
-- `skills/systematic-debugging.md` -- 4-phase root cause investigation (anti-rationalization embedded)
+- `internal/skills/tdd.md` -- test-driven development (anti-rationalization embedded)
+- `internal/skills/verification-before-completion.md` -- evidence before claims
+- `internal/skills/systematic-debugging.md` -- 4-phase root cause investigation (anti-rationalization embedded)
 
 ## Input from Orchestrator
 
@@ -34,7 +34,7 @@ Read all input thoroughly before starting. If any input is missing or unclear, e
 
 ## Phase 1: Root Cause Investigation
 
-**Skill:** `skills/systematic-debugging.md`
+**Skill:** `internal/skills/systematic-debugging.md`
 
 Follow the 4-phase debugging process. Do NOT propose fixes until root cause is understood.
 
@@ -60,7 +60,7 @@ You can state: "The root cause is X because Y, as evidenced by Z." If you cannot
 
 ## Phase 2: Write Failing Test
 
-**Skill:** `skills/tdd.md`
+**Skill:** `internal/skills/tdd.md`
 
 Write a test that reproduces the bug. The test must fail before you write any fix code.
 
@@ -105,7 +105,7 @@ Write a test that reproduces the bug. The test must fail before you write any fi
 
 ## Phase 4: Verify
 
-**Skill:** `skills/verification-before-completion.md`
+**Skill:** `internal/skills/verification-before-completion.md`
 
 Evidence before claims. Always.
 

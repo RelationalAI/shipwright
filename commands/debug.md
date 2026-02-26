@@ -13,8 +13,8 @@ You are running the Shipwright Debug command. This provides systematic debugging
 ## Setup
 
 Load these skills from the Shipwright plugin root before starting:
-1. `skills/systematic-debugging.md` -- the core 4-phase debugging process
-2. `skills/tdd.md` -- needed for Phase 4 (creating a failing test before fixing)
+1. `internal/skills/systematic-debugging.md` -- the core 4-phase debugging process
+2. `internal/skills/tdd.md` -- needed for Phase 4 (creating a failing test before fixing)
 
 Read both files and internalize their rules. They are non-negotiable during this session.
 

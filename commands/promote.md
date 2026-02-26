@@ -9,24 +9,24 @@ You are running the Shipwright promote command. Your job is to help the user che
 
 ## Directory Layout
 
-- **Beta** (active development): `skills/`, `agents/`, `commands/`
-- **Stable** (promoted): `stable/skills/`, `stable/agents/`, `stable/commands/`
+- **Beta** (active development): `skills/`, `agents/`, `commands/`, `internal/skills/`, `internal/agents/`
+- **Stable** (promoted): `stable/skills/`, `stable/agents/`, `stable/commands/`, `stable/internal/skills/`, `stable/internal/agents/`
 - **Beta manifest**: `.claude-plugin/plugin.json` (name: `shipwright-beta`)
-- **Stable manifest**: `.claude-plugin/plugin.stable.json` (name: `shipwright`)
+- **Stable manifest**: `internal/plugin.stable.json` (name: `shipwright`) — not active until copied to `.claude-plugin/` during release
 
 ## Workflow
 
 ### Step 1: Show current state
 
-List what exists in beta vs stable for each category (skills, agents, commands).
+List what exists in beta vs stable for each category (skills, internal skills, agents, internal agents, commands).
 
 Use a table like:
 
 | Type | File | Beta | Stable | Changed? |
 |------|------|------|--------|----------|
 
-- **Beta**: exists in `skills/`, `agents/`, or `commands/`
-- **Stable**: exists in `stable/skills/`, `stable/agents/`, or `stable/commands/`
+- **Beta**: exists in `skills/`, `internal/skills/`, `agents/`, `internal/agents/`, or `commands/`
+- **Stable**: exists in `stable/skills/`, `stable/internal/skills/`, `stable/agents/`, `stable/internal/agents/`, or `stable/commands/`
 - **Changed?**: if the file exists in both, compare contents. Show "yes" if they differ, "no" if identical, "-" if only in one place.
 
 ### Step 2: Ask what to promote
@@ -53,7 +53,9 @@ Ask for confirmation before proceeding.
 
 For each selected file, copy from beta to stable:
 - `skills/<name>` -> `stable/skills/<name>`
+- `internal/skills/<name>` -> `stable/internal/skills/<name>`
 - `agents/<name>` -> `stable/agents/<name>`
+- `internal/agents/<name>` -> `stable/internal/agents/<name>`
 - `commands/<name>` -> `stable/commands/<name>`
 
 Create the `stable/` subdirectories if they don't exist.
