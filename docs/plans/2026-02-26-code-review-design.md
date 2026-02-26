@@ -84,11 +84,13 @@ The local developer flow. A single command from "done coding" to "draft PR ready
 
 1. **Gather context** — Collect the diff (committed changes on branch vs base), find plan files (scan `docs/plans/`, `docs/`, `.claude/`, etc.), collect session context if available.
 2. **Run the code-review skill** — Same skill CI uses, but with Opus. Present findings to the developer.
-3. **Fix loop** — If blockers found:
-   - Spawn sub-agents to fix each blocker (keeps main context clean)
+3. **Fix loop** — If blockers or warnings found:
+   - Present all findings to the developer with numbered selection
+   - Developer chooses which findings to auto-fix (can select any combination, or none)
+   - Spawn sub-agents to fix only the selected findings (keeps main context clean)
    - Sub-agents must run tests to validate their fixes
    - Re-review the updated diff (one cycle only)
-   - If new blockers remain after re-review, present to developer for manual decision
+   - Present updated findings — developer decides whether to proceed or fix more manually
 4. **Generate PR description** — Synthesize from all available sources:
    - Claude session context (reasoning, trade-offs, decisions)
    - Plan files (requirements, design intent) — local working documents, not necessarily committed
@@ -115,7 +117,8 @@ The local developer flow. A single command from "done coding" to "draft PR ready
 
 **Key decisions:**
 
-- Fix loop uses sub-agents to keep the main context clean.
+- Fix loop is developer-driven — developer selects which findings to auto-fix.
+- Sub-agents handle the fixes to keep the main context clean.
 - One auto-fix cycle, then hand back to developer. No infinite loops.
 - Review always runs — there is no flag to skip it. After seeing results, the developer can choose to proceed past blockers, but the review itself is mandatory.
 - Draft PR is the default. Author reviews on GitHub before marking ready for review.
