@@ -1,0 +1,10 @@
+{
+  "name": "shipwright",
+  "version": "0.1.0",
+  "description": "Adaptive agentic development framework for engineering teams",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RelationalAI/shipwright.git"
+  }
+}
