@@ -47,6 +47,7 @@ shipwright-marketplace/
 
 - Local plugins (`./plugins/X`) are simple to manage in a monorepo
 - External plugins (`github: owner/repo`) can be added later for third-party contributions
+- External GitHub sources support `ref` and `sha` fields for version pinning — a post-launch mandatory requirement (see Section 11.1). The hybrid approach makes this migration straightforward.
 - This is the same pattern used by `claude-plugins` today
 
 
@@ -57,19 +58,19 @@ shipwright-marketplace/
 Two plugins ship at launch. Shipwright depends on Dockyard.
 
 ```
-┌─────────────────────┐
-│  shipwright-marketplace  │
-│                     │
-│  ┌───────────────┐  │
-│  │   dockyard    │  │  ← standalone skills + commands
-│  └───────────────┘  │
-│         ▲           │
-│         │ depends   │
-│  ┌───────────────┐  │
-│  │  shipwright   │  │  ← orchestration + internal agents
-│  └───────────────┘  │
-│                     │
-└─────────────────────┘
+┌────────────────────────────┐
+│   shipwright-marketplace   │
+│                            │
+│  ┌────────────────┐     │
+│  │    dockyard    │     │  ← standalone skills + commands
+│  └────────────────┘     │
+│          ▲              │
+│          │ depends      │
+│  ┌────────────────┐     │
+│  │   shipwright   │     │  ← orchestration + internal agents
+│  └────────────────┘     │
+│                            │
+└────────────────────────────┘
 ```
 
 ### Dockyard — Standalone Skills & Commands
@@ -89,14 +90,16 @@ Everything that works independently, without orchestration.
 **Agents:**
 - `doc-digest` — Document walkthrough agent
 
+**Commands (shared pattern):**
+- `/feedback` — File bugs/feedback on the dockyard plugin
+
 ### Shipwright — Orchestrated Workflows
 
 Everything that requires the multi-agent orchestration pipeline.
 
 **Commands:**
 - `/shipwright` — Main orchestrator (Triage → Implement → Review → Validate)
-- `/report` — File bugs/feedback on this repo
-- `/promote` — Beta → stable promotion
+- `/feedback` — File bugs/feedback on the shipwright plugin
 
 **Internal agents** (not user-facing):
 - `triage` — Understand bug and codebase
@@ -124,7 +127,11 @@ shipwright-marketplace/
 │   └── marketplace.json
 ├── README.md
 ├── CONTRIBUTING.md
+├── CODEOWNERS
 ├── THIRD_PARTY_NOTICES
+├── docs/
+│   └── plans/
+│       └── 2026-02-27-marketplace-conversion-design.md
 ├── templates/
 │   ├── SKILL_TEMPLATE.md
 │   └── AGENT_TEMPLATE.md
@@ -143,7 +150,8 @@ shipwright-marketplace/
 │   │   │   ├── debug.md
 │   │   │   ├── codebase-analyze.md
 │   │   │   ├── doc-digest.md
-│   │   │   └── investigate.md
+│   │   │   ├── investigate.md
+│   │   │   └── feedback.md
 │   │   ├── agents/
 │   │   │   └── doc-digest.md
 │   │   ├── docs/
@@ -163,8 +171,7 @@ shipwright-marketplace/
 │       │   └── check-dockyard.sh
 │       ├── commands/
 │       │   ├── shipwright.md
-│       │   ├── report.md
-│       │   └── promote.md
+│       │   └── feedback.md
 │       ├── internal/
 │       │   ├── agents/
 │       │   │   ├── triage.md
@@ -183,8 +190,6 @@ shipwright-marketplace/
 │       │   ├── milestones/
 │       │   │   ├── m1-tier1-bugfix.md
 │       │   │   └── m1-verification-report.md
-│       │   ├── plans/
-│       │   │   └── 2026-02-27-marketplace-conversion-design.md
 │       │   └── research/
 │       │       ├── shipwright-vs-others-v1.md
 │       │       └── shipwright-ideas-from-beads-gsd-v1.md
@@ -372,6 +377,7 @@ Add to the project's `.claude/settings.json`:
 
 ```json
 {
+  "extraKnownMarketplaces": ["https://github.com/RelationalAI/shipwright"],
   "enabledPlugins": [
     "dockyard@shipwright-marketplace",
     "shipwright@shipwright-marketplace"
@@ -407,6 +413,12 @@ Anyone at RAI can submit skills or agents to existing plugins via PR.
 | Orchestration-related agent or skill | `shipwright` |
 | New plugin | Requires CODEOWNERS approval in `marketplace.json` |
 
+Each plugin ships its own `/feedback` command for users to file bugs and suggestions against that specific plugin.
+
+### Open gap: Smoke test definition
+
+The smoke test quality gate is referenced but not yet defined. What constitutes an acceptable smoke test (manual demo script, automated test, recording, etc.) needs to be specified in `templates/` and `CONTRIBUTING.md` in a later development cycle.
+
 
 ---
 
@@ -429,6 +441,8 @@ These are mandatory follow-ups, not optional improvements.
 
 ### 11.1 Separate repos for version pinning
 
+**Ticket:** [RAI-47775](https://relationalai.atlassian.net/browse/RAI-47775)
+
 **Problem:** Local plugins (`"source": "./plugins/X"`) always resolve to HEAD. There is no way to pin a local plugin to a specific version or tag.
 
 **Solution:** Extract plugins into standalone repos. Reference them in marketplace.json as GitHub sources with `ref` and `sha` fields for pinnable versioning.
@@ -447,9 +461,19 @@ These are mandatory follow-ups, not optional improvements.
 
 ### 11.2 Author/maintainer → team ownership
 
+**Ticket:** [RAI-47776](https://relationalai.atlassian.net/browse/RAI-47776)
+
 **Problem:** Plugin manifests currently list an individual author.
 
 **Solution:** Move ownership to a group or team identifier. Specifics depend on how Claude Code evolves its author schema, or can be handled via CODEOWNERS at the repo level.
+
+### 11.3 Contribution templates and smoke test definition
+
+**Ticket:** [RAI-47777](https://relationalai.atlassian.net/browse/RAI-47777)
+
+**Problem:** The quality gates require template compliance and smoke tests, but neither is defined yet. Contributors won't know what format to follow or what constitutes an acceptable smoke test (manual demo script, automated test, recording, etc.).
+
+**Solution:** Create `templates/SKILL_TEMPLATE.md` and `templates/AGENT_TEMPLATE.md` with required sections, naming conventions, and examples. Define smoke test expectations in `CONTRIBUTING.md` with concrete examples of passing vs failing submissions.
 
 
 ---
