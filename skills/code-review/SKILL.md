@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: Structured three-pass code review (correctness, conventions, test quality) with confidence scoring. Use when reviewing diffs for PR submission or CI automation.
+description: Use when reviewing code diffs for correctness bugs, convention compliance, and test quality. Applies to PR submissions, pre-commit reviews, CI automation, or any request to review, check, or audit code changes.
 ---
 
 # Code Review
@@ -86,36 +86,12 @@ After all three passes complete, collect all findings. Spawn a single scorer age
 
 ## Output Format
 
-Produce structured output consumed by the invoking system.
+Produce structured JSON output matching the schema in `references/output-schema.md`. Read that file for the exact structure, field rules, and severity definitions.
 
-### Recommendation
-
-`APPROVE` or `NEEDS_CHANGES`
-
-**Blocker logic:** If ANY finding has severity `blocker`, the recommendation is `NEEDS_CHANGES`. Otherwise `APPROVE`.
-
-### Findings
-
-List of findings that survived confidence scoring (80+), each with:
-
-- **File** — exact file path
-- **Line range** — start and end lines in the diff
-- **Severity:**
-  - `blocker` — must fix before merge; correctness defect, security issue, or critical convention violation
-  - `warning` — should fix; important but not blocking
-  - `nit` — suggestion; style, minor improvement, optional
-- **Category:** `correctness`, `convention`, or `test-quality`
-- **Confidence:** score from confidence scoring (80–100)
-- **Description** — what the issue is and why it matters
-- **Suggested fix** — concrete suggestion for how to resolve it
-- **Citation** (convention findings only) — exact quoted text from `CLAUDE.md`
-
-### Summary
-
-A few sentences explaining the overall assessment. Be specific:
-- What the diff does well
-- What the key concerns are (if any)
-- What the human reviewer should focus on
+Key rules:
+- If ANY finding has severity `blocker`, recommendation is `NEEDS_CHANGES`. Otherwise `APPROVE`.
+- Only findings scoring 75+ survive into the output.
+- Convention findings MUST include a `citation` with exact quoted `CLAUDE.md` text.
 
 ## False Positive Avoidance
 
