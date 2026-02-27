@@ -22,13 +22,21 @@ check() {
 
 echo "=== validate-structure ==="
 
-# --- User-facing skills (3) ---
+# --- User-facing skills ---
 echo ""
 echo "User-facing skills:"
-check "skills/brownfield-analysis/SKILL.md"        "$REPO_ROOT/skills/brownfield-analysis/SKILL.md"
-check "skills/code-review/SKILL.md"                         "$REPO_ROOT/skills/code-review/SKILL.md"
-check "skills/code-review/references/output-schema.md"      "$REPO_ROOT/skills/code-review/references/output-schema.md"
-check "skills/review-and-submit/SKILL.md"                   "$REPO_ROOT/skills/review-and-submit/SKILL.md"
+for skill_dir in "$REPO_ROOT"/skills/*/; do
+  skill_name="$(basename "$skill_dir")"
+  check "skills/$skill_name/SKILL.md" "$skill_dir/SKILL.md"
+  # Check any reference files
+  if [ -d "$skill_dir/references" ]; then
+    for ref in "$skill_dir"/references/*.md; do
+      [ -f "$ref" ] || continue
+      ref_name="$(basename "$ref")"
+      check "skills/$skill_name/references/$ref_name" "$ref"
+    done
+  fi
+done
 
 # --- Internal skills (5) ---
 echo ""

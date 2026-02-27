@@ -23,66 +23,19 @@ Read all provided context before starting review passes.
 
 ## Review Passes
 
-Run each pass in a separate agent/context. This is mandatory, not optional.
+Three passes, each focused on a different concern. Isolation between passes reduces bias — a correctness bug should not make convention checking harsher for that file. The invoking system decides how to achieve isolation (separate sub-agents, separate API calls, etc.).
 
-**Why separate contexts:** The same reasoning behind independent confidence scoring applies here — findings from one pass must not bias another. A correctness bug found in Pass 1 should not make Pass 2 scrutinize that file's conventions more harshly. Isolation also keeps each pass's context focused, reducing noise.
+Each pass reads its reference file for detailed criteria:
 
-### Pass 1: Correctness
-
-Examine the diff for defects that affect runtime behavior:
-
-- **Bugs** — logic errors, off-by-one, null/undefined access, type mismatches, incorrect conditions
-- **Edge cases** — boundary conditions, empty inputs, concurrent access, error propagation
-- **Regressions** — does this change break existing behavior? Check callers of modified functions.
-- **Error handling** — are errors caught, propagated, and reported correctly? Are resources cleaned up?
-- **Security** — injection, authentication bypass, data exposure, unsafe deserialization (only if clearly introduced by this diff)
-
-For each potential issue:
-
-1. Read the surrounding code (not just the diff lines) to understand the full context
-2. Trace the data flow to verify the issue is real
-3. Check if tests cover the problematic path
-4. Only report if you can explain a concrete scenario where the bug manifests
-
-### Pass 2: Conventions
-
-Check the diff against `CLAUDE.md` and established codebase patterns:
-
-- **`CLAUDE.md` compliance** — for every convention finding, you MUST cite the exact text from `CLAUDE.md` that the code violates. No over-generalization. If you cannot point to a specific rule, it is not a convention violation.
-- **Code comment compliance** — if existing code has comments like `// Note: must call X before Y` or `// WARNING: not thread-safe`, verify the diff respects these constraints.
-- **Pattern consistency** — if the codebase uses a specific pattern for similar operations (error handling, logging, API responses), the diff should follow the same pattern.
-
-**Important:** Do NOT flag general "best practices" that are not documented in `CLAUDE.md` or established by codebase convention. The goal is consistency with THIS project's standards, not universal standards.
-
-### Pass 3: Test Quality
-
-Evaluate whether tests accompanying the diff are adequate:
-
-- **Testing the right thing** — do tests exercise the behavior introduced or changed by the diff? A test that passes before AND after the change tests nothing relevant.
-- **Determinism** — are tests deterministic? Flag: time-dependent assertions, random data without seeds, filesystem ordering assumptions, network calls without mocks.
-- **Speed** — are tests unnecessarily slow? Flag: sleep/delay in tests, spinning up real servers when mocks suffice, testing large datasets when small ones prove the same thing.
-- **Behavior over implementation** — do tests assert on observable behavior (output, side effects, state changes) or on implementation details (internal method calls, private state, execution order)?
-- **Coverage of the changes** — are the meaningful code paths introduced by the diff exercised by tests? Are edge cases from Pass 1 covered?
-
-**Important:** Only evaluate tests that are part of the diff or directly related to changed code. Do not flag pre-existing test quality issues.
+| Pass | Focus | Reference |
+|------|-------|-----------|
+| 1 | Correctness — bugs, edge cases, regressions, error handling, security | `references/pass-correctness.md` |
+| 2 | Conventions — CLAUDE.md compliance, code comment compliance, pattern consistency | `references/pass-conventions.md` |
+| 3 | Test Quality — testing the right thing, determinism, speed, behavior over implementation | `references/pass-test-quality.md` |
 
 ## Confidence Scoring
 
-After all three passes complete, collect all findings. Spawn a single scorer agent (use Haiku for cost/speed) to evaluate all findings in one pass. Each finding is scored independently — the scorer must evaluate each finding on its own merits without letting one finding's score influence another.
-
-**Scoring prompt:** Provide all findings (file, line range, description, suggested fix), the relevant diff context, and relevant surrounding code. Ask the scorer to evaluate each finding on this rubric:
-
-| Score | Meaning |
-|-------|---------|
-| 0 | False positive — does not hold up to scrutiny, or pre-existing issue |
-| 25 | Might be real — could not verify with available context |
-| 50 | Verified real — but nitpick, rare in practice, or cosmetic |
-| 75 | Verified — very likely real, important, should be addressed |
-| 100 | Definitely real — evidence directly confirms, happens frequently |
-
-**Threshold:** Drop all findings scoring below 75. Only findings scoring 75+ are included in the output.
-
-**Why independent scoring:** This decouples detection from evaluation. The review passes are optimized to cast a wide net (high recall). The scorer is optimized to filter noise (high precision). Combining both in one pass leads to anchoring — the reviewer justifies its own findings rather than evaluating them objectively.
+After all passes complete, score each finding independently using the rubric in `references/scoring-rubric.md`. The scorer must be independent of the review passes — it evaluates findings on their own merits, not defending or attacking the reviewer's conclusions. Findings below 75 are dropped.
 
 ## Output Format
 
