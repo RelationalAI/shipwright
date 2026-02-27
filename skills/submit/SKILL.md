@@ -19,6 +19,19 @@ Before starting, verify:
 
 If any prerequisite fails, inform the developer with the specific message and stop.
 
+### Uncommitted changes
+
+After prerequisites pass, check for uncommitted changes (`git status`). If there are staged or unstaged changes, prompt the developer:
+
+```
+You have uncommitted changes:
+<list changed files>
+
+Would you like to commit these before proceeding? The code review only covers committed changes.
+```
+
+Wait for the developer's response. If they choose to commit, create the commit (ask for a message or suggest one), then proceed. If they decline, proceed with the review on committed changes only — but remind them the uncommitted work won't be reviewed.
+
 ## Step 1: Gather Context
 
 ### Determine the base branch and diff
