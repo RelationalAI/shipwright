@@ -80,7 +80,7 @@ After all three passes complete, collect all findings. Spawn a single scorer age
 | 75 | Verified — very likely real, important, should be addressed |
 | 100 | Definitely real — evidence directly confirms, happens frequently |
 
-**Threshold:** Drop all findings with confidence below 80. Only findings scoring 80+ are included in the output.
+**Threshold:** Drop all findings scoring below 75. Only findings scoring 75+ are included in the output.
 
 **Why independent scoring:** This decouples detection from evaluation. The review passes are optimized to cast a wide net (high recall). The scorer is optimized to filter noise (high precision). Combining both in one pass leads to anchoring — the reviewer justifies its own findings rather than evaluating them objectively.
 
