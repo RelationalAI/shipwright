@@ -33,7 +33,7 @@ Each pass reads its reference file for detailed criteria:
 | 2 | Conventions — CLAUDE.md compliance, code comment compliance, pattern consistency | `references/pass-conventions.md` |
 | 3 | Test Quality — testing the right thing, determinism, speed, behavior over implementation | `references/pass-test-quality.md` |
 
-For execution details (sub-agent spawning, file-based communication, model selection), see `references/orchestration.md`.
+For execution details (sub-agent spawning, model selection), see `references/orchestration.md`.
 
 ## Confidence Scoring
 
