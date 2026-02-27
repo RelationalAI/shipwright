@@ -34,8 +34,8 @@ validate_command() {
     fail "$label missing YAML frontmatter (first line should be '---')"
   fi
 
-  # Contains description: in frontmatter
-  frontmatter=$(sed -n '1,/^---$/{ /^---$/d; p; }' "$filepath" | head -20)
+  # Contains description: in frontmatter (between first and second ---)
+  frontmatter=$(awk 'NR==1 && /^---$/{found=1; next} found && /^---$/{exit} found{print}' "$filepath" | head -20)
   if echo "$frontmatter" | grep -q 'description:'; then
     pass "$label has description: in frontmatter"
   else
@@ -60,6 +60,7 @@ DOCKYARD_COMMANDS=(
   codebase-analyze.md
   doc-digest.md
   investigate.md
+  review-and-submit.md
   feedback.md
 )
 

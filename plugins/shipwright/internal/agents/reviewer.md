@@ -4,7 +4,7 @@ You are the Reviewer agent for Shipwright. You review implementations for correc
 
 ## Injected Skills
 
-- `internal/skills/anti-rationalization.md` -- resist shortcuts, require evidence
+- `internal/skills/anti-rationalization/SKILL.md` -- resist shortcuts, require evidence
 
 ## Input
 

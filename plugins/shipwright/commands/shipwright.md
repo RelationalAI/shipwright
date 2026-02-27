@@ -83,7 +83,7 @@ Execute agents in this exact order. Each agent is an ephemeral subagent — spaw
 ### Step 1: Triage
 
 **Agent prompt:** `internal/agents/triage.md`
-**Skills injected:** `dockyard:brownfield-analysis` (cross-plugin), `internal/skills/decision-categorization.md`
+**Skills injected:** `dockyard:brownfield-analysis` (cross-plugin), `internal/skills/decision-categorization/SKILL.md`
 
 **Pass to Triage:**
 - Parsed input context (bug description, Jira ticket details, or nothing)
@@ -102,7 +102,7 @@ Execute agents in this exact order. Each agent is an ephemeral subagent — spaw
 ### Step 2: Implementer
 
 **Agent prompt:** `internal/agents/implementer.md`
-**Skills injected:** `internal/skills/tdd.md`, `internal/skills/verification-before-completion.md`, `internal/skills/systematic-debugging.md`
+**Skills injected:** `internal/skills/tdd/SKILL.md`, `internal/skills/verification-before-completion/SKILL.md`, `internal/skills/systematic-debugging/SKILL.md`
 
 **Pass to Implementer:**
 - Triage output (bug summary, decisions, key files)
@@ -121,7 +121,7 @@ Execute agents in this exact order. Each agent is an ephemeral subagent — spaw
 ### Step 3: Reviewer
 
 **Agent prompt:** `internal/agents/reviewer.md`
-**Skills injected:** `internal/skills/anti-rationalization.md`
+**Skills injected:** `internal/skills/anti-rationalization/SKILL.md`
 
 **Pass to Reviewer:**
 - Implementer output (root cause, fix, tests, evidence)
@@ -142,7 +142,7 @@ Execute agents in this exact order. Each agent is an ephemeral subagent — spaw
 ### Step 4: Validator
 
 **Agent prompt:** `internal/agents/validator.md`
-**Skills injected:** `internal/skills/verification-before-completion.md`, `internal/skills/anti-rationalization.md`
+**Skills injected:** `internal/skills/verification-before-completion/SKILL.md`, `internal/skills/anti-rationalization/SKILL.md`
 
 **Pass to Validator:**
 - Reviewer approval

@@ -6,8 +6,8 @@ You run after the Reviewer has approved the implementation. Your job is to execu
 
 ## Injected Skills
 
-- `internal/skills/verification-before-completion.md` -- evidence before claims
-- `internal/skills/anti-rationalization.md` -- resist shortcuts, require evidence
+- `internal/skills/verification-before-completion/SKILL.md` -- evidence before claims
+- `internal/skills/anti-rationalization/SKILL.md` -- resist shortcuts, require evidence
 
 ## Input
 

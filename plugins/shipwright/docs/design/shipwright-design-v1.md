@@ -26,7 +26,7 @@ Shipwright is a framework that:
 
 **Target audience:** RAI engineering teams.
 **Platform:** Claude Code (designed for future portability).
-**Distribution:** RAI plugin marketplace (`RelationalAI/claude-plugins`).
+**Distribution:** RAI plugin marketplace (`RelationalAI/shipwright`).
 **Entry point:** `/shipwright:shipwright` (single command — auto-detects resume vs. new workflow).
 
 ---
@@ -455,8 +455,8 @@ plugins/shipwright/
 
 **Install (beta):**
 ```bash
-/plugin marketplace add RelationalAI/claude-plugins
-/plugin install shipwright-beta@rai-claude-plugins
+/plugin marketplace add RelationalAI/shipwright
+/plugin install shipwright@shipwright-marketplace
 # restart session
 /shipwright:shipwright
 ```
@@ -467,11 +467,10 @@ Not every use of Shipwright is a build workflow. Sometimes you just want an asse
 
 | Command | Agent | Skill | What it does |
 |---------|-------|-------|-------------|
-| `/shipwright:security-review` | Security Assessor | Quick Security | OWASP-style review of current code |
-| `/shipwright:security-threat-model` | Security Assessor | Threat Modeling | Full threat model of the repo |
-| `/shipwright:code-review` | Reviewer | — | Review code changes (staged or specified files) |
-| `/shipwright:pr-review` | Reviewer | — | Review a specific PR |
 | `/dockyard:codebase-analyze` | Triage | Brownfield Analysis | Analyze existing codebase: stack, architecture, conventions, concerns |
+| `/dockyard:review-and-submit` | — | Code Review + Submit | Review code, auto-fix findings, create draft PR |
+| `/dockyard:investigate` | — | Observability | Observability-driven live service investigation |
+| `/dockyard:doc-digest` | Doc Digest | — | Walk through any document section by section |
 
 These are stateless — no `.workflow/` directory, no recovery layers, no cost tracking. Just the agent prompt + skill, run once, output results.
 

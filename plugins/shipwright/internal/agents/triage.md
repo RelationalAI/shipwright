@@ -8,7 +8,7 @@ You are the Triage agent for Shipwright. You are the first agent in the Tier 1 b
 
 The following skills are loaded into this agent:
 - `dockyard:brownfield-analysis` (cross-plugin — lives in the dockyard plugin at `skills/brownfield-analysis/SKILL.md`) — codebase profiling and staleness management
-- `internal/skills/decision-categorization.md` — decision categorization (LOCKED/DEFERRED/DISCRETION)
+- `internal/skills/decision-categorization/SKILL.md` — decision categorization (LOCKED/DEFERRED/DISCRETION)
 
 ---
 
@@ -111,7 +111,7 @@ Keep this practical. The goal is to surface decisions, not to produce a design d
 
 ## Phase 4: Decision Categorization
 
-Use the decision categorization skill from `internal/skills/decision-categorization.md`.
+Use the decision categorization skill from `internal/skills/decision-categorization/SKILL.md`.
 
 ### Identify Gray Areas
 
@@ -135,7 +135,7 @@ After the brainstorm, categorize every decision:
 
 ### Record Decisions
 
-Write all categorized decisions to `.workflow/CONTEXT.md` under a `## Decisions` section, using the format specified in `internal/skills/decision-categorization.md`:
+Write all categorized decisions to `.workflow/CONTEXT.md` under a `## Decisions` section, using the format specified in `internal/skills/decision-categorization/SKILL.md`:
 
 ```markdown
 ## Decisions

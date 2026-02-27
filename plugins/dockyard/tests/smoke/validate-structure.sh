@@ -52,8 +52,9 @@ check "dockyard/agents/doc-digest.md"  "$DOCKYARD/agents/doc-digest.md"
 # Dockyard commands
 check "dockyard/commands/codebase-analyze.md"  "$DOCKYARD/commands/codebase-analyze.md"
 check "dockyard/commands/doc-digest.md"        "$DOCKYARD/commands/doc-digest.md"
-check "dockyard/commands/investigate.md"       "$DOCKYARD/commands/investigate.md"
-check "dockyard/commands/feedback.md"          "$DOCKYARD/commands/feedback.md"
+check "dockyard/commands/investigate.md"          "$DOCKYARD/commands/investigate.md"
+check "dockyard/commands/review-and-submit.md"   "$DOCKYARD/commands/review-and-submit.md"
+check "dockyard/commands/feedback.md"            "$DOCKYARD/commands/feedback.md"
 
 # --- Shipwright plugin ---
 echo ""
@@ -86,11 +87,12 @@ echo ""
 echo "Marketplace manifest validation:"
 if [ -f "$REPO_ROOT/.claude-plugin/marketplace.json" ]; then
   for key in name description plugins; do
-    if grep -q "\"$key\"" "$REPO_ROOT/.claude-plugin/marketplace.json"; then
-      echo "  PASS  marketplace.json contains \"$key\""
+    # Match root-level keys (no leading whitespace before the key)
+    if grep -qE "^  \"$key\"" "$REPO_ROOT/.claude-plugin/marketplace.json"; then
+      echo "  PASS  marketplace.json contains root-level \"$key\""
       PASS=$((PASS + 1))
     else
-      echo "  FAIL  marketplace.json missing \"$key\""
+      echo "  FAIL  marketplace.json missing root-level \"$key\""
       FAIL=$((FAIL + 1))
     fi
   done
@@ -164,10 +166,21 @@ else
   FAIL=$((FAIL + 1))
 fi
 
-# Test 2: Registry exists but no dockyard — should exit 2
+# Test 2: Registry file exists but is empty — should exit 2
 mkdir -p "$tmpdir/.claude/plugins"
-echo '{"plugins":{}}' > "$tmpdir/.claude/plugins/installed_plugins.json"
+echo '' > "$tmpdir/.claude/plugins/installed_plugins.json"
 rc=0; HOME="$tmpdir" bash "$SHIPWRIGHT/hooks/check-dockyard.sh" >/dev/null 2>&1 || rc=$?
+if [ "$rc" -eq 2 ]; then
+  echo "  PASS  check-dockyard.sh exits 2 when registry is empty"
+  PASS=$((PASS + 1))
+else
+  echo "  FAIL  check-dockyard.sh should exit 2 when registry is empty (got $rc)"
+  FAIL=$((FAIL + 1))
+fi
+
+# Test 3: Registry exists but no dockyard — should exit 2
+echo '{"plugins":{}}' > "$tmpdir/.claude/plugins/installed_plugins.json"
+rc=0; hook_output=$(HOME="$tmpdir" bash "$SHIPWRIGHT/hooks/check-dockyard.sh" 2>&1) || rc=$?
 if [ "$rc" -eq 2 ]; then
   echo "  PASS  check-dockyard.sh exits 2 when dockyard missing from registry"
   PASS=$((PASS + 1))
@@ -176,7 +189,16 @@ else
   FAIL=$((FAIL + 1))
 fi
 
-# Test 3: Registry has dockyard — should exit 0
+# Test 4: Error message includes install command
+if echo "$hook_output" | grep -q '/plugin install dockyard@shipwright-marketplace'; then
+  echo "  PASS  check-dockyard.sh error includes install command"
+  PASS=$((PASS + 1))
+else
+  echo "  FAIL  check-dockyard.sh error missing install command"
+  FAIL=$((FAIL + 1))
+fi
+
+# Test 5: Registry has dockyard — should exit 0
 echo '{"plugins":{"dockyard@shipwright-marketplace":{}}}' > "$tmpdir/.claude/plugins/installed_plugins.json"
 if HOME="$tmpdir" bash "$SHIPWRIGHT/hooks/check-dockyard.sh" >/dev/null 2>&1; then
   echo "  PASS  check-dockyard.sh exits zero when dockyard present"

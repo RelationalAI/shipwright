@@ -87,6 +87,7 @@ Everything that works independently, without orchestration.
 - `/dockyard:codebase-analyze` — Generate codebase profile docs
 - `/dockyard:doc-digest` — Interactive section-by-section document review
 - `/dockyard:investigate` — Observability-driven live service investigation
+- `/dockyard:review-and-submit` — Code review, auto-fix, and draft PR creation
 
 **Agents:**
 - `doc-digest` — Document walkthrough agent
@@ -155,6 +156,7 @@ shipwright-marketplace/
 │   │   │   ├── codebase-analyze.md
 │   │   │   ├── doc-digest.md
 │   │   │   ├── investigate.md
+│   │   │   ├── review-and-submit.md
 │   │   │   └── feedback.md
 │   │   ├── agents/
 │   │   │   └── doc-digest.md

@@ -25,11 +25,11 @@ validate_agent() {
   fi
   pass "$label exists and is non-empty"
 
-  # Contains a role description
-  if grep -qi 'you are\|agent' "$filepath"; then
+  # Contains a role description (starts with "You are" somewhere in the file)
+  if grep -qi '^you are\|^- you are' "$filepath"; then
     pass "$label contains role description"
   else
-    fail "$label missing role description (expected 'You are' or 'agent')"
+    fail "$label missing role description (expected line starting with 'You are')"
   fi
 
   # References skills (if expected)
@@ -76,6 +76,24 @@ for agent in "${SHIPWRIGHT_AGENTS[@]}"; do
     "$REPO_ROOT/plugins/shipwright/internal/agents/$agent" \
     "shipwright/$agent" \
     "yes"
+done
+
+# --- Cross-plugin skill reference validation ---
+echo ""
+echo "Cross-plugin skill references:"
+# Verify that dockyard:X references in shipwright agents resolve to actual dockyard skills
+for agent in "$REPO_ROOT/plugins/shipwright/internal/agents/"*.md "$REPO_ROOT/plugins/shipwright/commands/shipwright.md"; do
+  refs=$(grep -oE 'dockyard:[a-z-]+' "$agent" 2>/dev/null | sort -u || true)
+  for ref in $refs; do
+    skill_name="${ref#dockyard:}"
+    skill_path="$REPO_ROOT/plugins/dockyard/skills/$skill_name/SKILL.md"
+    label="$(basename "$agent"):$ref"
+    if [ -f "$skill_path" ]; then
+      pass "$label resolves to $skill_path"
+    else
+      fail "$label does not resolve (expected $skill_path)"
+    fi
+  done
 done
 
 echo ""
