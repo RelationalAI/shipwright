@@ -1,31 +1,71 @@
 #!/usr/bin/env bash
 #
-# validate-skills.sh — Verify skill files meet M1 conventions.
+# validate-skills.sh — Verify skill files in both plugins meet conventions.
 #
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 PASS=0
 FAIL=0
 
-USER_SKILLS=(
+pass() { echo "  PASS  $1"; PASS=$((PASS + 1)); }
+fail() { echo "  FAIL  $1"; FAIL=$((FAIL + 1)); }
+
+validate_skill() {
+  local filepath="$1"
+  local label="$2"
+
+  echo ""
+  echo "$label:"
+
+  if [ ! -s "$filepath" ]; then
+    fail "$label is missing or empty"
+    return
+  fi
+  pass "$label exists and is non-empty"
+
+  # Has a title heading or YAML frontmatter
+  if head -1 "$filepath" | grep -qE '^(#|---)'; then
+    pass "$label has title heading or frontmatter"
+  else
+    fail "$label missing title heading or YAML frontmatter"
+  fi
+
+  if grep -qi 'superpowers:' "$filepath"; then
+    fail "$label references superpowers: namespace"
+  else
+    pass "$label does not reference superpowers: namespace"
+  fi
+
+  if grep -q '\.planning/' "$filepath"; then
+    fail "$label references .planning/ (GSD internal)"
+  else
+    pass "$label does not reference .planning/"
+  fi
+}
+
+echo "=== validate-skills ==="
+
+# --- Dockyard public skills ---
+echo ""
+echo "Dockyard public skills:"
+DOCKYARD_SKILLS=(
   brownfield-analysis
   code-review
   review-and-submit
+  observability
 )
 
-# Original Shipwright skills (no external attribution required)
-ORIGINAL_SKILLS=(brownfield-analysis code-review review-and-submit)
+for skill in "${DOCKYARD_SKILLS[@]}"; do
+  validate_skill \
+    "$REPO_ROOT/plugins/dockyard/skills/$skill/SKILL.md" \
+    "dockyard/$skill"
+done
 
-is_original() {
-  local skill="$1"
-  for s in "${ORIGINAL_SKILLS[@]}"; do
-    if [ "$s" = "$skill" ]; then return 0; fi
-  done
-  return 1
-}
-
-INTERNAL_SKILLS=(
+# --- Shipwright internal skills ---
+echo ""
+echo "Shipwright internal skills:"
+SHIPWRIGHT_SKILLS=(
   tdd
   verification-before-completion
   systematic-debugging
@@ -33,76 +73,10 @@ INTERNAL_SKILLS=(
   decision-categorization
 )
 
-pass() { echo "  PASS  $1"; PASS=$((PASS + 1)); }
-fail() { echo "  FAIL  $1"; FAIL=$((FAIL + 1)); }
-
-echo "=== validate-skills ==="
-
-# Validate user-facing skills
-echo ""
-echo "User-facing skills:"
-for skill in "${USER_SKILLS[@]}"; do
-  filepath="$REPO_ROOT/skills/$skill/SKILL.md"
-
-  echo ""
-  echo "$skill:"
-
-  if [ ! -s "$filepath" ]; then
-    fail "$skill is missing or empty"
-    continue
-  fi
-  pass "$skill exists and is non-empty"
-
-  # Contains attribution header (skip for original skills)
-  if is_original "$skill"; then
-    pass "$skill is original (no attribution required)"
-  elif grep -q '> \*\*Attribution:\*\*' "$filepath"; then
-    pass "$skill has attribution header"
-  else
-    fail "$skill missing attribution header (expected '> **Attribution:**')"
-  fi
-
-  if grep -qi 'superpowers:' "$filepath"; then
-    fail "$skill references superpowers: namespace"
-  else
-    pass "$skill does not reference superpowers: namespace"
-  fi
-
-  if grep -q '\.planning/' "$filepath"; then
-    fail "$skill references .planning/ (GSD internal)"
-  else
-    pass "$skill does not reference .planning/"
-  fi
-done
-
-# Validate internal skills
-echo ""
-echo "Internal skills:"
-for skill in "${INTERNAL_SKILLS[@]}"; do
-  filepath="$REPO_ROOT/internal/skills/$skill/SKILL.md"
-  echo ""
-  echo "$skill:"
-
-  # File exists and is not empty
-  if [ ! -s "$filepath" ]; then
-    fail "$skill is missing or empty"
-    continue
-  fi
-  pass "$skill exists and is non-empty"
-
-  # No references to superpowers: namespace
-  if grep -qi 'superpowers:' "$filepath"; then
-    fail "$skill references superpowers: namespace"
-  else
-    pass "$skill does not reference superpowers: namespace"
-  fi
-
-  # No references to .planning/ (GSD internal)
-  if grep -q '\.planning/' "$filepath"; then
-    fail "$skill references .planning/ (GSD internal)"
-  else
-    pass "$skill does not reference .planning/"
-  fi
+for skill in "${SHIPWRIGHT_SKILLS[@]}"; do
+  validate_skill \
+    "$REPO_ROOT/plugins/shipwright/internal/skills/$skill/SKILL.md" \
+    "shipwright/$skill"
 done
 
 echo ""

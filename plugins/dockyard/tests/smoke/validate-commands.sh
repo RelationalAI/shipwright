@@ -1,62 +1,83 @@
 #!/usr/bin/env bash
 #
-# validate-commands.sh — Verify command files meet M1 conventions.
+# validate-commands.sh — Verify command files in both plugins meet conventions.
 #
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 PASS=0
 FAIL=0
-
-COMMANDS=(
-  shipwright.md
-  codebase-analyze.md
-  doc-digest.md
-  debug.md
-  report.md
-)
 
 pass() { echo "  PASS  $1"; PASS=$((PASS + 1)); }
 fail() { echo "  FAIL  $1"; FAIL=$((FAIL + 1)); }
 
-echo "=== validate-commands ==="
+validate_command() {
+  local plugin="$1"
+  local cmd="$2"
+  local filepath="$REPO_ROOT/plugins/$plugin/commands/$cmd"
+  local label="$plugin/$cmd"
 
-for cmd in "${COMMANDS[@]}"; do
-  filepath="$REPO_ROOT/commands/$cmd"
   echo ""
-  echo "$cmd:"
+  echo "$label:"
 
   # File exists and is not empty
   if [ ! -s "$filepath" ]; then
-    fail "$cmd is missing or empty"
-    continue
+    fail "$label is missing or empty"
+    return
   fi
-  pass "$cmd exists and is non-empty"
+  pass "$label exists and is non-empty"
 
   # Contains YAML frontmatter (starts with ---)
   if head -1 "$filepath" | grep -q '^---'; then
-    pass "$cmd has YAML frontmatter opening"
+    pass "$label has YAML frontmatter opening"
   else
-    fail "$cmd missing YAML frontmatter (first line should be '---')"
+    fail "$label missing YAML frontmatter (first line should be '---')"
   fi
 
   # Contains description: in frontmatter
-  # Extract frontmatter (between first and second ---) and check for description:
   frontmatter=$(sed -n '1,/^---$/{ /^---$/d; p; }' "$filepath" | head -20)
   if echo "$frontmatter" | grep -q 'description:'; then
-    pass "$cmd has description: in frontmatter"
+    pass "$label has description: in frontmatter"
   else
-    fail "$cmd missing description: in frontmatter"
+    fail "$label missing description: in frontmatter"
   fi
 
   # Has content beyond frontmatter
-  # Count lines after the closing --- of frontmatter
   body_lines=$(sed '1,/^---$/{ /^---$/!d; }' "$filepath" | sed '1d' | grep -c '[^[:space:]]' || true)
   if [ "$body_lines" -gt 0 ]; then
-    pass "$cmd has content beyond frontmatter"
+    pass "$label has content beyond frontmatter"
   else
-    fail "$cmd is empty beyond frontmatter"
+    fail "$label is empty beyond frontmatter"
   fi
+}
+
+echo "=== validate-commands ==="
+
+# --- Dockyard commands ---
+echo ""
+echo "Dockyard commands:"
+DOCKYARD_COMMANDS=(
+  debug.md
+  codebase-analyze.md
+  doc-digest.md
+  investigate.md
+  feedback.md
+)
+
+for cmd in "${DOCKYARD_COMMANDS[@]}"; do
+  validate_command "dockyard" "$cmd"
+done
+
+# --- Shipwright commands ---
+echo ""
+echo "Shipwright commands:"
+SHIPWRIGHT_COMMANDS=(
+  shipwright.md
+  feedback.md
+)
+
+for cmd in "${SHIPWRIGHT_COMMANDS[@]}"; do
+  validate_command "shipwright" "$cmd"
 done
 
 echo ""

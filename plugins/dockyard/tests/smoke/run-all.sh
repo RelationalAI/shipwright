@@ -2,6 +2,9 @@
 #
 # run-all.sh — Run all smoke validation scripts and report summary.
 #
+# These are marketplace-wide validation tests that verify the structure
+# of both the dockyard and shipwright plugins.
+#
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"

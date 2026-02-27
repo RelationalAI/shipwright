@@ -1,108 +1,81 @@
 #!/usr/bin/env bash
 #
-# validate-agents.sh — Verify agent files meet M1 conventions.
+# validate-agents.sh — Verify agent files in both plugins meet conventions.
 #
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 PASS=0
 FAIL=0
 
-USER_AGENTS=(
-  doc-digest.md
-)
+pass() { echo "  PASS  $1"; PASS=$((PASS + 1)); }
+fail() { echo "  FAIL  $1"; FAIL=$((FAIL + 1)); }
 
-INTERNAL_AGENTS=(
+validate_agent() {
+  local filepath="$1"
+  local label="$2"
+  local expect_skills="$3"  # "yes" or "no"
+
+  echo ""
+  echo "$label:"
+
+  if [ ! -s "$filepath" ]; then
+    fail "$label is missing or empty"
+    return
+  fi
+  pass "$label exists and is non-empty"
+
+  # Contains a role description
+  if grep -qi 'you are\|agent' "$filepath"; then
+    pass "$label contains role description"
+  else
+    fail "$label missing role description (expected 'You are' or 'agent')"
+  fi
+
+  # References skills (if expected)
+  if [ "$expect_skills" = "yes" ]; then
+    if grep -q 'skills/' "$filepath"; then
+      pass "$label references at least one skill"
+    else
+      fail "$label does not reference any skill"
+    fi
+  else
+    pass "$label is self-contained (no skill injection expected)"
+  fi
+
+  # Contains output/return format section
+  if grep -qiE '## (Output|Return|Result|Returning)' "$filepath"; then
+    pass "$label contains output/return format section"
+  else
+    fail "$label missing output/return format section (expected ## Output, ## Return, or ## Result heading)"
+  fi
+}
+
+echo "=== validate-agents ==="
+
+# --- Dockyard public agents ---
+echo ""
+echo "Dockyard public agents:"
+validate_agent \
+  "$REPO_ROOT/plugins/dockyard/agents/doc-digest.md" \
+  "dockyard/doc-digest.md" \
+  "no"
+
+# --- Shipwright internal agents ---
+echo ""
+echo "Shipwright internal agents:"
+SHIPWRIGHT_AGENTS=(
   triage.md
   implementer.md
   reviewer.md
   validator.md
 )
 
-pass() { echo "  PASS  $1"; PASS=$((PASS + 1)); }
-fail() { echo "  FAIL  $1"; FAIL=$((FAIL + 1)); }
-
-echo "=== validate-agents ==="
-
-# Validate user-facing agents
-echo ""
-echo "User-facing agents:"
-for agent in "${USER_AGENTS[@]}"; do
-  filepath="$REPO_ROOT/agents/$agent"
-
-  echo ""
-  echo "$agent:"
-
-  if [ ! -s "$filepath" ]; then
-    fail "$agent is missing or empty"
-    continue
-  fi
-  pass "$agent exists and is non-empty"
-
-  if grep -qi 'you are\|agent' "$filepath"; then
-    pass "$agent contains role description"
-  else
-    fail "$agent missing role description (expected 'You are' or 'agent')"
-  fi
-
-  if [ "$agent" = "doc-digest.md" ]; then
-    pass "$agent is self-contained (no skill injection expected)"
-  else
-    if grep -q 'skills/' "$filepath"; then
-      pass "$agent references at least one skill"
-    else
-      fail "$agent does not reference any skill"
-    fi
-  fi
-
-  if grep -qiE '## (Output|Return|Result|Returning)' "$filepath"; then
-    pass "$agent contains output/return format section"
-  else
-    fail "$agent missing output/return format section (expected ## Output, ## Return, or ## Result heading)"
-  fi
-done
-
-# Validate internal agents
-echo ""
-echo "Internal agents:"
-for agent in "${INTERNAL_AGENTS[@]}"; do
-  filepath="$REPO_ROOT/internal/agents/$agent"
-  echo ""
-  echo "$agent:"
-
-  # File exists and is not empty
-  if [ ! -s "$filepath" ]; then
-    fail "$agent is missing or empty"
-    continue
-  fi
-  pass "$agent exists and is non-empty"
-
-  # Contains a role description (first non-empty line after heading should describe the role)
-  # We check for "You are" or "agent" as a proxy for role description
-  if grep -qi 'you are\|agent' "$filepath"; then
-    pass "$agent contains role description"
-  else
-    fail "$agent missing role description (expected 'You are' or 'agent')"
-  fi
-
-  # References at least one skill (except doc-digest which is self-contained)
-  if [ "$agent" = "doc-digest.md" ]; then
-    pass "$agent is self-contained (no skill injection expected)"
-  else
-    if grep -q 'skills/' "$filepath"; then
-      pass "$agent references at least one skill"
-    else
-      fail "$agent does not reference any skill"
-    fi
-  fi
-
-  # Contains output/return format section
-  # Look for headings or sections about output, return, result
-  if grep -qiE '## (Output|Return|Result|Returning)' "$filepath"; then
-    pass "$agent contains output/return format section"
-  else
-    fail "$agent missing output/return format section (expected ## Output, ## Return, or ## Result heading)"
-  fi
+for agent in "${SHIPWRIGHT_AGENTS[@]}"; do
+  validate_agent \
+    "$REPO_ROOT/plugins/shipwright/internal/agents/$agent" \
+    "shipwright/$agent" \
+    "yes"
 done
 
 echo ""

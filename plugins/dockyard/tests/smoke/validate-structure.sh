@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 #
-# validate-structure.sh — Verify all M1 plugin files exist.
+# validate-structure.sh — Verify marketplace and plugin structure files exist.
 #
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
+DOCKYARD="$REPO_ROOT/plugins/dockyard"
+SHIPWRIGHT="$REPO_ROOT/plugins/shipwright"
 PASS=0
 FAIL=0
 
@@ -22,64 +24,102 @@ check() {
 
 echo "=== validate-structure ==="
 
-# --- User-facing skills (3) ---
+# --- Marketplace-level files ---
 echo ""
-echo "User-facing skills:"
-check "skills/brownfield-analysis/SKILL.md"        "$REPO_ROOT/skills/brownfield-analysis/SKILL.md"
-check "skills/code-review/SKILL.md"                "$REPO_ROOT/skills/code-review/SKILL.md"
-check "skills/review-and-submit/SKILL.md"            "$REPO_ROOT/skills/review-and-submit/SKILL.md"
+echo "Marketplace-level files:"
+check "marketplace.json"          "$REPO_ROOT/.claude-plugin/marketplace.json"
+check "CODEOWNERS"                "$REPO_ROOT/CODEOWNERS"
+check "CONTRIBUTING.md"           "$REPO_ROOT/CONTRIBUTING.md"
+check "README.md"                 "$REPO_ROOT/README.md"
+check "THIRD_PARTY_NOTICES"       "$REPO_ROOT/THIRD_PARTY_NOTICES"
+check "templates/SKILL_TEMPLATE.md"  "$REPO_ROOT/templates/SKILL_TEMPLATE.md"
+check "templates/AGENT_TEMPLATE.md"  "$REPO_ROOT/templates/AGENT_TEMPLATE.md"
 
-# --- Internal skills (5) ---
+# --- Dockyard plugin ---
 echo ""
-echo "Internal skills:"
-check "internal/skills/tdd/SKILL.md"                        "$REPO_ROOT/internal/skills/tdd/SKILL.md"
-check "internal/skills/verification-before-completion/SKILL.md" "$REPO_ROOT/internal/skills/verification-before-completion/SKILL.md"
-check "internal/skills/systematic-debugging/SKILL.md"       "$REPO_ROOT/internal/skills/systematic-debugging/SKILL.md"
-check "internal/skills/anti-rationalization/SKILL.md"       "$REPO_ROOT/internal/skills/anti-rationalization/SKILL.md"
-check "internal/skills/decision-categorization/SKILL.md"    "$REPO_ROOT/internal/skills/decision-categorization/SKILL.md"
+echo "Dockyard plugin structure:"
+check "dockyard/plugin.json"      "$DOCKYARD/.claude-plugin/plugin.json"
 
-# --- User-facing agents (1) ---
+# Dockyard skills
+check "dockyard/skills/brownfield-analysis/SKILL.md"  "$DOCKYARD/skills/brownfield-analysis/SKILL.md"
+check "dockyard/skills/code-review/SKILL.md"           "$DOCKYARD/skills/code-review/SKILL.md"
+check "dockyard/skills/review-and-submit/SKILL.md"     "$DOCKYARD/skills/review-and-submit/SKILL.md"
+check "dockyard/skills/observability/SKILL.md"         "$DOCKYARD/skills/observability/SKILL.md"
+
+# Dockyard agents
+check "dockyard/agents/doc-digest.md"  "$DOCKYARD/agents/doc-digest.md"
+
+# Dockyard commands
+check "dockyard/commands/debug.md"             "$DOCKYARD/commands/debug.md"
+check "dockyard/commands/codebase-analyze.md"  "$DOCKYARD/commands/codebase-analyze.md"
+check "dockyard/commands/doc-digest.md"        "$DOCKYARD/commands/doc-digest.md"
+check "dockyard/commands/investigate.md"       "$DOCKYARD/commands/investigate.md"
+check "dockyard/commands/feedback.md"          "$DOCKYARD/commands/feedback.md"
+
+# --- Shipwright plugin ---
 echo ""
-echo "User-facing agents:"
-check "agents/doc-digest.md"   "$REPO_ROOT/agents/doc-digest.md"
+echo "Shipwright plugin structure:"
+check "shipwright/plugin.json"    "$SHIPWRIGHT/.claude-plugin/plugin.json"
 
-# --- Internal agents (4) ---
+# Shipwright hooks
+check "shipwright/hooks/hooks.json"        "$SHIPWRIGHT/hooks/hooks.json"
+check "shipwright/hooks/check-dockyard.sh" "$SHIPWRIGHT/hooks/check-dockyard.sh"
+
+# Shipwright commands
+check "shipwright/commands/shipwright.md"  "$SHIPWRIGHT/commands/shipwright.md"
+check "shipwright/commands/feedback.md"    "$SHIPWRIGHT/commands/feedback.md"
+
+# Shipwright internal agents
+check "shipwright/internal/agents/triage.md"       "$SHIPWRIGHT/internal/agents/triage.md"
+check "shipwright/internal/agents/implementer.md"  "$SHIPWRIGHT/internal/agents/implementer.md"
+check "shipwright/internal/agents/reviewer.md"     "$SHIPWRIGHT/internal/agents/reviewer.md"
+check "shipwright/internal/agents/validator.md"    "$SHIPWRIGHT/internal/agents/validator.md"
+
+# Shipwright internal skills
+check "shipwright/internal/skills/tdd/SKILL.md"                        "$SHIPWRIGHT/internal/skills/tdd/SKILL.md"
+check "shipwright/internal/skills/verification-before-completion/SKILL.md" "$SHIPWRIGHT/internal/skills/verification-before-completion/SKILL.md"
+check "shipwright/internal/skills/systematic-debugging/SKILL.md"       "$SHIPWRIGHT/internal/skills/systematic-debugging/SKILL.md"
+check "shipwright/internal/skills/anti-rationalization/SKILL.md"       "$SHIPWRIGHT/internal/skills/anti-rationalization/SKILL.md"
+check "shipwright/internal/skills/decision-categorization/SKILL.md"    "$SHIPWRIGHT/internal/skills/decision-categorization/SKILL.md"
+
+# --- Validate marketplace.json has required keys ---
 echo ""
-echo "Internal agents:"
-check "internal/agents/triage.md"       "$REPO_ROOT/internal/agents/triage.md"
-check "internal/agents/implementer.md"  "$REPO_ROOT/internal/agents/implementer.md"
-check "internal/agents/reviewer.md"     "$REPO_ROOT/internal/agents/reviewer.md"
-check "internal/agents/validator.md"    "$REPO_ROOT/internal/agents/validator.md"
-
-# --- Commands (5) ---
-echo ""
-echo "Commands:"
-check "commands/shipwright.md"        "$REPO_ROOT/commands/shipwright.md"
-check "commands/codebase-analyze.md" "$REPO_ROOT/commands/codebase-analyze.md"
-check "commands/doc-digest.md"       "$REPO_ROOT/commands/doc-digest.md"
-check "commands/debug.md"            "$REPO_ROOT/commands/debug.md"
-check "commands/report.md"           "$REPO_ROOT/commands/report.md"
-
-# --- plugin.json ---
-echo ""
-echo "Plugin manifest:"
-check "plugin.json exists" "$REPO_ROOT/.claude-plugin/plugin.json"
-
-# Validate plugin.json has required keys
-if [ -f "$REPO_ROOT/.claude-plugin/plugin.json" ]; then
-  for key in name description version author; do
-    if grep -q "\"$key\"" "$REPO_ROOT/.claude-plugin/plugin.json"; then
-      echo "  PASS  plugin.json contains \"$key\""
+echo "Marketplace manifest validation:"
+if [ -f "$REPO_ROOT/.claude-plugin/marketplace.json" ]; then
+  for key in name description plugins; do
+    if grep -q "\"$key\"" "$REPO_ROOT/.claude-plugin/marketplace.json"; then
+      echo "  PASS  marketplace.json contains \"$key\""
       PASS=$((PASS + 1))
     else
-      echo "  FAIL  plugin.json missing \"$key\""
+      echo "  FAIL  marketplace.json missing \"$key\""
       FAIL=$((FAIL + 1))
     fi
   done
 else
-  echo "  SKIP  plugin.json key checks (file missing)"
-  FAIL=$((FAIL + 6))
+  echo "  SKIP  marketplace.json key checks (file missing)"
+  FAIL=$((FAIL + 3))
 fi
+
+# --- Validate each plugin.json has required keys ---
+echo ""
+echo "Plugin manifest validation:"
+for plugin_name in dockyard shipwright; do
+  plugin_json="$REPO_ROOT/plugins/$plugin_name/.claude-plugin/plugin.json"
+  if [ -f "$plugin_json" ]; then
+    for key in name description version; do
+      if grep -q "\"$key\"" "$plugin_json"; then
+        echo "  PASS  $plugin_name/plugin.json contains \"$key\""
+        PASS=$((PASS + 1))
+      else
+        echo "  FAIL  $plugin_name/plugin.json missing \"$key\""
+        FAIL=$((FAIL + 1))
+      fi
+    done
+  else
+    echo "  SKIP  $plugin_name/plugin.json key checks (file missing)"
+    FAIL=$((FAIL + 3))
+  fi
+done
 
 # --- .gitignore includes .workflow/ ---
 echo ""
@@ -91,11 +131,6 @@ else
   echo "  FAIL  .gitignore missing .workflow/ entry"
   FAIL=$((FAIL + 1))
 fi
-
-# --- README.md ---
-echo ""
-echo "Docs:"
-check "README.md" "$REPO_ROOT/README.md"
 
 # --- Summary ---
 echo ""
