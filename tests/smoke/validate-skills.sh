@@ -10,7 +10,20 @@ FAIL=0
 
 USER_SKILLS=(
   brownfield-analysis
+  code-review
+  review-and-submit
 )
+
+# Original Shipwright skills (no external attribution required)
+ORIGINAL_SKILLS=(brownfield-analysis code-review review-and-submit)
+
+is_original() {
+  local skill="$1"
+  for s in "${ORIGINAL_SKILLS[@]}"; do
+    if [ "$s" = "$skill" ]; then return 0; fi
+  done
+  return 1
+}
 
 INTERNAL_SKILLS=(
   tdd
@@ -40,7 +53,10 @@ for skill in "${USER_SKILLS[@]}"; do
   fi
   pass "$skill exists and is non-empty"
 
-  if grep -q '> \*\*Attribution:\*\*' "$filepath"; then
+  # Contains attribution header (skip for original skills)
+  if is_original "$skill"; then
+    pass "$skill is original (no attribution required)"
+  elif grep -q '> \*\*Attribution:\*\*' "$filepath"; then
     pass "$skill has attribution header"
   else
     fail "$skill missing attribution header (expected '> **Attribution:**')"
@@ -73,13 +89,6 @@ for skill in "${INTERNAL_SKILLS[@]}"; do
     continue
   fi
   pass "$skill exists and is non-empty"
-
-  # Contains attribution header
-  if grep -q '> \*\*Attribution:\*\*' "$filepath"; then
-    pass "$skill has attribution header"
-  else
-    fail "$skill missing attribution header (expected '> **Attribution:**')"
-  fi
 
   # No references to superpowers: namespace
   if grep -qi 'superpowers:' "$filepath"; then
