@@ -166,11 +166,11 @@ Synthesize a PR description from all available sources:
 **Use this template:**
 
 ```markdown
-## What
-<concise summary of what changed — proportional to diff size>
-
 ## Why
 <rationale — the problem being solved, decisions that led here>
+
+## What
+<concise summary of what changed — proportional to diff size>
 
 ## How to review
 <suggested focus areas, ordered by importance>
