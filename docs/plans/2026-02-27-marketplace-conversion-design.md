@@ -79,10 +79,11 @@ Everything that works independently, without orchestration.
 
 **Skills:**
 - `brownfield-analysis` — 7-doc codebase profiling
+- `code-review` — Structured 3-pass code review with confidence scoring
+- `review-and-submit` — Local dev flow from "done coding" to "draft PR ready"
 - `observability` — Query logs, spans, metrics for incident investigation
 
 **Commands:**
-- `/dockyard:debug` — Standalone systematic debugging (4-phase root cause)
 - `/dockyard:codebase-analyze` — Generate codebase profile docs
 - `/dockyard:doc-digest` — Interactive section-by-section document review
 - `/dockyard:investigate` — Observability-driven live service investigation
@@ -143,11 +144,14 @@ shipwright-marketplace/
 │   │   ├── skills/
 │   │   │   ├── brownfield-analysis/
 │   │   │   │   └── SKILL.md
+│   │   │   ├── code-review/
+│   │   │   │   └── SKILL.md
+│   │   │   ├── review-and-submit/
+│   │   │   │   └── SKILL.md
 │   │   │   └── observability/
 │   │   │       ├── SKILL.md
 │   │   │       └── RESEARCH.md
 │   │   ├── commands/
-│   │   │   ├── debug.md
 │   │   │   ├── codebase-analyze.md
 │   │   │   ├── doc-digest.md
 │   │   │   ├── investigate.md
@@ -302,7 +306,7 @@ Shipwright ships a `SessionStart` hook that reads `~/.claude/plugins/installed_p
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "startup",
+        "matcher": "startup|resume|clear|compact",
         "hooks": [
           {
             "type": "command",
@@ -318,7 +322,7 @@ Shipwright ships a `SessionStart` hook that reads `~/.claude/plugins/installed_p
 ### hooks/check-dockyard.sh
 
 ```bash
-#!/bin/bash
+#!/usr/bin/env bash
 REGISTRY="$HOME/.claude/plugins/installed_plugins.json"
 
 if [ ! -f "$REGISTRY" ]; then

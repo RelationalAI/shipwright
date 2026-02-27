@@ -57,7 +57,6 @@ echo "=== validate-commands ==="
 echo ""
 echo "Dockyard commands:"
 DOCKYARD_COMMANDS=(
-  debug.md
   codebase-analyze.md
   doc-digest.md
   investigate.md

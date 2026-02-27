@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 REGISTRY="$HOME/.claude/plugins/installed_plugins.json"
 
 if [ ! -f "$REGISTRY" ]; then

@@ -3,7 +3,7 @@ description: Investigate live service issues using observability data (logs, spa
 argument-hint: [incident key, transaction ID, error description, or service name]
 ---
 
-You are running the Shipwright Investigate command. This provides observability-driven investigation of live service issues.
+You are running the Dockyard Investigate command. This provides observability-driven investigation of live service issues.
 
 ## Behavior
 - This is a standalone command -- no orchestrator, no recovery, no .workflow/ files
@@ -12,7 +12,7 @@ You are running the Shipwright Investigate command. This provides observability-
 
 ## Setup
 
-Load this skill from the Shipwright plugin root before starting:
+Load this skill from the Dockyard plugin root before starting:
 1. `skills/observability/SKILL.md` -- domain context, tools, workflow, and runbooks
 
 Read the file and internalize its rules, domain context, and runbooks. They are non-negotiable during this session.

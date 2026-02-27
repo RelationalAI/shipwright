@@ -34,7 +34,7 @@ validate_agent() {
 
   # References skills (if expected)
   if [ "$expect_skills" = "yes" ]; then
-    if grep -q 'skills/' "$filepath"; then
+    if grep -qE 'skills/|dockyard:' "$filepath"; then
       pass "$label references at least one skill"
     else
       fail "$label does not reference any skill"

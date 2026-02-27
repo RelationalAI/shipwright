@@ -50,7 +50,6 @@ check "dockyard/skills/observability/SKILL.md"         "$DOCKYARD/skills/observa
 check "dockyard/agents/doc-digest.md"  "$DOCKYARD/agents/doc-digest.md"
 
 # Dockyard commands
-check "dockyard/commands/debug.md"             "$DOCKYARD/commands/debug.md"
 check "dockyard/commands/codebase-analyze.md"  "$DOCKYARD/commands/codebase-analyze.md"
 check "dockyard/commands/doc-digest.md"        "$DOCKYARD/commands/doc-digest.md"
 check "dockyard/commands/investigate.md"       "$DOCKYARD/commands/investigate.md"
@@ -129,6 +128,59 @@ if [ -f "$REPO_ROOT/.gitignore" ] && grep -q '\.workflow/' "$REPO_ROOT/.gitignor
   PASS=$((PASS + 1))
 else
   echo "  FAIL  .gitignore missing .workflow/ entry"
+  FAIL=$((FAIL + 1))
+fi
+
+# --- Validate hooks.json content ---
+echo ""
+echo "Hooks validation:"
+if [ -f "$SHIPWRIGHT/hooks/hooks.json" ]; then
+  if grep -q '"SessionStart"' "$SHIPWRIGHT/hooks/hooks.json" && \
+     grep -q 'check-dockyard.sh' "$SHIPWRIGHT/hooks/hooks.json"; then
+    echo "  PASS  hooks.json references SessionStart and check-dockyard.sh"
+    PASS=$((PASS + 1))
+  else
+    echo "  FAIL  hooks.json missing SessionStart hook or check-dockyard.sh reference"
+    FAIL=$((FAIL + 1))
+  fi
+else
+  echo "  SKIP  hooks.json content check (file missing)"
+  FAIL=$((FAIL + 1))
+fi
+
+# --- Validate check-dockyard.sh behavior ---
+echo ""
+echo "Hook script behavior:"
+tmpdir=$(mktemp -d)
+trap 'rm -rf "$tmpdir"' EXIT
+
+# Test 1: No registry file — should exit 2
+if HOME="$tmpdir" bash "$SHIPWRIGHT/hooks/check-dockyard.sh" >/dev/null 2>&1; then
+  echo "  FAIL  check-dockyard.sh should exit non-zero when registry missing"
+  FAIL=$((FAIL + 1))
+else
+  echo "  PASS  check-dockyard.sh exits non-zero when registry missing"
+  PASS=$((PASS + 1))
+fi
+
+# Test 2: Registry exists but no dockyard — should exit 2
+mkdir -p "$tmpdir/.claude/plugins"
+echo '{"plugins":{}}' > "$tmpdir/.claude/plugins/installed_plugins.json"
+if HOME="$tmpdir" bash "$SHIPWRIGHT/hooks/check-dockyard.sh" >/dev/null 2>&1; then
+  echo "  FAIL  check-dockyard.sh should exit non-zero when dockyard missing"
+  FAIL=$((FAIL + 1))
+else
+  echo "  PASS  check-dockyard.sh exits non-zero when dockyard missing from registry"
+  PASS=$((PASS + 1))
+fi
+
+# Test 3: Registry has dockyard — should exit 0
+echo '{"plugins":{"dockyard@shipwright-marketplace":{}}}' > "$tmpdir/.claude/plugins/installed_plugins.json"
+if HOME="$tmpdir" bash "$SHIPWRIGHT/hooks/check-dockyard.sh" >/dev/null 2>&1; then
+  echo "  PASS  check-dockyard.sh exits zero when dockyard present"
+  PASS=$((PASS + 1))
+else
+  echo "  FAIL  check-dockyard.sh should exit zero when dockyard present"
   FAIL=$((FAIL + 1))
 fi
 

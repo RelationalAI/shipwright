@@ -9,7 +9,7 @@ You are running as a **standalone command**. There is no orchestrator, no recove
 
 ## Setup
 
-Read the brownfield analysis skill from `skills/brownfield-analysis.md` in the Shipwright plugin directory. That skill defines the 7 output documents, their templates, the exploration strategy, and the forbidden-files list. Follow all of its rules.
+Read the brownfield analysis skill from `skills/brownfield-analysis/SKILL.md` in the Dockyard plugin directory. That skill defines the 7 output documents, their templates, the exploration strategy, and the forbidden-files list. Follow all of its rules.
 
 ## Execution
 
