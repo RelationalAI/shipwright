@@ -68,9 +68,9 @@ Evaluate whether tests accompanying the diff are adequate:
 
 ## Confidence Scoring
 
-After all three passes complete, collect all findings. Each finding is scored independently by a separate evaluation agent (the invoking system spawns this — use Haiku for cost/speed).
+After all three passes complete, collect all findings. Spawn a single scorer agent (use Haiku for cost/speed) to evaluate all findings in one pass. Each finding is scored independently — the scorer must evaluate each finding on its own merits without letting one finding's score influence another.
 
-**Scoring prompt per finding:** Provide the finding (file, line range, description, suggested fix), the relevant diff context, and the relevant surrounding code. Ask the scorer to evaluate on this rubric:
+**Scoring prompt:** Provide all findings (file, line range, description, suggested fix), the relevant diff context, and relevant surrounding code. Ask the scorer to evaluate each finding on this rubric:
 
 | Score | Meaning |
 |-------|---------|
