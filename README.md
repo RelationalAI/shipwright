@@ -2,12 +2,12 @@
 
 RAI's curated Claude Code plugin marketplace.
 
-## Available Plugins
+## Plugins
 
-| Plugin | Description |
-|--------|-------------|
-| **dockyard** | Standalone skills and commands -- codebase analysis, systematic debugging, doc digest, and more |
-| **shipwright** | Orchestrated multi-agent workflows -- triage, implement, review, validate (requires dockyard) |
+| Plugin | Description | Commands |
+|--------|-------------|----------|
+| **dockyard** | Standalone skills & commands | `codebase-analyze`, `code-review`, `doc-digest`, `investigate`, `review-and-submit`, `feedback` |
+| **shipwright** | Orchestrated bug-fix workflows (requires dockyard) | `shipwright`, `feedback` |
 
 ## Installation
 
@@ -24,11 +24,9 @@ RAI's curated Claude Code plugin marketplace.
 # 4. Restart your Claude session to activate
 ```
 
-> **Note:** The shipwright plugin depends on dockyard. Install dockyard first.
-
 ## Team Setup
 
-To pre-configure the marketplace for your team, add it to your project's `.claude/settings.json`:
+Add to your project's `.claude/settings.json`:
 
 ```json
 {
@@ -38,19 +36,11 @@ To pre-configure the marketplace for your team, add it to your project's `.claud
 }
 ```
 
-Team members can then install plugins directly without the marketplace-add step.
-
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for how to add skills, agents, and commands.
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Attribution
 
-Shipwright builds on the work of:
-
-- **[Superpowers](https://github.com/obra/superpowers)** by Jesse Vincent -- TDD, verification, systematic debugging, and anti-rationalization skills. Licensed under Apache 2.0.
-- **[GSD (Get Shit Done)](https://github.com/gsd-build/get-shit-done)** by gsd-build -- Decision categorization and brownfield codebase analysis patterns.
-
-## License
-
-[TBD]
+- **[Superpowers](https://github.com/obra/superpowers)** by Jesse Vincent -- TDD, verification, systematic debugging, anti-rationalization skills. Apache 2.0.
+- **[GSD](https://github.com/gsd-build/get-shit-done)** by gsd-build -- Decision categorization and brownfield analysis patterns.
