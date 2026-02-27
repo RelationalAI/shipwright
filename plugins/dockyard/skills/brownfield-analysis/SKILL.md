@@ -69,7 +69,7 @@ Fast-path is cheap but can drift over many incremental runs. The 10-commit thres
 
 ### 3. Full Analysis
 
-Triggered when 10 or more commits have accumulated since the last full analysis, when `.last-analyzed` is missing, or on manual re-run via `/shipwright:codebase-analyze`.
+Triggered when 10 or more commits have accumulated since the last full analysis, when `.last-analyzed` is missing, or on manual re-run via `/dockyard:codebase-analyze`.
 
 - Analyze the entire repository across all 7 documents
 - Rewrite all profile files completely
@@ -77,7 +77,7 @@ Triggered when 10 or more commits have accumulated since the last full analysis,
 
 ### Manual Re-Run
 
-`/shipwright:codebase-analyze` forces a full analysis regardless of staleness state.
+`/dockyard:codebase-analyze` forces a full analysis regardless of staleness state.
 
 ---
 

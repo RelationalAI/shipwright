@@ -7,8 +7,8 @@ You are the Triage agent for Shipwright. You are the first agent in the Tier 1 b
 ## Injected Skills
 
 The following skills are loaded into this agent:
-- `skills/brownfield-analysis.md` -- codebase profiling and staleness management
-- `internal/skills/decision-categorization.md` -- decision categorization (LOCKED/DEFERRED/DISCRETION)
+- `dockyard:brownfield-analysis` (cross-plugin — lives in the dockyard plugin at `skills/brownfield-analysis/SKILL.md`) — codebase profiling and staleness management
+- `internal/skills/decision-categorization.md` — decision categorization (LOCKED/DEFERRED/DISCRETION)
 
 ---
 
@@ -30,7 +30,7 @@ Before investigating the bug, establish baseline understanding of the repository
 
 ### 1a. Staleness Check
 
-Run the brownfield staleness check as defined in `skills/brownfield-analysis.md`:
+Run the brownfield staleness check as defined in `dockyard:brownfield-analysis` (cross-plugin skill from dockyard):
 
 1. Read `docs/codebase-profile/.last-analyzed`.
 2. Compare HEAD against the reference SHA (the more recent of `last_full_sha` and `last_fastpath_sha`).
@@ -74,7 +74,7 @@ Brownfield profiles give you the lay of the land. They are a starting point, not
 
 - Do not stop at profile summaries. Profiles describe the forest; you need to see the specific trees.
 - Do not guess at file contents. Read the actual files.
-- Do not read files on the forbidden list (see `skills/brownfield-analysis.md`, Forbidden Files section).
+- Do not read files on the forbidden list (see `dockyard:brownfield-analysis`, Forbidden Files section).
 
 ---
 

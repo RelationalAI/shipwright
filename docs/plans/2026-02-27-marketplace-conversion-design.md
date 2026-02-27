@@ -82,24 +82,24 @@ Everything that works independently, without orchestration.
 - `observability` — Query logs, spans, metrics for incident investigation
 
 **Commands:**
-- `/debug` — Standalone systematic debugging (4-phase root cause)
-- `/codebase-analyze` — Generate codebase profile docs
-- `/doc-digest` — Interactive section-by-section document review
-- `/investigate` — Observability-driven live service investigation
+- `/dockyard:debug` — Standalone systematic debugging (4-phase root cause)
+- `/dockyard:codebase-analyze` — Generate codebase profile docs
+- `/dockyard:doc-digest` — Interactive section-by-section document review
+- `/dockyard:investigate` — Observability-driven live service investigation
 
 **Agents:**
 - `doc-digest` — Document walkthrough agent
 
 **Commands (shared pattern):**
-- `/feedback` — File bugs/feedback on the dockyard plugin
+- `/dockyard:feedback` — File bugs/feedback on the dockyard plugin
 
 ### Shipwright — Orchestrated Workflows
 
 Everything that requires the multi-agent orchestration pipeline.
 
 **Commands:**
-- `/shipwright` — Main orchestrator (Triage → Implement → Review → Validate)
-- `/feedback` — File bugs/feedback on the shipwright plugin
+- `/shipwright:shipwright` — Main orchestrator (Triage → Implement → Review → Validate)
+- `/shipwright:feedback` — File bugs/feedback on the shipwright plugin
 
 **Internal agents** (not user-facing):
 - `triage` — Understand bug and codebase
@@ -327,7 +327,7 @@ if [ ! -f "$REGISTRY" ]; then
   exit 2
 fi
 
-if ! jq -e '.plugins | keys[] | select(startswith("dockyard@"))' "$REGISTRY" > /dev/null 2>&1; then
+if ! grep -q '"dockyard@' "$REGISTRY" 2>/dev/null; then
   echo "ERROR: Shipwright requires the 'dockyard' plugin."
   echo "Install it with: /plugin install dockyard@shipwright-marketplace"
   exit 2
@@ -413,7 +413,7 @@ Anyone at RAI can submit skills or agents to existing plugins via PR.
 | Orchestration-related agent or skill | `shipwright` |
 | New plugin | Requires CODEOWNERS approval in `marketplace.json` |
 
-Each plugin ships its own `/feedback` command for users to file bugs and suggestions against that specific plugin.
+Each plugin ships its own feedback command (`/dockyard:feedback` and `/shipwright:feedback`) for users to file bugs and suggestions against that specific plugin.
 
 ### Open gap: Smoke test definition
 

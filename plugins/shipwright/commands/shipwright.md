@@ -83,7 +83,7 @@ Execute agents in this exact order. Each agent is an ephemeral subagent — spaw
 ### Step 1: Triage
 
 **Agent prompt:** `internal/agents/triage.md`
-**Skills injected:** `skills/brownfield-analysis.md`, `internal/skills/decision-categorization.md`
+**Skills injected:** `dockyard:brownfield-analysis` (cross-plugin), `internal/skills/decision-categorization.md`
 
 **Pass to Triage:**
 - Parsed input context (bug description, Jira ticket details, or nothing)

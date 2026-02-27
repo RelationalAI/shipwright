@@ -79,18 +79,18 @@ Single file: `commands/shipwright.md`. Pure dispatcher — never does work itsel
 
 ### Entry point parsing
 
-`/shipwright` accepts optional inline context:
+`/shipwright:shipwright` accepts optional inline context:
 
 | Input | Example | Behavior |
 |-------|---------|----------|
-| No args | `/shipwright` | Triage asks the user what they're working on |
-| Natural language | `/shipwright fix null pointer when user clicks more details` | Pass description to Triage as initial context |
-| Jira ticket | `/shipwright fix bug RAI-9874` | Detect `[A-Z]+-\d+` pattern. Check if Atlassian MCP is available. If yes, fetch ticket details (title, description, acceptance criteria) and pass to Triage. If no, warn user that Atlassian MCP is not configured and ask them to paste the ticket details manually. |
+| No args | `/shipwright:shipwright` | Triage asks the user what they're working on |
+| Natural language | `/shipwright:shipwright fix null pointer when user clicks more details` | Pass description to Triage as initial context |
+| Jira ticket | `/shipwright:shipwright fix bug RAI-9874` | Detect `[A-Z]+-\d+` pattern. Check if Atlassian MCP is available. If yes, fetch ticket details (title, description, acceptance criteria) and pass to Triage. If no, warn user that Atlassian MCP is not configured and ask them to paste the ticket details manually. |
 
 ### Flow
 
 ```
-/shipwright [optional context]
+/shipwright:shipwright [optional context]
   → Parse input (no args / natural language / Jira ticket)
   → If Jira ticket: check Atlassian MCP availability → fetch or warn
   → Read recovery files (state.json + CONTEXT.md) — resume if exists
@@ -157,17 +157,18 @@ Three commands usable outside the orchestrated workflow. Stateless — no `.work
 
 | Command | Agent | Skill | What it does |
 |---------|-------|-------|-------------|
-| `/shipwright:codebase-analyze` | Triage | Brownfield analysis | Full codebase analysis regardless of staleness. Writes 7 profile docs to `docs/codebase-profile/`. |
-| `/shipwright:doc-digest` | Doc Digest | — | Walk through any document section by section for interactive review. |
-| `/shipwright:debug` | Implementer | Systematic debugging | Standalone 4-phase debugging: root cause → pattern analysis → hypothesis testing → fix. No Triage/Reviewer/Validator. |
-| `/shipwright:report` | — | — | File bugs, enhancements, suggestions, and feedback as GitHub issues on `RelationalAI/shipwright`. |
+| `/dockyard:codebase-analyze` | Triage | Brownfield analysis | Full codebase analysis regardless of staleness. Writes 7 profile docs to `docs/codebase-profile/`. |
+| `/dockyard:doc-digest` | Doc Digest | — | Walk through any document section by section for interactive review. |
+| `/dockyard:debug` | Implementer | Systematic debugging | Standalone 4-phase debugging: root cause → pattern analysis → hypothesis testing → fix. No Triage/Reviewer/Validator. |
+| `/dockyard:feedback` | — | — | File bugs, enhancements, suggestions, and feedback as GitHub issues on `RelationalAI/shipwright`. |
+| `/shipwright:feedback` | — | — | File bugs, enhancements, suggestions, and feedback as GitHub issues on `RelationalAI/shipwright`. |
 
-### `/shipwright:report` behavior
+### `/dockyard:feedback` and `/shipwright:feedback` behavior
 
 | Input | Example | Behavior |
 |-------|---------|----------|
-| No args | `/shipwright:report` | Ask user to pick type (bug, feature, suggestion, feedback), then collect title and description |
-| Free-form | `/shipwright:report clicking more details throws a null pointer` | Decipher the type from the text (this is a bug), confirm with the user, then collect any missing details |
+| No args | `/dockyard:feedback` | Ask user to pick type (bug, feature, suggestion, feedback), then collect title and description |
+| Free-form | `/dockyard:feedback clicking more details throws a null pointer` | Decipher the type from the text (this is a bug), confirm with the user, then collect any missing details |
 
 Creates a GitHub issue on `RelationalAI/shipwright` using `gh issue create` with the appropriate label (bug, feature, suggestion, feedback).
 
@@ -226,12 +227,12 @@ plugins/shipwright/
 ## Success Criteria
 
 - A developer can install Shipwright from the RAI plugin marketplace (beta)
-- `/shipwright` starts a Tier 1 workflow for a bug fix
-- `/shipwright fix bug RAI-XXXX` fetches Jira ticket details (if Atlassian MCP available)
+- `/shipwright:shipwright` starts a Tier 1 workflow for a bug fix
+- `/shipwright:shipwright fix bug RAI-XXXX` fetches Jira ticket details (if Atlassian MCP available)
 - Triage reads codebase profiles (runs analysis if stale) and confirms tier
 - Implementer uses TDD and systematic debugging to fix the bug
 - Reviewer reviews the fix
 - Validator discovers the test command and runs full regression
 - If context is lost mid-session, the orchestrator recovers from state.json + CONTEXT.md
-- `/shipwright:codebase-analyze`, `/shipwright:doc-digest`, `/shipwright:debug`, and `/shipwright:report` work standalone
-- `/shipwright:report` creates a GitHub issue on `RelationalAI/shipwright` with the correct label
+- `/dockyard:codebase-analyze`, `/dockyard:doc-digest`, `/dockyard:debug`, and `/dockyard:feedback` / `/shipwright:feedback` work standalone
+- `/dockyard:feedback` and `/shipwright:feedback` create GitHub issues on `RelationalAI/shipwright` with the correct label

@@ -7,7 +7,7 @@ if [ ! -f "$REGISTRY" ]; then
   exit 2
 fi
 
-if ! jq -e '.plugins | keys[] | select(startswith("dockyard@"))' "$REGISTRY" > /dev/null 2>&1; then
+if ! grep -q '"dockyard@' "$REGISTRY" 2>/dev/null; then
   echo "ERROR: Shipwright requires the 'dockyard' plugin."
   echo "Install it with: /plugin install dockyard@shipwright-marketplace"
   exit 2

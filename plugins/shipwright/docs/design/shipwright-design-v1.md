@@ -27,7 +27,7 @@ Shipwright is a framework that:
 **Target audience:** RAI engineering teams.
 **Platform:** Claude Code (designed for future portability).
 **Distribution:** RAI plugin marketplace (`RelationalAI/claude-plugins`).
-**Entry point:** `/shipwright` (single command — auto-detects resume vs. new workflow).
+**Entry point:** `/shipwright:shipwright` (single command — auto-detects resume vs. new workflow).
 
 ---
 
@@ -458,7 +458,7 @@ plugins/shipwright/
 /plugin marketplace add RelationalAI/claude-plugins
 /plugin install shipwright-beta@rai-claude-plugins
 # restart session
-/shipwright
+/shipwright:shipwright
 ```
 
 ### Assessment commands (standalone)
@@ -471,7 +471,7 @@ Not every use of Shipwright is a build workflow. Sometimes you just want an asse
 | `/shipwright:security-threat-model` | Security Assessor | Threat Modeling | Full threat model of the repo |
 | `/shipwright:code-review` | Reviewer | — | Review code changes (staged or specified files) |
 | `/shipwright:pr-review` | Reviewer | — | Review a specific PR |
-| `/shipwright:codebase-analyze` | Triage | Brownfield Analysis | Analyze existing codebase: stack, architecture, conventions, concerns |
+| `/dockyard:codebase-analyze` | Triage | Brownfield Analysis | Analyze existing codebase: stack, architecture, conventions, concerns |
 
 These are stateless — no `.workflow/` directory, no recovery layers, no cost tracking. Just the agent prompt + skill, run once, output results.
 
@@ -498,7 +498,7 @@ Branching is decided (task branches → PR to feature → rollup to main). But h
 
 - **A) Committed docs are the handoff.** Triage reads committed docs, reconstructs context.
 - **B) Partially commit .workflow/.** Commit CONTEXT.md and decisions.md. Risk: noisy history.
-- **C) Explicit handoff command.** `/shipwright handoff` generates a one-time summary doc.
+- **C) Explicit handoff command.** `/shipwright:shipwright handoff` generates a one-time summary doc.
 
 ---
 
@@ -521,7 +521,7 @@ Branching is decided (task branches → PR to feature → rollup to main). But h
 | 13 | Regression | All tiers, every time | Non-negotiable |
 | 14 | Distribution | Plugin marketplace | Versioned, namespaced |
 | 15 | Tier routing | Triage brainstorms with human | Human has final say |
-| 16 | Entry point | `/shipwright` + 5 assessment commands | Auto-detect resume; standalone assessments are stateless |
+| 16 | Entry point | `/shipwright:shipwright` + 5 assessment commands | Auto-detect resume; standalone assessments are stateless |
 | 17 | Tier upgrade | Agents recommend, human decides | Adapts to complexity |
 | 18 | Decisions | All recorded in log | Audit + recovery |
 | 19 | Name | Shipwright | Uncommon, craftsmanship |

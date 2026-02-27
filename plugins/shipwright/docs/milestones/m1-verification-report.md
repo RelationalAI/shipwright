@@ -99,10 +99,10 @@ Every requirement in `docs/milestones/m1-tier1-bugfix.md` was checked against th
 | 55 | `debug` loads systematic-debugging + TDD skills | PASS |
 | 56 | `debug` follows 4-phase process | PASS |
 | 57 | `debug` has no Triage/Reviewer/Validator | PASS |
-| 58 | `report` creates GitHub issue on RelationalAI/shipwright | PASS |
-| 59 | `report` handles no-args (interactive) mode | PASS |
-| 60 | `report` handles freeform text (auto-detect type) | PASS |
-| 61 | `report` supports labels: bug, feature, suggestion, feedback | PASS |
+| 58 | `feedback` creates GitHub issue on RelationalAI/shipwright | PASS |
+| 59 | `feedback` handles no-args (interactive) mode | PASS |
+| 60 | `feedback` handles freeform text (auto-detect type) | PASS |
+| 61 | `feedback` supports labels: bug, feature, suggestion, feedback | PASS |
 | 62 | All standalone commands: no orchestrator, no recovery, no .workflow/ | PASS |
 
 ### Orchestrator (14 checks)

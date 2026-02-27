@@ -45,7 +45,7 @@ Each file targets one aspect of the codebase. CLAUDE.md references the directory
 - Triggered by: fast-path threshold exceeded (10+ commits since last full), or manual re-run
 
 ### 4. Manual re-run
-- `/shipwright:codebase-analyze` runs a full analysis regardless of staleness
+- `/dockyard:codebase-analyze` runs a full analysis regardless of staleness
 - Uses the existing standalone assessment command from the design doc
 
 ### Tracking file
