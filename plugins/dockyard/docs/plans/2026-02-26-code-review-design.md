@@ -1,5 +1,7 @@
 # Code Review System Design
 
+> **Note:** This is a pre-marketplace-split design document (2026-02-26). Paths, command names, and plugin references reflect the original single-plugin structure. The code-review skill now lives in `plugins/dockyard/skills/code-review/SKILL.md` and the submit flow is `/dockyard:review-and-submit`.
+
 ## Problem
 
 Two compounding problems:
@@ -13,7 +15,7 @@ These compound: bad PRs waste reviewer time, and there are more PRs than ever. W
 
 A two-layer AI-assisted review system:
 
-- **Local submit flow** (new Shipwright code) — `/shipwright:submit` bundles review + fix + PR description generation + draft PR creation. Raises the floor on what gets submitted.
+- **Local submit flow** (new Shipwright code) — `/dockyard:review-and-submit` bundles review + fix + PR description generation + draft PR creation. Raises the floor on what gets submitted.
 - **CI review** (upgrade to [`dev-review-agent`](https://github.com/RealEstateAU/dev-review-agent)) — Runs automatically when a PR is marked ready for review (and on subsequent pushes). Posts inline comments + summary with an APPROVE/NEEDS_CHANGES recommendation. Makes the human reviewer dramatically faster.
 
 Both layers consume a shared code-review skill (`skills/code-review/SKILL.md`) that lives in Shipwright as the single source of truth for review logic. The local flow reads it natively as a Claude Code skill. The CI flow pulls it in as a versioned dependency (see [Shared Skill Dependency](#shared-skill-dependency)).
@@ -27,7 +29,7 @@ The core review logic, consumed by both the local and CI flows. Lives in Shipwri
 **How each layer consumes it:**
 
 - **Local (submit flow):** Claude Code reads the skill natively — it's a standard Shipwright skill file.
-- **CI (dev-review-agent):** The agent depends on Shipwright via a git-based npm dependency pinned to a specific version tag. A build-time script reads the skill markdown from `node_modules/shipwright/skills/code-review/SKILL.md` and embeds it as a string constant in the bundle. The `InstructionsBuilder` injects this content into the system prompt alongside CI-specific framing (tool instructions, comment formatting). See [Shared Skill Dependency](#shared-skill-dependency) for details.
+- **CI (dev-review-agent):** The agent depends on Shipwright via a git-based npm dependency pinned to a specific version tag. A build-time script reads the skill markdown from `plugins/dockyard/skills/code-review/SKILL.md` and embeds it as a string constant in the bundle. The `InstructionsBuilder` injects this content into the system prompt alongside CI-specific framing (tool instructions, comment formatting). See [Shared Skill Dependency](#shared-skill-dependency) for details.
 
 **Review focus areas:**
 
@@ -153,7 +155,7 @@ The existing `dev-review-agent` is a TypeScript/LangChain GitHub Action that alr
 { "dependencies": { "shipwright": "github:RelationalAI/shipwright#v1.2.3" } }
 ```
 
-A build-time script reads `node_modules/shipwright/skills/code-review/SKILL.md` and generates a TypeScript constant:
+A build-time script reads `plugins/dockyard/skills/code-review/SKILL.md` and generates a TypeScript constant:
 
 ```typescript
 // src/generated/review-skill.ts (generated, not hand-edited)
@@ -259,7 +261,7 @@ skills/code-review/SKILL.md
     │ (read natively)                      │ (git-based npm dep, pinned version)
     ▼                                      ▼
 Local (developer):                    CI (automated):
-/shipwright:submit                    dev-review-agent (GitHub Action)
+/dockyard:review-and-submit                    dev-review-agent (GitHub Action)
     │                                     │
     ├── code review (Opus)                ├── code review (Sonnet)
     │   skill content + local framing     │   skill content + CI framing
@@ -274,7 +276,7 @@ Local (developer):                    CI (automated):
 ## PR Lifecycle
 
 ```
-Developer runs /shipwright:submit
+Developer runs /dockyard:review-and-submit
     → Code reviewed locally (Opus), blockers fixed
     → PR description generated with rationale
     → Draft PR created
@@ -334,4 +336,4 @@ New files in the Shipwright repo.
 - **Notifications** — Results live on the PR only.
 - **Monorepo support** — No special handling for multi-package repos.
 - **Non-code file review** — Docs, config, IaC changes are out of scope.
-- **Reviewer-invoked local command** (`/shipwright:pr-review`) — Cut from v1. Reviewers use the CI bot's findings on the PR.
+- **Reviewer-invoked local command** (`/dockyard:review-and-submit`) — Cut from v1. Reviewers use the CI bot's findings on the PR.

@@ -58,6 +58,7 @@ echo ""
 echo "Dockyard commands:"
 DOCKYARD_COMMANDS=(
   codebase-analyze.md
+  code-review.md
   doc-digest.md
   investigate.md
   review-and-submit.md

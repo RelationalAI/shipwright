@@ -1,6 +1,6 @@
 # Marketplace Conversion Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **Note:** This plan was executed during the marketplace conversion. It references external skills that may no longer be available in this repo.
 
 **Goal:** Restructure the shipwright repo from a single plugin into a marketplace containing two plugins (dockyard + shipwright).
 

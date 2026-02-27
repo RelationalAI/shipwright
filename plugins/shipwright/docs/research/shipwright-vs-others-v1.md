@@ -66,7 +66,7 @@ Superpowers is Shipwright's discipline parent — TDD, brainstorming hard-gates,
 - **Cost visibility.** Superpowers doesn't track token usage. Shipwright logs every subagent call and reports costs.
 - **Document quality.** Superpowers generates plan files (task lists). Shipwright generates human-readable docs with interactive walkthrough.
 - **Tiered process.** Superpowers applies all skills equally regardless of task size. Shipwright right-sizes ceremony.
-- **Standalone assessments.** Superpowers skills are standalone by nature. Shipwright's full workflow requires the orchestrator, but also offers 5 standalone assessment commands (`security-review`, `security-threat-model`, `code-review`, `pr-review`, `codebase-analyze`) that run without orchestration — stateless, single-shot.
+- **Standalone assessments.** Superpowers skills are standalone by nature. Shipwright's full workflow requires the orchestrator. Standalone commands live in the Dockyard plugin: `/dockyard:codebase-analyze`, `/dockyard:doc-digest`, `/dockyard:investigate`, `/dockyard:review-and-submit` — stateless, single-shot.
 
 ### What Shipwright loses
 - **Cross-platform support.** Superpowers works on Claude Code, Cursor, Codex, and OpenCode today. Shipwright is Claude Code only (with future portability designed in).

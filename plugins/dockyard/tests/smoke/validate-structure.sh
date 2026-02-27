@@ -53,6 +53,7 @@ check "dockyard/agents/doc-digest.md"  "$DOCKYARD/agents/doc-digest.md"
 check "dockyard/commands/codebase-analyze.md"  "$DOCKYARD/commands/codebase-analyze.md"
 check "dockyard/commands/doc-digest.md"        "$DOCKYARD/commands/doc-digest.md"
 check "dockyard/commands/investigate.md"          "$DOCKYARD/commands/investigate.md"
+check "dockyard/commands/code-review.md"             "$DOCKYARD/commands/code-review.md"
 check "dockyard/commands/review-and-submit.md"   "$DOCKYARD/commands/review-and-submit.md"
 check "dockyard/commands/feedback.md"            "$DOCKYARD/commands/feedback.md"
 
@@ -108,7 +109,7 @@ for plugin_name in dockyard shipwright; do
   plugin_json="$REPO_ROOT/plugins/$plugin_name/.claude-plugin/plugin.json"
   if [ -f "$plugin_json" ]; then
     for key in name description version; do
-      if grep -q "\"$key\"" "$plugin_json"; then
+      if grep -qE "^  \"$key\"" "$plugin_json"; then
         echo "  PASS  $plugin_name/plugin.json contains \"$key\""
         PASS=$((PASS + 1))
       else

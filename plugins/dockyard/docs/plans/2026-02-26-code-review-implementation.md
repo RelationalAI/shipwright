@@ -1,6 +1,6 @@
 # Code Review System Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **Note:** This is a pre-marketplace-split implementation plan (2026-02-26). Paths and references reflect the original single-plugin structure. The code-review skill now lives in `plugins/dockyard/skills/code-review/SKILL.md`.
 
 **Goal:** Implement the two-layer AI-assisted code review system (local submit + CI automation) defined in `docs/plans/2026-02-26-code-review-design.md`.
 
@@ -269,7 +269,7 @@ git commit -m "feat: add code-review skill — three-pass review with confidence
 
 ### Task 3: Add root package.json for npm installability
 
-The dev-review-agent (Phase 2) will depend on Shipwright as a git-based npm dependency. For `npm install github:RelationalAI/shipwright#<tag>` to work and for the skill file to appear at `node_modules/shipwright/skills/code-review/SKILL.md`, Shipwright needs a root `package.json`.
+The dev-review-agent (Phase 2) will depend on Shipwright as a git-based npm dependency. For `npm install github:RelationalAI/shipwright#<tag>` to work and for the skill file to appear at `plugins/dockyard/skills/code-review/SKILL.md`, Shipwright needs a root `package.json`.
 
 **Files:**
 - Create: `package.json`
@@ -367,7 +367,7 @@ In `package.json`, add to `dependencies`:
 
 Run: `npm install`
 
-Verify: `ls node_modules/shipwright/skills/code-review/SKILL.md` — should exist.
+Verify: `ls plugins/dockyard/skills/code-review/SKILL.md` — should exist.
 
 **Step 4: Create the generate-skill script**
 
@@ -379,7 +379,7 @@ import * as path from "node:path";
 
 const SKILL_PATH = path.resolve(
   __dirname,
-  "../node_modules/shipwright/skills/code-review/SKILL.md",
+  "../plugins/dockyard/skills/code-review/SKILL.md",
 );
 const OUTPUT_PATH = path.resolve(
   __dirname,
@@ -1877,7 +1877,7 @@ Fixes applied. Updated review:
 [updated findings, if any...]
 
 Options:
-1. Fix more manually and re-run /shipwright:submit
+1. Fix more manually and re-run /dockyard:review-and-submit
 2. Proceed to PR creation (remaining findings will be noted in the PR description)
 ```
 
