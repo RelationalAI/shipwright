@@ -105,6 +105,22 @@ for skill in "${INTERNAL_SKILLS[@]}"; do
   fi
 done
 
+# Validate plugin.json has required keys
+echo ""
+echo "Plugin manifest:"
+PLUGIN_JSON="$REPO_ROOT/.claude-plugin/plugin.json"
+if [ -f "$PLUGIN_JSON" ]; then
+  for key in name description version author; do
+    if grep -q "\"$key\"" "$PLUGIN_JSON"; then
+      pass "plugin.json contains \"$key\""
+    else
+      fail "plugin.json missing \"$key\""
+    fi
+  done
+else
+  fail "plugin.json missing"
+fi
+
 echo ""
 TOTAL=$((PASS + FAIL))
 echo "validate-skills: $PASS/$TOTAL passed"
