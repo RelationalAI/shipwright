@@ -1,5 +1,5 @@
 ---
-name: submit
+name: review-and-submit
 description: Review code, auto-fix findings, generate PR description, and create a draft PR. Use when done coding and ready to submit.
 ---
 

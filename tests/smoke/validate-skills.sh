@@ -11,11 +11,11 @@ FAIL=0
 USER_SKILLS=(
   brownfield-analysis
   code-review
-  submit
+  review-and-submit
 )
 
 # Original Shipwright skills (no external attribution required)
-ORIGINAL_SKILLS=(brownfield-analysis code-review submit)
+ORIGINAL_SKILLS=(brownfield-analysis code-review review-and-submit)
 
 is_original() {
   local skill="$1"
