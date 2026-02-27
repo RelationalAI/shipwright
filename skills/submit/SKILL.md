@@ -92,17 +92,28 @@ Which findings should I auto-fix? (comma-separated numbers, "all", or "none")
   [4] nit      src/api.ts:30     Inconsistent naming: userID vs userId
 ```
 
-Wait for the developer to choose. Do not auto-fix anything without explicit selection.
+**STOP HERE.** You MUST use AskUserQuestion (or equivalent interactive prompt) to
+collect the developer's selection before proceeding. Do NOT infer intent from prior
+messages. Do NOT proceed without an explicit answer to this specific question.
+Silence or prior broad instructions like "do everything" do not count as selection.
 
 ### Fix selected findings
 
-For each selected finding, spawn a sub-agent to fix it:
+**You MUST use the Task tool to spawn a sub-agent for each fix.** Do NOT edit files
+directly in the main context. This is not optional — even for "simple" one-line fixes.
 
-- **Input to sub-agent:** the finding (file, line range, description, suggested fix), the full file content, and the project context (`CLAUDE.md`)
-- **Sub-agent task:** apply the fix, then run the project's test command to verify the fix does not break anything
-- **Why sub-agents:** keeps the main context clean — each fix is isolated
+Input to the sub-agent:
+- All selected findings (file, line range, description, suggested fix)
+- Project context (CLAUDE.md)
+- Instruction to run tests after applying all fixes
 
-Sub-agents can run in parallel if the findings are in different files.
+**Why a single sub-agent:** Multiple sub-agents risk edit collisions on shared files,
+and each fix may affect others. A single agent applies fixes sequentially, resolving
+dependencies naturally, and runs tests once at the end.
+
+**Why this is mandatory:** Fixing inline pollutes the main context with file reads,
+edits, and test retries. This compounds across findings and degrades quality of
+subsequent steps (PR description, re-review).
 
 ### Re-review
 
