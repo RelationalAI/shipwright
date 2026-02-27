@@ -155,23 +155,25 @@ tmpdir=$(mktemp -d)
 trap 'rm -rf "$tmpdir"' EXIT
 
 # Test 1: No registry file — should exit 2
-if HOME="$tmpdir" bash "$SHIPWRIGHT/hooks/check-dockyard.sh" >/dev/null 2>&1; then
-  echo "  FAIL  check-dockyard.sh should exit non-zero when registry missing"
-  FAIL=$((FAIL + 1))
-else
-  echo "  PASS  check-dockyard.sh exits non-zero when registry missing"
+rc=0; HOME="$tmpdir" bash "$SHIPWRIGHT/hooks/check-dockyard.sh" >/dev/null 2>&1 || rc=$?
+if [ "$rc" -eq 2 ]; then
+  echo "  PASS  check-dockyard.sh exits 2 when registry missing"
   PASS=$((PASS + 1))
+else
+  echo "  FAIL  check-dockyard.sh should exit 2 when registry missing (got $rc)"
+  FAIL=$((FAIL + 1))
 fi
 
 # Test 2: Registry exists but no dockyard — should exit 2
 mkdir -p "$tmpdir/.claude/plugins"
 echo '{"plugins":{}}' > "$tmpdir/.claude/plugins/installed_plugins.json"
-if HOME="$tmpdir" bash "$SHIPWRIGHT/hooks/check-dockyard.sh" >/dev/null 2>&1; then
-  echo "  FAIL  check-dockyard.sh should exit non-zero when dockyard missing"
-  FAIL=$((FAIL + 1))
-else
-  echo "  PASS  check-dockyard.sh exits non-zero when dockyard missing from registry"
+rc=0; HOME="$tmpdir" bash "$SHIPWRIGHT/hooks/check-dockyard.sh" >/dev/null 2>&1 || rc=$?
+if [ "$rc" -eq 2 ]; then
+  echo "  PASS  check-dockyard.sh exits 2 when dockyard missing from registry"
   PASS=$((PASS + 1))
+else
+  echo "  FAIL  check-dockyard.sh should exit 2 when dockyard missing (got $rc)"
+  FAIL=$((FAIL + 1))
 fi
 
 # Test 3: Registry has dockyard — should exit 0

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Analyze an existing codebase and produce focused profile documents covering technology stack, architecture, conventions, and concerns. These profiles give every Shipwright agent baseline context about the repository they are working in.
+Analyze an existing codebase and produce focused profile documents covering technology stack, architecture, conventions, and concerns. These profiles give every agent baseline context about the repository they are working in.
 
 All profile documents live in `docs/codebase-profile/` and are committed to git. They are human-readable reference material useful for both agents and human onboarding.
 

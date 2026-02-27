@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+#
+# check-dockyard.sh — Verify the dockyard plugin is installed before allowing
+#                      shipwright to start. Exits 2 (hard-block) if missing.
+#
+set -euo pipefail
+
 REGISTRY="$HOME/.claude/plugins/installed_plugins.json"
 
 if [ ! -f "$REGISTRY" ]; then

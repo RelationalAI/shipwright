@@ -5,6 +5,7 @@
 # These are marketplace-wide validation tests that verify the structure
 # of both the dockyard and shipwright plugins.
 #
+# -e intentionally omitted: we want to run all suites and report failures at the end
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"

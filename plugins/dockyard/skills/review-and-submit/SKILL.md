@@ -5,7 +5,7 @@ description: Review code, auto-fix findings, generate PR description, and create
 
 # Submit
 
-You are running the Shipwright Submit flow. This is the local developer flow from "done coding" to "draft PR ready."
+You are running the Dockyard Submit flow. This is the local developer flow from "done coding" to "draft PR ready."
 
 **Review always runs.** There is no flag to skip it. After seeing results, the developer can choose to proceed past blockers, but the review itself is mandatory.
 
@@ -56,7 +56,7 @@ Search for context that explains the intent behind the changes. This is optional
 
 ## Step 2: Run Code Review
 
-Invoke the `shipwright:code-review` skill and follow its process exactly.
+Invoke the `dockyard:code-review` skill and follow its process exactly.
 
 **Model selection for this step:**
 - Review passes: use Opus (higher quality, fewer false positives — developer is paying and waiting)
@@ -148,7 +148,7 @@ Fixes applied. Updated review:
 [updated findings, if any...]
 
 Options:
-1. Fix more manually and re-run /shipwright:submit
+1. Fix more manually and re-run /dockyard:review-and-submit
 2. Proceed to PR creation (remaining findings will be noted in the PR description)
 ```
 
