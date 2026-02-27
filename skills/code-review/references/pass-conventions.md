@@ -4,7 +4,7 @@ Check the diff against `CLAUDE.md` and established codebase patterns.
 
 ## What to Look For
 
-- **`CLAUDE.md` compliance** — for every convention finding, cite the exact text from `CLAUDE.md` that the code violates. Without a specific citation, the finding is opinion rather than a verifiable convention violation.
+- **`CLAUDE.md` compliance** — for every convention finding, cite the exact text from `CLAUDE.md` that the code violates — without a specific citation, the finding is opinion rather than a verifiable convention violation.
 - **Code comment compliance** — if existing code has comments like `// Note: must call X before Y` or `// WARNING: not thread-safe`, verify the diff respects these constraints.
 - **Pattern consistency** — if the codebase uses a specific pattern for similar operations (error handling, logging, API responses), the diff should follow the same pattern.
 

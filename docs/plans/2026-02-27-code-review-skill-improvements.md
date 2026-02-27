@@ -15,7 +15,9 @@
 - `tests/smoke/validate-skills.sh` — checks skill conventions
 - Design doc: `docs/plans/2026-02-26-code-review-design.md`
 
-**Dependency order:** Tasks 1-3 are independent. Task 4 depends on 2. Tasks 5-6 depend on 2+3. Task 7 depends on 5. Task 8 depends on 3.
+**Dependency order:** Tasks 1-3 are independent. Task 4 depends on 2. Task 5 depends on 4. Task 6 depends on 4. Task 7 depends on 3.
+
+**Note:** Original Task 7 (file-based sub-agent communication) was merged into Task 5 (orchestration protocol). Old Task 8 is now Task 7.
 
 ---
 
@@ -373,120 +375,113 @@ git commit -m "refactor: split code-review pass criteria into reference files fo
 
 ---
 
-## Phase 3: Separation of Concerns
+## Phase 3: Orchestration & Tone
 
-### Task 5: Move orchestration details from code-review to review-and-submit
+### Task 5: Add orchestration protocol to code-review skill
 
-The code-review skill currently says "Run each pass in a separate agent/context. This is mandatory." But it never specifies HOW (no mention of Task tool, subagent types, or communication protocol). This is an execution concern that belongs in review-and-submit, not in the criteria skill. The code-review skill should define WHAT to review; the invoker decides HOW to execute it.
+The code-review skill defines WHAT to review but doesn't specify HOW to execute the passes. The orchestration protocol (sub-agent spawning, file-based communication, scoring pipeline) belongs in the code-review skill as a Level 3 reference file — it's detailed execution instructions that the invoking system loads when actually running the review.
+
+File-based sub-agent communication conserves context: sub-agents write findings to temp files instead of returning them in-context, preventing raw findings from 4 agent invocations accumulating in the main context.
 
 **Files:**
-- Modify: `skills/code-review/SKILL.md` (remove execution mandates)
-- Modify: `skills/review-and-submit/SKILL.md:57-63` (add concrete orchestration protocol)
+- Create: `skills/code-review/references/orchestration.md`
+- Modify: `skills/code-review/SKILL.md` (add reference to orchestration protocol)
 
-**Step 1: Update code-review SKILL.md review passes section**
+**Step 1: Create orchestration.md**
 
-After Task 4, the review passes section will have a table with references. Update the introductory text to remove the execution mandate and explain the rationale without prescribing mechanism:
-
-Replace the review passes intro (which after Task 4 will read "Run three passes, each focused on a different concern. Isolation between passes prevents findings in one area from biasing scrutiny in another...") with:
+Create `skills/code-review/references/orchestration.md`:
 
 ```markdown
-## Review Passes
+# Orchestration Protocol
 
-Three passes, each focused on a different concern. Isolation between passes reduces bias — a correctness bug should not make convention checking harsher for that file. The invoking system decides how to achieve isolation (separate sub-agents, separate API calls, etc.).
+How to execute the three review passes with minimal context consumption.
 
-Each pass reads its reference file for detailed criteria:
+## Context Conservation
+
+Sub-agents write results to temp files instead of returning them in-context. This prevents raw findings from 4 agent invocations accumulating in the main context. Only the final filtered result enters context.
+
+## Step 1: Create temp directory
+
+```bash
+REVIEW_DIR=$(mktemp -d)
 ```
 
-(Keep the table and everything after it unchanged.)
+## Step 2: Run review passes
 
-**Step 2: Update the confidence scoring section similarly**
-
-The confidence scoring section (after Task 4) will reference `scoring-rubric.md`. Ensure it doesn't prescribe "spawn a scorer agent" — just says scoring must be independent:
-
-```markdown
-## Confidence Scoring
-
-After all passes complete, score each finding independently using the rubric in `references/scoring-rubric.md`. The scorer must be independent of the review passes — it evaluates findings on their own merits, not defending or attacking the reviewer's conclusions. Findings below 75 are dropped.
-```
-
-**Step 3: Add orchestration protocol to review-and-submit**
-
-In `skills/review-and-submit/SKILL.md`, replace the current Step 2 section (lines 57-89) with a detailed orchestration protocol:
-
-```markdown
-## Step 2: Run Code Review
-
-The code-review skill defines WHAT to review. This section defines HOW to execute it with context efficiency.
-
-### Orchestration
-
-Spawn one Task sub-agent per review pass. Each sub-agent receives:
-- The diff from Step 1
+Spawn three Task sub-agents in parallel. Each sub-agent receives:
+- The diff to review
 - `CLAUDE.md` content
 - Rationale context (if available)
-- Its pass-specific reference file from `skills/code-review/references/`
+- Its pass-specific reference file
+- The output schema reference file
+- Instruction to write findings JSON to a specific file path
 
 ```
-Pass 1 sub-agent reads: skills/code-review/references/pass-correctness.md
-Pass 2 sub-agent reads: skills/code-review/references/pass-conventions.md
-Pass 3 sub-agent reads: skills/code-review/references/pass-test-quality.md
+Pass 1 (correctness):
+  Read: references/pass-correctness.md
+  Read: references/output-schema.md
+  Write findings to: $REVIEW_DIR/pass-1-findings.json
+
+Pass 2 (conventions):
+  Read: references/pass-conventions.md
+  Read: references/output-schema.md
+  Write findings to: $REVIEW_DIR/pass-2-findings.json
+
+Pass 3 (test quality):
+  Read: references/pass-test-quality.md
+  Read: references/output-schema.md
+  Write findings to: $REVIEW_DIR/pass-3-findings.json
 ```
 
-**Model selection:** Use Opus for review passes (developer is paying, quality matters).
+**Model:** Opus for all review passes (higher quality, fewer false positives).
 
-**Output:** Each sub-agent returns its findings as JSON matching the schema in `skills/code-review/references/output-schema.md` (findings array only, no recommendation yet).
+Each sub-agent writes a JSON file containing only the `findings` array from the output schema. The sub-agent's return message to the main context should be a one-line summary: "Found N potential issues in [category]. Findings written to [path]."
 
-### Confidence Scoring
+## Step 3: Score findings
 
-After all three passes complete, collect all findings. Spawn one Haiku sub-agent with:
-- All findings from all passes
-- The relevant diff context for each finding
-- The scoring rubric from `skills/code-review/references/scoring-rubric.md`
+Spawn one Haiku Task sub-agent that:
+1. Reads all three findings files from `$REVIEW_DIR/`
+2. Reads the scoring rubric from `references/scoring-rubric.md`
+3. Reads the relevant diff context
+4. Scores each finding independently
+5. Drops findings below 75
+6. Assembles the final JSON output (recommendation + filtered findings + summary)
+7. Writes the result to `$REVIEW_DIR/review-result.json`
 
-The scorer returns findings with confidence scores. Drop findings below 75.
+The scorer's return message: "Scored N findings, M survived (threshold 75). Result written to [path]."
 
-### Assemble Result
+## Step 4: Read results
 
-In the main context (not a sub-agent), assemble the final result:
-- Merge scored findings from all passes
-- Set recommendation: `NEEDS_CHANGES` if any `blocker`, otherwise `APPROVE`
-- Write summary
+Read `$REVIEW_DIR/review-result.json` into the main context. This is the only review data that enters the main context — the individual pass findings stay on disk.
 
-### Present to Developer
+## Step 5: Cleanup
 
-```
-## Code Review Results: [APPROVE | NEEDS_CHANGES]
-
-### Blockers (N)
-- [file:line] description (confidence: XX)
-  Suggested fix: ...
-
-### Warnings (N)
-- [file:line] description (confidence: XX)
-  Suggested fix: ...
-
-### Nits (N)
-- [file:line] description (confidence: XX)
-  Suggested fix: ...
-
-### Summary
-[summary text]
+```bash
+rm -rf "$REVIEW_DIR"
 ```
 ```
 
-**Step 4: Run smoke tests**
+**Step 2: Add orchestration reference to SKILL.md**
+
+In `skills/code-review/SKILL.md`, add a line after the Review Passes section referencing the orchestration protocol. After the pass table, before Confidence Scoring, add:
+
+```markdown
+For execution details (sub-agent spawning, file-based communication, model selection), see `references/orchestration.md`.
+```
+
+**Step 3: Run smoke tests**
 
 ```bash
 bash tests/smoke/run-all.sh
 ```
 
-Expected: all pass.
+Expected: all pass (smoke tests auto-discover reference files).
 
-**Step 5: Commit**
+**Step 4: Commit**
 
 ```bash
-git add skills/code-review/SKILL.md skills/review-and-submit/SKILL.md
-git commit -m "refactor: move orchestration from code-review to review-and-submit"
+git add skills/code-review/references/orchestration.md skills/code-review/SKILL.md
+git commit -m "feat: add orchestration protocol with file-based sub-agent communication"
 ```
 
 ---
@@ -502,7 +497,7 @@ Anthropic's skill-creator explicitly warns: "If you find yourself writing ALWAYS
 
 **Step 1: Soften the false positive avoidance section**
 
-In `skills/code-review/SKILL.md`, the false positive section (lines 120-134, though line numbers will have shifted after prior tasks) currently starts with "These rules are mandatory. Violating them produces noise that wastes human reviewer time."
+In `skills/code-review/SKILL.md`, the false positive section currently starts with "These rules are mandatory. Violating them produces noise that wastes human reviewer time."
 
 Rewrite it as:
 
@@ -517,7 +512,7 @@ Every false positive wastes a human reviewer's time and erodes trust in the revi
 
 3. **General quality issues are out of scope** unless `CLAUDE.md` explicitly requires them. Missing documentation, insufficient security hardening, low test coverage — unless the project has explicitly decided these matter (by putting them in `CLAUDE.md`), flagging them is opinion, not review.
 
-4. **Convention findings need evidence.** You must quote the specific `CLAUDE.md` text or codebase pattern being violated. "General best practice" is not evidence — it's the reviewer substituting their preferences for the project's standards.
+4. **Convention findings need evidence.** Quote the specific `CLAUDE.md` text or codebase pattern being violated. "General best practice" is not evidence — it's the reviewer substituting their preferences for the project's standards.
 
 5. **Hypothetical issues are out of scope.** "This could be a problem if..." is speculation. Only report issues where you can describe a concrete scenario with real impact.
 
@@ -555,129 +550,9 @@ git commit -m "refactor: soften code-review tone — explain why, not just manda
 
 ---
 
-## Phase 4: Context Conservation
+## Phase 4: Testability
 
-### Task 7: Redesign sub-agent communication in review-and-submit
-
-The biggest context consumer is sub-agent results flowing back into the main context. With 3 review passes + 1 scorer, each returning findings, the main context accumulates all raw findings before filtering. This task changes the communication to use temp files — sub-agents write findings to disk, the scorer reads from disk, and only the final filtered result enters the main context.
-
-**Files:**
-- Modify: `skills/review-and-submit/SKILL.md` (Step 2 orchestration protocol)
-
-**Step 1: Rewrite the orchestration protocol for file-based communication**
-
-In `skills/review-and-submit/SKILL.md`, replace the Step 2 orchestration section (written in Task 5) with:
-
-```markdown
-## Step 2: Run Code Review
-
-The code-review skill defines WHAT to review. This section defines HOW to execute it with minimal context consumption.
-
-### Context Conservation Strategy
-
-Sub-agents write results to temp files instead of returning them in-context. This prevents raw findings from 4 agent invocations accumulating in the main context. Only the final filtered result enters context.
-
-### Step 2a: Create temp directory
-
-```bash
-REVIEW_DIR=$(mktemp -d)
-```
-
-### Step 2b: Run review passes
-
-Spawn three Task sub-agents in parallel. Each sub-agent receives:
-- The diff from Step 1
-- `CLAUDE.md` content
-- Rationale context (if available)
-- Its pass-specific reference file
-- Instruction to write findings JSON to a specific file path
-
-```
-Pass 1 (correctness):
-  Read: skills/code-review/references/pass-correctness.md
-  Read: skills/code-review/references/output-schema.md
-  Write findings to: $REVIEW_DIR/pass-1-findings.json
-
-Pass 2 (conventions):
-  Read: skills/code-review/references/pass-conventions.md
-  Read: skills/code-review/references/output-schema.md
-  Write findings to: $REVIEW_DIR/pass-2-findings.json
-
-Pass 3 (test quality):
-  Read: skills/code-review/references/pass-test-quality.md
-  Read: skills/code-review/references/output-schema.md
-  Write findings to: $REVIEW_DIR/pass-3-findings.json
-```
-
-**Model:** Opus for all review passes.
-
-Each sub-agent writes a JSON file containing only the `findings` array from the output schema. The sub-agent's return message to the main context should be a one-line summary: "Found N potential issues in [category]. Findings written to [path]."
-
-### Step 2c: Score findings
-
-Spawn one Haiku Task sub-agent that:
-1. Reads all three findings files from `$REVIEW_DIR/`
-2. Reads the scoring rubric from `skills/code-review/references/scoring-rubric.md`
-3. Reads the relevant diff context
-4. Scores each finding independently
-5. Drops findings below 75
-6. Assembles the final JSON output (recommendation + filtered findings + summary)
-7. Writes the result to `$REVIEW_DIR/review-result.json`
-
-The scorer's return message: "Scored N findings, M survived (threshold 75). Result written to [path]."
-
-### Step 2d: Present results
-
-Read `$REVIEW_DIR/review-result.json` and present to the developer:
-
-```
-## Code Review Results: [APPROVE | NEEDS_CHANGES]
-
-### Blockers (N)
-- [file:line] description (confidence: XX)
-  Suggested fix: ...
-
-### Warnings (N)
-- [file:line] description (confidence: XX)
-  Suggested fix: ...
-
-### Nits (N)
-- [file:line] description (confidence: XX)
-  Suggested fix: ...
-
-### Summary
-[summary text]
-```
-
-### Step 2e: Cleanup
-
-```bash
-rm -rf "$REVIEW_DIR"
-```
-
-(Or leave for debugging if the developer requests it.)
-```
-
-**Step 2: Run smoke tests**
-
-```bash
-bash tests/smoke/run-all.sh
-```
-
-Expected: all pass.
-
-**Step 3: Commit**
-
-```bash
-git add skills/review-and-submit/SKILL.md
-git commit -m "feat: file-based sub-agent communication for context conservation"
-```
-
----
-
-## Phase 5: Testability
-
-### Task 8: Add eval fixtures for code-review skill
+### Task 7: Add eval fixtures for code-review skill
 
 Create test diffs and expected findings so the skill can be tested using Anthropic's skill-creator eval framework. These are golden test cases — known inputs with known expected outputs.
 

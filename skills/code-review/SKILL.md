@@ -33,6 +33,8 @@ Each pass reads its reference file for detailed criteria:
 | 2 | Conventions — CLAUDE.md compliance, code comment compliance, pattern consistency | `references/pass-conventions.md` |
 | 3 | Test Quality — testing the right thing, determinism, speed, behavior over implementation | `references/pass-test-quality.md` |
 
+For execution details (sub-agent spawning, file-based communication, model selection), see `references/orchestration.md`.
+
 ## Confidence Scoring
 
 After all passes complete, score each finding independently using the rubric in `references/scoring-rubric.md`. The scorer must be independent of the review passes — it evaluates findings on their own merits, not defending or attacking the reviewer's conclusions. Findings below 75 are dropped.
@@ -44,20 +46,20 @@ Produce structured JSON output matching the schema in `references/output-schema.
 Key rules:
 - If ANY finding has severity `blocker`, recommendation is `NEEDS_CHANGES`. Otherwise `APPROVE`.
 - Only findings scoring 75+ survive into the output.
-- Convention findings MUST include a `citation` with exact quoted `CLAUDE.md` text.
+- Convention findings need a `citation` with exact quoted `CLAUDE.md` text — without one, the finding is opinion rather than a verifiable violation.
 
 ## False Positive Avoidance
 
-These rules are mandatory. Violating them produces noise that wastes human reviewer time.
+Every false positive wastes a human reviewer's time and erodes trust in the review system. These rules exist to keep the signal-to-noise ratio high:
 
-1. **Pre-existing issues are excluded.** If the issue exists in code not touched by the diff, do not report it. The diff did not introduce it.
+1. **Pre-existing issues are out of scope.** If the issue exists in code not touched by the diff, the diff didn't introduce it. Flagging it creates noise without actionable value.
 
-2. **Linter/typechecker/compiler issues are excluded.** CI catches these automatically. Do not duplicate what automated tooling already handles.
+2. **Linter/typechecker/compiler issues are out of scope.** CI catches these automatically. Duplicating automated tooling adds noise and teaches reviewers to ignore findings.
 
-3. **General quality issues are NOT flagged** unless `CLAUDE.md` explicitly requires them. Do not flag: missing documentation, insufficient security hardening, low test coverage — unless `CLAUDE.md` says these are required.
+3. **General quality issues are out of scope** unless `CLAUDE.md` explicitly requires them. Missing documentation, insufficient security hardening, low test coverage — unless the project has explicitly decided these matter (by putting them in `CLAUDE.md`), flagging them is opinion, not review.
 
-4. **Convention findings require exact citations.** You must quote the specific `CLAUDE.md` text being violated. "General best practice" is not a citation.
+4. **Convention findings need evidence.** Quote the specific `CLAUDE.md` text or codebase pattern being violated. "General best practice" is not evidence — it's the reviewer substituting their preferences for the project's standards.
 
-5. **Hypothetical issues are excluded.** "This could be a problem if..." is not a finding. Only flag issues with a concrete scenario demonstrating real impact.
+5. **Hypothetical issues are out of scope.** "This could be a problem if..." is speculation. Only report issues where you can describe a concrete scenario with real impact.
 
-6. **Do not flag removed code.** If code was deleted, do not flag issues in the deleted code. It no longer exists.
+6. **Removed code is out of scope.** Deleted code no longer exists. Flagging issues in it is noise.
