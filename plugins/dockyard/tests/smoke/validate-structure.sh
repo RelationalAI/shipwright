@@ -199,7 +199,18 @@ else
   FAIL=$((FAIL + 1))
 fi
 
-# Test 5: Registry has dockyard — should exit 0
+# Test 5: Registry has other plugins but not dockyard — should exit 2
+echo '{"dockyard-tools@other-marketplace":{},"another@plugin":{}}' > "$tmpdir/.claude/plugins/installed_plugins.json"
+rc=0; HOME="$tmpdir" bash "$SHIPWRIGHT/hooks/check-dockyard.sh" >/dev/null 2>&1 || rc=$?
+if [ "$rc" -eq 2 ]; then
+  echo "  PASS  check-dockyard.sh exits 2 when similar-named plugin present but not dockyard"
+  PASS=$((PASS + 1))
+else
+  echo "  FAIL  check-dockyard.sh should exit 2 when similar-named plugin present (got $rc)"
+  FAIL=$((FAIL + 1))
+fi
+
+# Test 6: Registry has dockyard — should exit 0
 echo '{"plugins":{"dockyard@shipwright-marketplace":{}}}' > "$tmpdir/.claude/plugins/installed_plugins.json"
 if HOME="$tmpdir" bash "$SHIPWRIGHT/hooks/check-dockyard.sh" >/dev/null 2>&1; then
   echo "  PASS  check-dockyard.sh exits zero when dockyard present"

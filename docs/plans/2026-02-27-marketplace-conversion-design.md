@@ -196,7 +196,6 @@ shipwright-marketplace/
 │       │   ├── design/
 │       │   │   └── shipwright-design-v1.md
 │       │   ├── milestones/
-│       │   │   ├── m1-tier1-bugfix.md
 │       │   │   └── m1-verification-report.md
 │       │   └── research/
 │       │       ├── shipwright-vs-others-v1.md
