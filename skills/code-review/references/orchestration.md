@@ -1,6 +1,6 @@
 # Orchestration Protocol
 
-How to execute the three review passes with minimal context consumption.
+How to execute the three review passes using sub-agent isolation.
 
 Do NOT instruct sub-agents to write files. All communication is inline — sub-agents return their results as JSON in their response messages.
 
@@ -49,4 +49,4 @@ The scorer:
 
 ## Step 3: Use results
 
-Parse the scorer's response message to extract the final review result JSON. This is the only review data that enters the main context — the individual pass findings were consumed by the scorer sub-agent.
+Parse the scorer's response message to extract the final review result JSON.
