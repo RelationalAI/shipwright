@@ -124,19 +124,23 @@ One sub-agent, not one per fix — fixes may interact (same file, adjacent lines
 
 ### After fixes
 
-Present the fix sub-agent's report. No full re-review — the fix sub-agent already
-verified its changes by running tests, and repeating the entire review protocol would
-consume as much context as the original review for diminishing returns.
+Present the fix sub-agent's report:
 
 ```
 Fixes applied and committed. [summary from fix sub-agent]
 
 Options:
 1. Proceed to PR creation (remaining findings noted in description)
-2. Fix more manually and re-run /shipwright:submit
+2. Re-run code review on the updated diff
+3. Fix more manually and start over
 ```
 
 Wait for the developer to choose.
+
+If the developer chooses option 2, get the updated diff (`git diff "$BASE_BRANCH"...HEAD`)
+and repeat Step 2 with the new diff. This costs another sub-agent round-trip but gives
+confidence that fixes didn't introduce new issues. **One re-review only** — if the
+developer wants another after that, they should start over.
 
 ## Step 4: Generate PR Description
 
@@ -175,7 +179,7 @@ Present the PR URL. Remind: review the description on GitHub, then mark "Ready f
 
 1. **Review always runs.** No skip flag.
 2. **Developer chooses what to fix.** Never auto-fix without explicit selection.
-3. **One fix cycle.** Fix once, then hand back. No re-review loops.
+3. **One fix cycle, one optional re-review.** Fix once, optionally re-review once, then hand back.
 4. **Sub-agents for heavy work.** Review and fixes happen in sub-agents, not main context.
 5. **Draft PR default.** Author reviews before marking ready.
 6. **Description proportional to diff.** Small change = brief description.
