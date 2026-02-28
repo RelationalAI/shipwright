@@ -37,8 +37,8 @@ Wait for the developer's response. If they choose to commit, create the commit (
 ### Determine the base branch and diff
 
 ```bash
-# Base branch defaults to "main"
-BASE_BRANCH="main"
+# Detect the default branch
+BASE_BRANCH=$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name 2>/dev/null || echo "main")
 
 # Get the diff of committed changes
 git diff "$BASE_BRANCH"...HEAD
@@ -51,20 +51,14 @@ If the diff is empty, stop: "No committed changes found relative to $BASE_BRANCH
 Search for context that explains the intent behind the changes. This is optional — it helps generate better PR descriptions but is not required for review.
 
 - **Plan files** — scan `docs/plans/` for recently modified files related to this work
-- **Session context** — read `.workflow/CONTEXT.md` if it exists
 - **Commit messages** — `git log "$BASE_BRANCH"..HEAD --format="%s%n%b"` for the progression of changes
 
 ## Step 2: Run Code Review
 
-Invoke the `shipwright:code-review` skill and follow its process exactly.
+You are the orchestrator described in the `shipwright:code-review` skill. Read its `SKILL.md` and `references/orchestration.md`, then execute the protocol directly — you spawn the review pass sub-agents, collect findings, and spawn the scorer.
 
-**Model selection for this step:**
-- Review passes: use Opus (higher quality, fewer false positives — developer is paying and waiting)
-- Confidence scoring: spawn a Haiku sub-agent per finding for independent evaluation
-
-**Provide to the skill:**
+**Provide to each review pass sub-agent:**
 - The diff from Step 1
-- `CLAUDE.md` content (read from project root)
 - Rationale context from Step 1 (if available)
 
 **Present findings to the developer:**
@@ -112,12 +106,11 @@ Silence or prior broad instructions like "do everything" do not count as selecti
 
 ### Fix selected findings
 
-**You MUST use the Task tool to spawn a sub-agent for each fix.** Do NOT edit files
+**You MUST use the Task tool to spawn a single sub-agent to apply all selected fixes.** Do NOT edit files
 directly in the main context. This is not optional — even for "simple" one-line fixes.
 
 Input to the sub-agent:
 - All selected findings (file, line range, description, suggested fix)
-- Project context (CLAUDE.md)
 - Instruction to run tests after applying all fixes
 
 **Why a single sub-agent:** Multiple sub-agents risk edit collisions on shared files,
@@ -130,7 +123,7 @@ subsequent steps (PR description, re-review).
 
 ### Re-review
 
-After all fix sub-agents complete:
+After the fix sub-agent completes:
 
 1. Get the updated diff: `git diff "$BASE_BRANCH"...HEAD`
 2. Re-run the code-review skill on the updated diff
