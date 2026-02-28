@@ -1,0 +1,47 @@
+{
+  "skill_name": "review-and-submit",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm done coding. Please submit my changes for review. I'm on a feature branch 'feature/add-auth' with 1 committed change adding an auth module (src/auth.ts, src/api.ts, src/auth.test.ts). The diff is about 60 lines. gh CLI is authenticated. There are no uncommitted changes. The test repo is at review-and-submit-workspace/test-repo/.",
+      "expected_output": "The agent should complete the full submit flow: check prerequisites, gather diff, run code review via sub-agent, present findings, prompt for fix selection, and (after developer input) generate a PR description and create a draft PR.",
+      "files": [],
+      "expectations": [
+        "The agent checks prerequisites (feature branch, committed changes, gh auth) before doing anything else",
+        "The agent gathers the diff using git diff against the base branch",
+        "The code review is delegated to sub-agent(s) — the main context does NOT read the code-review reference files (pass-correctness.md, pass-conventions.md, pass-test-quality.md, scoring-rubric.md)",
+        "Findings are presented to the developer in a clear, scannable format with severity, file:line, and description",
+        "The agent explicitly waits for developer input before auto-fixing any findings (uses AskUserQuestion or equivalent)",
+        "The PR description follows the template: Why, What, How to review, Pre-submit review",
+        "The PR description is proportional to the diff size (small diff = brief description)",
+        "Total sub-agent spawns from main context is 3 or fewer (review orchestration counts as 1)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Submit my changes. I'm on a feature branch with a small 10-line diff that renames a variable. gh is authenticated, no uncommitted changes. The test repo is at review-and-submit-workspace/test-repo/.",
+      "expected_output": "For a trivial change, the flow should be fast and lightweight. Review should still run but findings (if any) should be minimal. PR description should be very brief.",
+      "files": [],
+      "expectations": [
+        "The agent checks prerequisites quickly without excessive tool calls",
+        "The code review still runs (review is mandatory per skill rules)",
+        "If the review finds no issues, the agent skips the fix loop entirely and moves to PR description",
+        "The PR description is very brief — proportional to a 10-line rename",
+        "The entire flow completes with minimal interaction gates (no asking about fixes when there are none)",
+        "Total tool calls in the main context is 15 or fewer for this trivial case"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Please submit my work. I'm on the main branch. gh is authenticated.",
+      "expected_output": "The agent should catch that we're on main, tell the developer to create a feature branch, and stop immediately without proceeding.",
+      "files": [],
+      "expectations": [
+        "The agent detects it is on the main branch during prerequisite checks",
+        "The agent tells the developer to create a feature branch first",
+        "The agent stops immediately — does NOT proceed to gather diff, run review, or any subsequent step",
+        "The total tool calls is 5 or fewer (just enough to check branch)"
+      ]
+    }
+  ]
+}
