@@ -46,6 +46,16 @@ check "dockyard/skills/code-review/SKILL.md"           "$DOCKYARD/skills/code-re
 check "dockyard/skills/review-and-submit/SKILL.md"     "$DOCKYARD/skills/review-and-submit/SKILL.md"
 check "dockyard/skills/observability/SKILL.md"         "$DOCKYARD/skills/observability/SKILL.md"
 
+# Dockyard observability knowledge files
+check "dockyard/skills/observability/knowledge/platform.md"              "$DOCKYARD/skills/observability/knowledge/platform.md"
+check "dockyard/skills/observability/knowledge/engine-failures.md"       "$DOCKYARD/skills/observability/knowledge/engine-failures.md"
+check "dockyard/skills/observability/knowledge/data-pipeline.md"         "$DOCKYARD/skills/observability/knowledge/data-pipeline.md"
+check "dockyard/skills/observability/knowledge/architecture.md"          "$DOCKYARD/skills/observability/knowledge/architecture.md"
+check "dockyard/skills/observability/knowledge/incident-patterns/engine-incidents.md"          "$DOCKYARD/skills/observability/knowledge/incident-patterns/engine-incidents.md"
+check "dockyard/skills/observability/knowledge/incident-patterns/pipeline-incidents.md"        "$DOCKYARD/skills/observability/knowledge/incident-patterns/pipeline-incidents.md"
+check "dockyard/skills/observability/knowledge/incident-patterns/control-plane-incidents.md"   "$DOCKYARD/skills/observability/knowledge/incident-patterns/control-plane-incidents.md"
+check "dockyard/skills/observability/knowledge/incident-patterns/infrastructure-incidents.md"  "$DOCKYARD/skills/observability/knowledge/incident-patterns/infrastructure-incidents.md"
+
 # Dockyard agents
 check "dockyard/agents/doc-digest.md"  "$DOCKYARD/agents/doc-digest.md"
 

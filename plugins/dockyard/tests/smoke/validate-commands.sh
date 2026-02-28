@@ -61,6 +61,7 @@ DOCKYARD_COMMANDS=(
   code-review.md
   doc-digest.md
   investigate.md
+  observe.md
   review-and-submit.md
   feedback.md
 )
