@@ -14,6 +14,7 @@ COMMANDS=(
   doc-digest.md
   debug.md
   report.md
+  review-and-submit.md
 )
 
 pass() { echo "  PASS  $1"; PASS=$((PASS + 1)); }
