@@ -128,10 +128,10 @@ Load based on Stage 1 classification:
 
 | Classification | Load |
 |---|---|
-| Crash / OOM / brownout / heartbeat timeout | `knowledge/engine-failures.md` + `knowledge/incident-patterns/engine-incidents.md` |
-| Pipeline | `knowledge/data-pipeline.md` + `knowledge/incident-patterns/pipeline-incidents.md` |
-| Cross-service | `knowledge/architecture.md` |
-| Unknown | `knowledge/incident-patterns/` (all files) — pattern match against symptoms |
+| Crash / OOM / brownout / heartbeat timeout | `skills/observability/knowledge/engine-failures.md` + `skills/observability/knowledge/incident-patterns/engine-incidents.md` |
+| Pipeline | `skills/observability/knowledge/data-pipeline.md` + `skills/observability/knowledge/incident-patterns/pipeline-incidents.md` |
+| Cross-service | `skills/observability/knowledge/architecture.md` |
+| Unknown | `skills/observability/knowledge/incident-patterns/` (all files) — pattern match against symptoms |
 
 **Exception:** If JIRA ticket contained Confluence runbook links, read those via Atlassian MCP (`getConfluencePage`) and use as primary investigation guide INSTEAD of knowledge files.
 
