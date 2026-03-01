@@ -82,6 +82,22 @@ for cmd in "${SHIPWRIGHT_COMMANDS[@]}"; do
   validate_command "shipwright" "$cmd"
 done
 
+# --- Cross-reference: knowledge file paths in observability commands ---
+echo ""
+echo "Knowledge file cross-references:"
+DOCKYARD="$REPO_ROOT/plugins/dockyard"
+for cmd in "$DOCKYARD/commands/investigate.md" "$DOCKYARD/commands/observe.md"; do
+  cmd_name=$(basename "$cmd")
+  while IFS= read -r ref_path; do
+    full_path="$DOCKYARD/$ref_path"
+    if [ -s "$full_path" ]; then
+      pass "$cmd_name references $ref_path (exists)"
+    else
+      fail "$cmd_name references $ref_path (NOT FOUND)"
+    fi
+  done < <(grep -oE 'skills/observability/knowledge/[a-z/-]+\.md' "$cmd" | sort -u)
+done
+
 echo ""
 TOTAL=$((PASS + FAIL))
 echo "validate-commands: $PASS/$TOTAL passed"
