@@ -38,14 +38,7 @@
 
 ### Diagnostic Lookup Table
 
-| What You See | Root Cause | Next Step |
-|---|---|---|
-| Termination reason = `Failed` or `Done` | Crash (segfault/abort/stack overflow) | Check logs for "segmentation fault", retrieve core dump |
-| Termination reason = `FailedWithOOM` | OOM | Check Jemalloc profiles, CPU profiles |
-| Heartbeat rate < 1/sec, no crash | Brownout | Check Julia GC time, compilation time |
-| `bot_keepalive_write_to_kvs` abnormally long | Long heartbeat requests | Escalate to ERP team |
-| Lifecycle events show delete/suspend/upgrade | Engine lifecycle event (false positive) | Reach out to account owners |
-| Container status drops Mon-Thu 11PM-5AM local | Snowflake maintenance | No escalation needed |
+See `engine-failures.md` — Diagnostic Lookup Table section for full "What You See → Root Cause → Next Step" reference.
 
 ---
 

@@ -5,8 +5,6 @@ description: Query and analyze observability data (logs, metrics, traces, spans)
 
 # Observability
 
-Query and analyze observability data (logs, metrics, traces, spans) to investigate service health, errors, latency, and performance issues across RAI's Snowflake-native platform.
-
 ---
 
 ## Datasets
