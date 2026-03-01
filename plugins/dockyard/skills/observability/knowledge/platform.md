@@ -172,6 +172,8 @@ Snowflake query:      SF Query ID → Logs (sf_query_id) → Spans (sf_query_id)
 | Optimizer Dashboard | 41882895 | Observe workspace | Query plan issues, optimizer regressions |
 | SPCS Environments | 41872510 | Observe workspace | Environment health comparison |
 | O4S Pipeline Health | 42090551 | Observe workspace | Missing telemetry, pipeline lag |
+| OOM Investigations | 41777956 | Observe workspace | Engine OOM diagnosis, Jemalloc profiles |
+| BlobGC | 42245311 | Observe workspace | BlobGC health, pass status, storage cleanup |
 | CDC Investigations | 42469929 | Observe workspace | Failed data streams, batch processing errors |
 | Telemetry Outages | 42760073 | Observe workspace | Telemetry pipeline outages |
 | Account Health | 42358249 | Observe workspace | Customer-specific issues, account SLA |
