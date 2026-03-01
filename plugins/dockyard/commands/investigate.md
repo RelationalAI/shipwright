@@ -7,6 +7,15 @@ argument-hint: [incident key, transaction ID, error description, or service name
 
 Stateful two-stage investigation command. Works with any issue: incidents (NCDNTS), bugs, performance complaints, customer-reported problems.
 
+## Prerequisites
+
+Before starting, verify these MCP tools are available. If any are missing, stop and tell the user which server is missing and how to set it up — do not proceed with the investigation.
+
+| MCP Server | Tools | If Missing |
+|---|---|---|
+| **Observe** | `generate-query-card` | "Observe MCP is not configured. Set it up at https://171608476159.observeinc.com/settings/mcp — if you don't have access, post a :ticket: in #ext-relationalai-observe to get whitelisted." |
+| **Atlassian** | `getJiraIssue`, `getJiraIssueRemoteIssueLinks`, `getConfluencePage`, `searchConfluenceUsingCql` | "Atlassian MCP is not configured. Set it up at https://www.atlassian.com/solutions/ai/mcp — this is needed to read JIRA tickets and Confluence runbooks." |
+
 ## Setup
 
 Load from the Dockyard plugin root:
@@ -28,13 +37,14 @@ Additional knowledge files loaded in Stage 2 based on classification (see Stage 
 ### JIRA Ticket Path
 1. Read the JIRA ticket using Atlassian MCP (`getJiraIssue`)
 2. Read ticket comments (do NOT call `addCommentToJiraIssue` — that is a write operation)
-3. Read remote issue links (`getJiraIssueRemoteIssueLinks`)
+3. Read remote issue links (`getJiraIssueRemoteIssueLinks`) — if this call fails, briefly note "Remote links unavailable, continuing without them" and proceed
 4. Extract anchors from ticket body, comments, and remote links:
    - Transaction IDs (UUIDs)
    - Engine names
    - Account/org aliases
    - Observe dashboard/query links
-   - Confluence runbook links (save for Stage 2)
+   - Confluence runbook links — save page title and URL for Stage 2 (do NOT fetch or search Confluence now)
+   - Ignore external links (GitHub Actions, PRs, etc.) — they are not investigation anchors
 5. Determine time anchor (see Time Anchor Strategy)
 6. Proceed to Stage 1
 
@@ -136,7 +146,10 @@ Load based on Stage 1 classification:
 | Cross-service | `skills/observability/knowledge/architecture.md` |
 | Unknown | `skills/observability/knowledge/incident-patterns/` (all files) — pattern match against symptoms |
 
-**Exception:** If JIRA ticket contained Confluence runbook links, read those via Atlassian MCP (`getConfluencePage`) and use as primary investigation guide INSTEAD of knowledge files.
+**Exception:** If JIRA ticket contained Confluence runbook links, read those via Atlassian MCP and use as primary investigation guide INSTEAD of knowledge files.
+- If you have the Confluence page ID → use `getConfluencePage` directly
+- If you only have the page title → use `searchConfluenceUsingCql` with `title = "Page Title"`
+- Do NOT use WebFetch on Confluence URLs — they require authentication and will redirect
 
 ### Investigation Steps
 1. Follow the runbook (ticket-linked Confluence or knowledge file)
@@ -179,15 +192,19 @@ Escalation ladder — each step only fires if the previous found no signal:
 
 Full severity range, wider time windows, thorough reconstruction. No turn cap.
 
-## MCP Degradation
+## MCP Runtime Errors
 
-### Atlassian MCP unavailable (can't read JIRA)
-- Inform the user: "Can't read the JIRA ticket — Atlassian MCP not configured."
-- Direct to setup: https://www.atlassian.com/solutions/ai/mcp
-- Offer to investigate with manual input: ask user to paste ticket details
+Prerequisites catch missing MCP servers. This section handles errors from servers that are present but return failures.
 
-### Observe MCP unavailable (can't query telemetry)
-- Follow degradation guidance in SKILL.md
+### Atlassian MCP call failure
+- If any single Atlassian MCP call errors (e.g., `getJiraIssueRemoteIssueLinks`, `searchConfluenceUsingCql`), tell the user in one line what failed and that you're working around it — e.g., "Remote links unavailable, continuing without them"
+- Do NOT surface raw MCP error details to the user
+- If `searchConfluenceUsingCql` fails, try `getConfluencePage` with the page ID if available, or skip the runbook and fall back to knowledge files
+- Continue investigation with available data
+
+### Observe MCP query failure
+- Follow retry strategies from SKILL.md (rephrase → broaden time range → different dataset)
+- If persistent, suggest user check Observe MCP status in #ext-relationalai-observe
 
 ## Rules
 

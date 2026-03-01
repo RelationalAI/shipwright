@@ -7,6 +7,14 @@ argument-hint: "[health check, error query, monitor status, or natural language 
 
 Stateless command for querying the Observe platform. Read-only.
 
+## Prerequisites
+
+Before starting, verify the Observe MCP tool is available. If missing, stop and tell the user how to set it up — do not proceed with the query.
+
+| MCP Server | Tools | If Missing |
+|---|---|---|
+| **Observe** | `generate-query-card` | "Observe MCP is not configured. Set it up at https://171608476159.observeinc.com/settings/mcp — if you don't have access, post a :ticket: in #ext-relationalai-observe to get whitelisted." |
+
 ## Setup
 
 Load these files from the Dockyard plugin root:
