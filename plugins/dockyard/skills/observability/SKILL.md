@@ -87,10 +87,12 @@ Query and analyze observability data (logs, metrics, traces, spans) to investiga
 | segfault in logs, termination_reason=Failed | Crash | High |
 | `[Jemalloc]` profile logs, termination_reason=FailedWithOOM | OOM | High |
 | Heartbeat rate drop, no termination | Brownout | Medium |
-| Heartbeat gap >30s, abort "engine failed" | Heartbeat timeout | High |
+| No heartbeat for 20 min, abort "engine failed" | Heartbeat timeout | High |
 | process_batches failures, quarantine records | Pipeline | High |
 | Errors in both SQL-layer and ERP-layer spans | Cross-service | Medium |
 | No clear signal | Unknown | Low |
+
+> **Note:** Heartbeat timeout maps to the **brownout** classification in the triage card. The distinct signal helps the agent load the right knowledge file (engine-failures.md Pattern D).
 
 ## Routing
 
