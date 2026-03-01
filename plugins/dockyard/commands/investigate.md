@@ -11,6 +11,7 @@ Stateful two-stage investigation command. Works with any issue: incidents (NCDNT
 
 Load from the Dockyard plugin root:
 1. **Always:** `skills/observability/SKILL.md`
+2. **Always:** `skills/observability/knowledge/platform.md`
 
 Additional knowledge files loaded in Stage 2 based on classification (see Stage 2 section).
 
@@ -26,7 +27,7 @@ Additional knowledge files loaded in Stage 2 based on classification (see Stage 
 
 ### JIRA Ticket Path
 1. Read the JIRA ticket using Atlassian MCP (`getJiraIssue`)
-2. Read ticket comments (`addCommentToJiraIssue` is write — use read operations only)
+2. Read ticket comments (do NOT call `addCommentToJiraIssue` — that is a write operation)
 3. Read remote issue links (`getJiraIssueRemoteIssueLinks`)
 4. Extract anchors from ticket body, comments, and remote links:
    - Transaction IDs (UUIDs)
@@ -121,6 +122,8 @@ If confidence is Medium or Low, automatically proceed to Stage 2.
 ## Stage 2: Deep Investigation
 
 Runs as a **background agent** after Stage 1 output is presented. The foreground remains interactive — the user can ask clarifying questions while Stage 2 runs.
+
+When triage identifies multiple distinct investigation threads (e.g., engine crash + CDC failure), Stage 2 can split into multiple parallel background agents, each loading only its relevant knowledge file.
 
 ### Knowledge File Loading
 
