@@ -18,6 +18,8 @@
 | **COMPLETED** | Transaction succeeded |
 | **ABORTED** | Transaction failed — check abort_reason |
 
+> In Transaction Info (42728011), these map to `status` = `success` and `status` = `failure` respectively.
+
 **Important:** `maxlevel` is NOT status. A transaction can have `maxlevel = error` and still COMPLETE, or `maxlevel = info` and be ABORTED.
 
 ### Abort Reasons

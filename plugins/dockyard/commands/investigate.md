@@ -211,4 +211,4 @@ Prerequisites catch missing MCP servers. This section handles errors from server
 ## Rules
 
 Follow query workflow and result presentation rules from SKILL.md. Additionally:
-- `maxlevel` is NOT transaction status. Terminal states: COMPLETED (success), ABORTED (failed).
+- `maxlevel` is NOT transaction status. Terminal states: COMPLETED (status = success), ABORTED (status = failure).
