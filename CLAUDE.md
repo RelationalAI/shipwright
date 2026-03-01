@@ -18,7 +18,7 @@ plugins/
 
 **Dockyard** — standalone tools that work without orchestration:
 - Skills: `brownfield-analysis`, `code-review`, `review-and-submit`, `observability`
-- Commands: `codebase-analyze`, `code-review`, `doc-digest`, `investigate`, `review-and-submit`, `feedback`
+- Commands: `codebase-analyze`, `code-review`, `doc-digest`, `investigate`, `observe`, `review-and-submit`, `feedback`
 - Agents: `doc-digest`
 
 **Shipwright** — orchestrated bug-fix pipeline (requires dockyard):
