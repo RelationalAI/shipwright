@@ -124,6 +124,11 @@ CPUProfilerComp, TxnEventComp, UnknownComp
 |---|---|---|
 | `erp_engine_enginepending` | Engine not ready for transaction | Transient if engine just created |
 | `erp_enginerp_engine_provision_timeout` | Engine stuck in PENDING | File Snowflake ticket |
+| `erp_enginerp_internal_engine_provision_timeout` | Engine provisioning timeout (internal) | File Snowflake ticket |
+| `erp_spcs_awss3_txn_get_txn_artifacts_error` | Downloading artifacts from aborted txn | Often client-side wrong behavior |
+| `erp_jobrp_engine_send_rai_request_error` | Job RP can't reach engine | Transient if retry succeeds (final 200) |
+| `erp_txnrp_awss3_get_object_error` | S3 throttling (bucket repartitioning) | Transient — ERP/engine have retry logic |
+| `erp_logicrp_sf_unknown` / `erp_graphindex_sf_unknown` | Snowflake internal error (300002) | File Snowflake ticket |
 | `erp_txnevent_internal_stream_write_error` | S3/blob throttling | Usually transient, no customer impact |
 | `erp_blobgc_sf_unknown` | BlobGC Snowflake query error | Usually transient |
 | `erp_spcs_internal_request_reading_error` | Request reading failure | Transient if single occurrence |

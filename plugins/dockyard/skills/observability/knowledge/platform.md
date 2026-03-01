@@ -242,6 +242,8 @@ Snowflake query:      SF Query ID → Logs (sf_query_id) → Spans (sf_query_id)
 ### Abort Reasons (Transaction Info)
 `None`, `engine failed`, `system internal error`
 
+> See `engine-failures.md` for additional abort reasons from ERP logs and Confluence runbooks.
+
 ### Log Severity Levels
 `info`, `warning`, `warn`, `error`, `fatal`
 
