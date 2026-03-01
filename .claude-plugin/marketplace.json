@@ -1,0 +1,21 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "shipwright-marketplace",
+  "description": "RAI's curated Claude Code plugin marketplace",
+  "owner": {
+    "name": "Owais Mohamed",
+    "email": "owais.mohamed@relational.ai"
+  },
+  "plugins": [
+    {
+      "name": "dockyard",
+      "description": "Standalone skills and commands for engineering workflows — brownfield analysis, observability, debugging, codebase profiling",
+      "source": "./plugins/dockyard"
+    },
+    {
+      "name": "shipwright",
+      "description": "Orchestrated agentic development framework — TDD-enforced bug fix workflows with triage, implementation, review, and validation agents",
+      "source": "./plugins/shipwright"
+    }
+  ]
+}

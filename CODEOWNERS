@@ -1,0 +1,6 @@
+# Marketplace registry -- plugin additions require CODEOWNERS approval
+/.claude-plugin/marketplace.json @omohamed-rai
+
+# Plugin-level ownership
+/plugins/dockyard/ @omohamed-rai
+/plugins/shipwright/ @omohamed-rai
