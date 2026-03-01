@@ -65,10 +65,7 @@ Ask the user what they want to check. Suggest:
 
 ## Result Presentation
 
-- Always include Observe links from `generate-query-card` response — use as returned, do not construct URLs
-- Convert nanosecond durations to human-readable (ms, s, min)
-- Distinguish "all clear" (no errors found, system healthy) from "no data available" (possible data gap or query issue)
-- Summarize results — do not dump raw query output
+Follow result presentation rules from SKILL.md.
 
 ## MCP Degradation
 
