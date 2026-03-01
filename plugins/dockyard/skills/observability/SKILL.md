@@ -46,9 +46,9 @@ Query and analyze observability data (logs, metrics, traces, spans) to investiga
 
 **Transaction languages:** `rel` (deprecated) → `lqp`. User-facing: PyRel. Errors may be caused by the rel→lqp transition.
 
-**Severity levels (maxlevel):** `info`, `warning`, `error`, `fatal`
+**Severity levels (maxlevel):** `info`, `warning`, `error`
 
-**Units:** Duration fields are in **nanoseconds**. Always convert to human-readable (ms, s, min) when presenting.
+**Units:** Transaction duration is DURATION (**nanoseconds**). Transaction Info duration is FLOAT64 (**seconds**; -1 = engine crashed). Always convert to human-readable (ms, s, min) when presenting.
 
 ---
 
@@ -85,7 +85,7 @@ Query and analyze observability data (logs, metrics, traces, spans) to investiga
 | Signal | Classification | Confidence |
 |---|---|---|
 | segfault in logs, termination_reason=Failed | Crash | High |
-| Jemalloc OOM in logs, termination_reason=Failed | OOM | High |
+| `[Jemalloc]` profile logs, termination_reason=FailedWithOOM | OOM | High |
 | Heartbeat rate drop, no termination | Brownout | Medium |
 | Heartbeat gap >30s, abort "engine failed" | Heartbeat timeout | High |
 | process_batches failures, quarantine records | Pipeline | High |
