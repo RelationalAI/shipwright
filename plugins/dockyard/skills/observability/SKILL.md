@@ -26,7 +26,7 @@ Query and analyze observability data (logs, metrics, traces, spans) to investiga
 | `rai_transaction_id` | UUID | Primary anchor — links across logs, spans, transactions |
 | `rai_engine_name` | string | Engine-specific queries |
 | `account_alias` / `org_alias` | string | Customer-scoped queries |
-| `sf.query.id` | UUID | Snowflake query correlation |
+| `sf_query_id` / `sf.query.id` | UUID | Snowflake query correlation |
 | `trace_id` / `span_id` | UUID | Distributed trace correlation |
 
 ## Key Metrics
@@ -36,7 +36,7 @@ Query and analyze observability data (logs, metrics, traces, spans) to investiga
 | `commit_duration_ms` | How long commits take |
 | `transactions_duration_total` | Total transaction duration |
 | `commit_txns_failure` | Failed commit count |
-| `exception_count_5m` | Exception rate (5-minute window) |
+| `exception_count_5m` | Exception rate (5-min window) — from ServiceExplorer/Service Metrics (41862479) |
 
 ## Common Environments and Services
 
@@ -46,7 +46,7 @@ Query and analyze observability data (logs, metrics, traces, spans) to investiga
 
 **Transaction languages:** `rel` (deprecated) → `lqp`. User-facing: PyRel. Errors may be caused by the rel→lqp transition.
 
-**Severity levels (maxlevel):** `info`, `warning`, `error`
+**Severity levels:** maxlevel (Transaction): `info`, `warning`, `error`. Log level (Snowflake Logs): `info`, `warning`, `warn`, `error`, `fatal`.
 
 **Units:** Transaction duration is DURATION (**nanoseconds**). Transaction Info duration is FLOAT64 (**seconds**; -1 = engine crashed). Always convert to human-readable (ms, s, min) when presenting.
 
@@ -84,8 +84,8 @@ Query and analyze observability data (logs, metrics, traces, spans) to investiga
 
 | Signal | Classification | Confidence |
 |---|---|---|
-| segfault in logs, termination_reason=Failed | Crash | High |
-| `[Jemalloc]` profile logs, termination_reason=FailedWithOOM | OOM | High |
+| segfault in logs, engine termination = Failed (Engine Failures dashboard) | Crash | High |
+| `[Jemalloc]` profile logs, engine termination = FailedWithOOM | OOM | High |
 | Heartbeat rate drop, no termination | Brownout | Medium |
 | No heartbeat for 20 min, abort "engine failed" | Heartbeat timeout | High |
 | process_batches failures, quarantine records | Pipeline | High |
@@ -93,6 +93,8 @@ Query and analyze observability data (logs, metrics, traces, spans) to investiga
 | No clear signal | Unknown | Low |
 
 > **Note:** Heartbeat timeout maps to the **brownout** classification in the triage card. The distinct signal helps the agent load the right knowledge file (engine-failures.md Pattern D).
+
+**Abort reasons (Transaction Info):** `None`, `engine failed`, `system internal error`
 
 ## Routing
 
