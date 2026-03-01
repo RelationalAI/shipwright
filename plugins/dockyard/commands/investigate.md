@@ -144,7 +144,7 @@ Load based on Stage 1 classification:
 | Crash / OOM / brownout | `skills/observability/knowledge/engine-failures.md` + `skills/observability/knowledge/incident-patterns/engine-incidents.md` |
 | Pipeline | `skills/observability/knowledge/data-pipeline.md` + `skills/observability/knowledge/incident-patterns/pipeline-incidents.md` |
 | Cross-service | `skills/observability/knowledge/architecture.md` |
-| Unknown | `skills/observability/knowledge/incident-patterns/` (all files) — pattern match against symptoms |
+| Unknown | `skills/observability/knowledge/incident-patterns/engine-incidents.md` + `skills/observability/knowledge/incident-patterns/pipeline-incidents.md` + `skills/observability/knowledge/incident-patterns/control-plane-incidents.md` + `skills/observability/knowledge/incident-patterns/infrastructure-incidents.md` — pattern match against symptoms |
 
 > Heartbeat timeout signals use the brownout classification (see SKILL.md triage signals). The same knowledge files apply.
 
