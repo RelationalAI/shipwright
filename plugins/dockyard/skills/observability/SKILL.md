@@ -4,49 +4,22 @@
 
 ## Datasets
 
-| Dataset | ID | Purpose | Use When |
-|---|---|---|---|
-| **Snowflake Logs** | 41832558 | Log events with content, severity, attributes | Log search, error investigation, keyword search |
-| **Spans** | 41867217 | Operation timing with trace trees, errors | Distributed tracing, latency analysis, error spans |
-| **Transaction Info** | 42728011 | Transaction status, abort_reason, duration (seconds) | Transaction status/failure queries. Has `status` and `abort_reason` that Transaction lacks. Duration -1 = engine crashed. |
-| **Transaction** | 41838769 | Transaction lifecycle, maxlevel, engine | Transaction overview. `maxlevel` = highest log severity, NOT status. Use Transaction Info for status. |
-| **Metrics** | 41861990 | OTel time-series metrics | Trend analysis, alerting thresholds, aggregate health |
-| **Engine** | 41838774 | Engine metadata: version, instance family, size | Engine config, version, instance type correlation |
-| **Traces** | 41838766 | Trace-level aggregates | Root operation overview, span counts |
-| **Long Running Spans** | 42001379 | Pre-filtered slow spans | Performance investigations |
-| **Span Event** | 42206250 | Events within a span (exceptions, state changes) | Exception details, state transitions |
-| **Diagnostic Profiles v2** | 42394246 | CPU profiling data | CPU profiling, links to CPU Profiling dashboard |
-
-## Lookup Keys
-
-| Key | Format | Use |
-|---|---|---|
-| `rai_transaction_id` | UUID | Primary anchor — links across logs, spans, transactions |
-| `rai_engine_name` | string | Engine-specific queries |
-| `account_alias` / `org_alias` | string | Customer-scoped queries |
-| `sf_query_id` / `sf.query.id` | UUID | Snowflake query correlation |
-| `trace_id` / `span_id` | UUID | Distributed trace correlation |
-
-## Key Metrics
-
-| Metric | Description |
+| Dataset | ID |
 |---|---|
-| `commit_duration_ms` | How long commits take |
-| `transactions_duration_total` | Total transaction duration |
-| `commit_txns_failure` | Failed commit count |
-| `exception_count_5m` | Exception rate (5-min window) — from ServiceExplorer/Service Metrics (41862479) |
+| Snowflake Logs | 41832558 |
+| Spans | 41867217 |
+| Transaction Info | 42728011 |
+| Transaction | 41838769 |
+| Metrics | 41861990 |
+| Engine | 41838774 |
+| Traces | 41838766 |
+| Long Running Spans | 42001379 |
+| Span Event | 42206250 |
+| Diagnostic Profiles v2 | 42394246 |
 
-## Common Environments and Services
+## Reference Data
 
-**Environments:** `spcs-prod`, `spcs-int`, `spcs-latest`, `spcs-staging`, `spcs-expt`, `spcs-ea`
-
-**Services:** `rai-server`, `spcs-control-plane`, `spcs-integration`, `gnn-engine`, `observe-for-snowflake`, `rai-solver`
-
-**Transaction languages:** `rel` (deprecated) → `lqp`. User-facing: PyRel. Errors may be caused by the rel→lqp transition.
-
-**Severity levels:** maxlevel (Transaction): `info`, `warning`, `error`. Log level (Snowflake Logs): `info`, `warning`, `warn`, `error`, `fatal`.
-
-**Units:** Transaction duration is DURATION (**nanoseconds**). Transaction Info duration is FLOAT64 (**seconds**; -1 = engine crashed). Always convert to human-readable (ms, s, min) when presenting.
+Lookup keys, key metrics, environments, services, and severity levels are defined in `knowledge/platform.md` (always loaded by commands).
 
 ---
 
