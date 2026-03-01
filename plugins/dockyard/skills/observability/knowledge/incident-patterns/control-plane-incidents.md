@@ -15,17 +15,7 @@
 
 ### Most Common Error Types
 
-| Error Code | Frequency | Typical Cause | Usually Transient? |
-|---|---|---|---|
-| `erp_txnevent_internal_stream_write_error` | Very high | S3/blob throttling | Yes — no customer impact |
-| `erp_blobgc_sf_unknown` | High | BlobGC Snowflake query error | Yes — retry handles it |
-| `erp_spcs_internal_request_reading_error` | High | Request reading failure | Yes if single occurrence |
-| `erp_enginerp_sf_oauth_token_expired` | Moderate | OAuth token expiry | Yes if reconnect succeeds |
-| `erp_engine_enginepending` | Moderate | Engine not ready for transaction | Yes if engine just created |
-| `erp_enginerp_internal_engine_provision_timeout` | Low | Engine stuck in PENDING | No — file Snowflake ticket |
-| `erp_txnrp_internal_db_init_failed` | Low | DB init race condition | Yes if delete-before-commit |
-| `erp_logicrp_sf_invalid_image_in_spec` | High during upgrades | Post-upgrade image unavailable | Yes — duplicate of NCDNTS-10633 |
-| `erp_blobgc_internal_blobgc_circuit_breaker_open` | Low | 3 consecutive BlobGC failures | No — investigate underlying cause |
+See `platform.md` for ERP error codes and their transient/permanent classification.
 
 ### Alert Channel
 

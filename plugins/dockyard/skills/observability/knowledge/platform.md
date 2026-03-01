@@ -262,6 +262,35 @@ Snowflake query:      SF Query ID → Logs (sf_query_id) → Spans (sf_query_id)
 ### Span Response Status
 `Ok`, `Error`
 
+## ERP Error Codes
+
+Format: `erp_{component}_{upstream}_{reason}`
+
+Components: `InternalComp`, `DBRPComp`, `EngineRPComp`, `MetadataComp`, `TxnRPComp`, `BlobGCComp`, `SnowflakeComp`, `AWSS3Comp`, `EngineComp`, `ServerComp`, `CPUProfilerComp`, `TxnEventComp`, `UnknownComp`
+
+| Error Code | Meaning | Typical Action | Transient? |
+|---|---|---|---|
+| `erp_engine_enginepending` | Engine not ready for transaction | Transient if engine just created | Yes |
+| `erp_enginerp_engine_provision_timeout` | Engine stuck in PENDING | File Snowflake ticket | No |
+| `erp_enginerp_internal_engine_provision_timeout` | Engine provisioning timeout (internal) | File Snowflake ticket | No |
+| `erp_spcs_awss3_txn_get_txn_artifacts_error` | Downloading artifacts from aborted txn | Often client-side wrong behavior | Varies |
+| `erp_jobrp_engine_send_rai_request_error` | Job RP can't reach engine | Transient if retry succeeds (final 200) | Usually |
+| `erp_txnrp_awss3_get_object_error` | S3 throttling (bucket repartitioning) | ERP/engine have retry logic | Yes |
+| `erp_logicrp_sf_unknown` / `erp_graphindex_sf_unknown` | Snowflake internal error (300002) | File Snowflake ticket | Varies |
+| `erp_txnevent_internal_stream_write_error` | S3/blob throttling | No customer impact | Yes |
+| `erp_blobgc_sf_unknown` | BlobGC Snowflake query error | Retry handles it | Yes |
+| `erp_spcs_internal_request_reading_error` | Request reading failure | Transient if single occurrence | Yes |
+| `erp_enginerp_sf_oauth_token_expired` | OAuth token expiry | Check if reconnect succeeded | Yes |
+| `erp_logicrp_sf_invalid_image_in_spec` | Post-upgrade image unavailable | Duplicate of NCDNTS-10633 if no txn failures in 1h | Yes |
+| `erp_internallogicrp_sf_invalid_image_in_spec` | Post-upgrade image unavailable (internal) | Same as above | Yes |
+| `erp_txnrp_internal_db_init_failed` | DB init race condition | Transient if delete-before-commit pattern | Yes |
+| `erp_raiclient_engine_send_rai_request_error` | ERP can't reach engine | Check brownout, blocking ops, network | Varies |
+| `erp_sf_unknown` | Generic Snowflake SQL error | Get sf.query_id, check logs | Varies |
+| `erp_blobgc_internal_blobgc_circuit_breaker_open` | 3 consecutive BlobGC failures, 12h block | Search logs for root cause error | No |
+| `*_transaction_cache_not_found_error` | ERP restart lost mapping cache | Safe to close if no customer concern | Yes |
+
+**Transient detection:** encounter count < 2 → likely transient, safe to mitigate. Count >= 2 or persistent → escalate to `#team-prod-engine-resource-providers-spcs`.
+
 ## Query Patterns
 
 | # | Scenario | Query for generate-query-card |
