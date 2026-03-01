@@ -141,10 +141,12 @@ Load based on Stage 1 classification:
 
 | Classification | Load |
 |---|---|
-| Crash / OOM / brownout / heartbeat timeout | `skills/observability/knowledge/engine-failures.md` + `skills/observability/knowledge/incident-patterns/engine-incidents.md` |
+| Crash / OOM / brownout | `skills/observability/knowledge/engine-failures.md` + `skills/observability/knowledge/incident-patterns/engine-incidents.md` |
 | Pipeline | `skills/observability/knowledge/data-pipeline.md` + `skills/observability/knowledge/incident-patterns/pipeline-incidents.md` |
 | Cross-service | `skills/observability/knowledge/architecture.md` |
 | Unknown | `skills/observability/knowledge/incident-patterns/` (all files) — pattern match against symptoms |
+
+> Heartbeat timeout signals use the brownout classification (see SKILL.md triage signals). The same knowledge files apply.
 
 **Exception:** If JIRA ticket contained Confluence runbook links, read those via Atlassian MCP and use as primary investigation guide INSTEAD of knowledge files.
 - If you have the Confluence page ID → use `getConfluencePage` directly
