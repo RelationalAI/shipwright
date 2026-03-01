@@ -210,9 +210,5 @@ Prerequisites catch missing MCP servers. This section handles errors from server
 
 ## Rules
 
-- Always show Observe links as returned from `generate-query-card` — do not construct URLs
-- Convert nanosecond durations to human-readable
-- Limit initial queries to 5 before analyzing (per SKILL.md query workflow)
-- Use retry strategies from SKILL.md if queries return no data
-- `rel` is deprecated → `lqp`. User-facing: PyRel.
+Follow query workflow and result presentation rules from SKILL.md. Additionally:
 - `maxlevel` is NOT transaction status. Terminal states: COMPLETED (success), ABORTED (failed).
