@@ -13,7 +13,7 @@ FAIL=0
 check() {
   local label="$1"
   local path="$2"
-  if [ -e "$path" ]; then
+  if [ -s "$path" ]; then
     echo "  PASS  $label"
     PASS=$((PASS + 1))
   else
