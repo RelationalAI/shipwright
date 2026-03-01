@@ -63,3 +63,5 @@ Every false positive wastes a human reviewer's time and erodes trust in the revi
 5. **Hypothetical issues are out of scope.** "This could be a problem if..." is speculation. Only report issues where you can describe a concrete scenario with real impact.
 
 6. **Removed code is out of scope.** Deleted code no longer exists. Flagging issues in it is noise.
+
+7. **Generated files are out of scope.** Auto-generated code, compiled bundles, snapshot test outputs, and other generated artifacts that happen to be committed are not hand-written code. Findings in them are not actionable — review the source that generates them instead.
