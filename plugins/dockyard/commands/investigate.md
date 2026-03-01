@@ -54,7 +54,7 @@ Detect whether the incident was system-reported or human-reported:
 
 | Source | Detection | Time Strategy |
 |---|---|---|
-| System-reported | JIRA reporter is `640a20b693cf25994631a644` or `557058:f58131cb-b67d-43c7-b30d-6b58d40bd077` | Use incident created timestamp directly |
+| System-reported | JIRA reporter is `640a20b693cf25994631a644` or `557058:f58131cb-b67d-43c7-b30d-6b58d40bd077` | Use incident start time from ticket directly |
 | Human + transaction ID | Has UUID anchor | Query transaction dataset for actual timestamp |
 | Human + time in description | Parseable time string | Parse, convert to UTC (watch for EST/PST/CET) |
 | Human + no time info | None of the above | Query recent activity for referenced entity, or ask user |
@@ -128,7 +128,7 @@ Load based on Stage 1 classification:
 
 | Classification | Load |
 |---|---|
-| Crash / OOM / brownout | `knowledge/engine-failures.md` + `knowledge/incident-patterns/engine-incidents.md` |
+| Crash / OOM / brownout / heartbeat timeout | `knowledge/engine-failures.md` + `knowledge/incident-patterns/engine-incidents.md` |
 | Pipeline | `knowledge/data-pipeline.md` + `knowledge/incident-patterns/pipeline-incidents.md` |
 | Cross-service | `knowledge/architecture.md` |
 | Unknown | `knowledge/incident-patterns/` (all files) — pattern match against symptoms |
