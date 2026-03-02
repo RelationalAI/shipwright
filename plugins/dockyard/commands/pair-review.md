@@ -72,6 +72,42 @@ gh pr view <number> --json reviews --jq '.reviews[] | {author: .author.login, st
 gh api repos/{owner}/{repo}/pulls/<number>/comments --jq '.[] | {user: .user.login, path, body: (.body[:200]), in_reply_to_id}'
 ```
 
+### Detect refactoring signals
+
+After fetching PR data, check whether this PR involves structural reorganization:
+
+```bash
+# Check for renames, copies, and file additions/deletions
+git diff --find-renames --find-copies --name-status <base>...<head>
+```
+
+**Refactoring signals present** if the output contains:
+- `R` (rename) or `C` (copy) entries, OR
+- Both `D` (deleted) and `A` (added) files in overlapping directories
+
+If no signals are detected, skip the lineage mapping and proceed directly to presenting the summary.
+
+### Build lineage map (refactoring PRs only)
+
+When refactoring signals are detected, build an internal map of old→new file relationships before presenting anything to the reviewer. This map is not shown as a separate artifact — it informs how you describe files throughout the review.
+
+**For renames/copies** that git detected automatically, record the mapping directly.
+
+**For added files that git didn't map,** read the corresponding deleted files on the base branch and determine the relationship:
+
+- **Rename** — same content, different path
+- **Rewrite** — same responsibility, substantially changed implementation
+- **Split** — one old file became multiple new files
+- **Absorbed** — old file's content was merged into another existing file
+- **Removed** — deleted with no replacement
+
+**How to determine relationships:** For each added file without a git-detected rename, read its content and the content of each deleted file. Look for shared function names, similar logic, matching exports, or comments referencing the old file. If the PR description includes a "key files" or migration table, use that as a starting hint.
+
+Keep this map in your working memory. You will use it in three places:
+1. **File list annotations** — annotate lineage inline (e.g., `src/stale.ts ← split from evaluation.ts`)
+2. **Summary accuracy** — describe the PR as refactoring rather than adding new features
+3. **Interactive review** — read base-branch predecessors before explaining what changed in a file
+
 ### Present the summary
 
 ```
