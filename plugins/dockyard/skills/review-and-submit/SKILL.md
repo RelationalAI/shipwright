@@ -3,210 +3,184 @@ name: review-and-submit
 description: Review code, auto-fix findings, generate PR description, and create a draft PR. Use when done coding and ready to submit.
 ---
 
-# Submit
+# Review and Submit
 
-You are running the Dockyard Submit flow. This is the local developer flow from "done coding" to "draft PR ready."
+Local developer flow from "done coding" to "draft PR ready."
 
-**Review always runs.** There is no flag to skip it. After seeing results, the developer can choose to proceed past blockers, but the review itself is mandatory.
+This skill runs late in a session when context is already full. Every design choice
+prioritizes context efficiency — heavy work happens in sub-agents so the main context
+stays focused on developer interaction and decision-making.
 
 ## Prerequisites
 
-Before starting, verify:
+Check all three. If any fails, tell the developer the specific issue and stop.
 
-1. You are on a feature branch (not `main` or `master`). If on main/master, stop and tell the developer: "You are on the main branch. Create a feature branch first."
-2. There are committed changes on this branch relative to the base branch. If no changes, stop: "No changes to submit. Commit your changes first."
-3. `gh` CLI is available and authenticated. Run `gh auth status` to check. If not authenticated, stop: "GitHub CLI is not authenticated. Run `gh auth login` first."
-
-If any prerequisite fails, inform the developer with the specific message and stop.
+1. **Feature branch** — not `main` or `master`. If on main: "Create a feature branch first."
+2. **Committed changes** relative to base branch. If none: "Commit your changes first."
+3. **`gh` CLI authenticated** — run `gh auth status`. If not: "Run `gh auth login` first."
 
 ### Uncommitted changes
 
-After prerequisites pass, check for uncommitted changes (`git status`). If there are staged or unstaged changes, prompt the developer:
+After prerequisites pass, check `git status`. If there are uncommitted changes:
 
 ```
 You have uncommitted changes:
 <list changed files>
 
-Would you like to commit these before proceeding? The code review only covers committed changes.
+Commit these before proceeding? The review only covers committed changes.
 ```
 
-Wait for the developer's response. If they choose to commit, create the commit (ask for a message or suggest one), then proceed. If they decline, proceed with the review on committed changes only — but remind them the uncommitted work won't be reviewed.
+Wait for response. If they commit, proceed. If not, continue but note uncommitted work won't be reviewed.
 
 ## Step 1: Gather Context
 
-### Determine the base branch and diff
-
 ```bash
-# Base branch defaults to "main"
-BASE_BRANCH="main"
-
-# Get the diff of committed changes
+BASE_BRANCH=$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name 2>/dev/null || echo "main")
 git diff "$BASE_BRANCH"...HEAD
+git log "$BASE_BRANCH"..HEAD --format="%s%n%b"
 ```
 
-If the diff is empty, stop: "No committed changes found relative to $BASE_BRANCH. Commit your changes first."
+If the diff is empty, stop: "No committed changes found relative to $BASE_BRANCH."
 
-### Collect rationale context
+## Step 2: Code Review
 
-Search for context that explains the intent behind the changes. This is optional — it helps generate better PR descriptions but is not required for review.
+Spawn a **single Task sub-agent** to run the entire code review. This is the most
+context-intensive part of the flow, and it must happen outside the main context.
 
-- **Plan files** — scan `docs/plans/` for recently modified files related to this work
-- **Session context** — read `.workflow/CONTEXT.md` if it exists
-- **Commit messages** — `git log "$BASE_BRANCH"..HEAD --format="%s%n%b"` for the progression of changes
+The sub-agent acts as the orchestrator described in `shipwright:code-review`. It reads
+the code-review skill's `SKILL.md` and `references/orchestration.md`, then executes the
+full protocol: spawning review passes, collecting findings, and scoring them.
 
-## Step 2: Run Code Review
-
-Invoke the `dockyard:code-review` skill and follow its process exactly.
-
-**Model selection for this step:**
-- Review passes: use Opus (higher quality, fewer false positives — developer is paying and waiting)
-- Confidence scoring: spawn a Haiku sub-agent per finding for independent evaluation
-
-**Provide to the skill:**
-- The diff from Step 1
-- `CLAUDE.md` content (read from project root)
-- Rationale context from Step 1 (if available)
-
-**Present findings to the developer:**
+**Sub-agent prompt template:**
 
 ```
-## Code Review Results: [APPROVE | NEEDS_CHANGES]
+You are a code review orchestrator. Read the code-review skill at
+skills/code-review/SKILL.md (relative to the project root), then read its
+references/orchestration.md and execute the full review protocol: spawn the
+three review passes (correctness, conventions, test quality) as nested
+sub-agents, collect findings, and spawn the scorer.
 
-### Blockers (N)
-- [file:line] description (confidence: XX)
-  Suggested fix: ...
+Diff to review:
+<the diff from Step 1>
 
-### Warnings (N)
-- [file:line] description (confidence: XX)
-  Suggested fix: ...
+Rationale context:
+<commit messages from Step 1>
 
-### Nits (N)
-- [file:line] description (confidence: XX)
-  Suggested fix: ...
+After completing the review, respond with the results in this format:
 
-### Summary
-[summary text from the skill output]
+RECOMMENDATION: [APPROVE or NEEDS_CHANGES]
+
+FINDINGS:
+[N] [severity] [file:line] description (confidence: XX)
+    Fix: suggested fix text
+
+SUMMARY:
+[2-4 sentence summary]
 ```
+
+**Why one sub-agent wrapping the whole review:** The review protocol reads 6 reference
+files and spawns 4 inner sub-agents. Orchestrating this from the main context would
+load all those files and results into the already-full context window. A single outer
+sub-agent encapsulates that work and returns only the compact findings summary.
+
+**Model:** Opus for the review sub-agent (it controls its own inner agents).
+
+Present the findings to the developer exactly as returned.
 
 ## Step 3: Fix Loop
 
-**Only runs if findings were reported.** If the review is APPROVE with no findings, skip to Step 4.
+**Skip entirely if review is APPROVE with no findings.** Jump to Step 4.
 
-### Prompt developer for selection
-
-Present all findings with numbered selection:
+Present all findings with numbered selection using AskUserQuestion:
 
 ```
-Which findings should I auto-fix? (comma-separated numbers, "all", or "none")
+Which findings should I fix? (comma-separated numbers, "all", or "none")
 
   [1] blocker  src/auth.ts:42    Missing null check on user lookup
-  [2] blocker  src/auth.ts:87    Token expiry not validated
-  [3] warning  src/api.ts:15     Error response missing status code
-  [4] nit      src/api.ts:30     Inconsistent naming: userID vs userId
+  [2] warning  src/api.ts:15     Error response missing status code
+  ...
 ```
 
-**STOP HERE.** You MUST use AskUserQuestion (or equivalent interactive prompt) to
-collect the developer's selection before proceeding. Do NOT infer intent from prior
-messages. Do NOT proceed without an explicit answer to this specific question.
-Silence or prior broad instructions like "do everything" do not count as selection.
+**Wait for explicit developer selection.** Do not infer from prior messages or
+broad instructions like "fix everything."
 
-### Fix selected findings
+If developer selects "none", skip to Step 4.
 
-**You MUST use the Task tool to spawn a sub-agent for each fix.** Do NOT edit files
-directly in the main context. This is not optional — even for "simple" one-line fixes.
+### Apply fixes
 
-Input to the sub-agent:
-- All selected findings (file, line range, description, suggested fix)
-- Project context (CLAUDE.md)
-- Instruction to run tests after applying all fixes
-
-**Why a single sub-agent:** Multiple sub-agents risk edit collisions on shared files,
-and each fix may affect others. A single agent applies fixes sequentially, resolving
-dependencies naturally, and runs tests once at the end.
-
-**Why this is mandatory:** Fixing inline pollutes the main context with file reads,
-edits, and test retries. This compounds across findings and degrades quality of
-subsequent steps (PR description, re-review).
-
-### Re-review
-
-After all fix sub-agents complete:
-
-1. Get the updated diff: `git diff "$BASE_BRANCH"...HEAD`
-2. Re-run the code-review skill on the updated diff
-3. Present updated findings to the developer
-
-**One cycle only.** Do not loop.
-
-### Developer decision
-
-After re-review, present the updated state:
+Spawn a **single Task sub-agent** to apply all selected fixes:
 
 ```
-Fixes applied. Updated review:
+Apply these fixes to the codebase:
+<list selected findings with file, line range, description, suggested fix>
 
-[updated findings, if any...]
+After applying all fixes:
+1. Run the project's tests (look for test scripts in package.json, Makefile, or similar)
+2. Commit the fixes with a descriptive message
+3. Report: what you changed, whether tests pass, and any issues encountered
+```
+
+One sub-agent, not one per fix — fixes may interact (same file, adjacent lines).
+
+### After fixes
+
+Present the fix sub-agent's report:
+
+```
+Fixes applied and committed. [summary from fix sub-agent]
 
 Options:
-1. Fix more manually and re-run /dockyard:review-and-submit
-2. Proceed to PR creation (remaining findings will be noted in the PR description)
+1. Proceed to PR creation (remaining findings noted in description)
+2. Re-run code review on the updated diff
+3. Fix more manually and start over
 ```
 
-Wait for the developer to choose. Do not auto-proceed.
+Wait for the developer to choose.
+
+If the developer chooses option 2, get the updated diff (`git diff "$BASE_BRANCH"...HEAD`)
+and repeat Step 2 with the new diff. This costs another sub-agent round-trip but gives
+confidence that fixes didn't introduce new issues. **One re-review only** — if the
+developer wants another after that, they should start over.
 
 ## Step 4: Generate PR Description
 
-Synthesize a PR description from all available sources:
-
-- **Diff analysis** — what concretely changed, notable decisions visible in the code
-- **Commit messages** — the progression of changes on this branch
-- **Plan files** — requirements, design intent (from Step 1)
-- **Review results** — what the local review caught and fixed, remaining warnings/nits
-
-**Use this template:**
+Synthesize from: diff analysis, commit messages, and review results.
 
 ```markdown
 ## Why
-<rationale — the problem being solved, decisions that led here>
+<the problem being solved, decisions that led here>
 
 ## What
-<concise summary of what changed — proportional to diff size>
+<concise summary — proportional to diff size>
 
 ## How to review
-<suggested focus areas, ordered by importance>
+<focus areas, ordered by importance>
 
 ## Pre-submit review
-<what the local review caught and fixed, remaining warnings/nits>
+<what local review caught and fixed, remaining warnings/nits>
 ```
 
 **Rules:**
-- The description must be proportional to the change size — a 10-line diff gets a brief description
+- Proportional to change size — 10-line diff gets 2-3 sentences
 - Never longer than the diff itself
-- Focus on WHY over WHAT (the diff shows what changed)
-- Be specific about review focus areas — tell the reviewer exactly where to look
+- WHY over WHAT (the diff shows what)
+- Specific review focus areas
 
 ## Step 5: Create Draft PR
 
 ```bash
-# Push the branch (set upstream if needed)
 git push -u origin HEAD
-
-# Create draft PR
-gh pr create --draft \
-  --title "<concise title>" \
-  --body "<generated description from Step 4>"
+gh pr create --draft --title "<concise title>" --body "<description from Step 4>"
 ```
 
-Present the draft PR URL to the developer. Remind them:
-- Review the description on GitHub and edit if needed
-- Mark as "Ready for Review" when satisfied — this triggers the CI review bot
+Present the PR URL. Remind: review the description on GitHub, then mark "Ready for Review."
 
 ## Rules
 
-1. **Review always runs.** No skip flag. Developer can proceed past blockers after seeing them.
+1. **Review always runs.** No skip flag.
 2. **Developer chooses what to fix.** Never auto-fix without explicit selection.
-3. **One fix cycle.** Fix selected findings once, re-review, then hand back to developer. No infinite loops.
-4. **Sub-agents for fixes.** Keep main context clean.
-5. **Draft PR default.** Author reviews on GitHub before marking ready.
+3. **One fix cycle, one optional re-review.** Fix once, optionally re-review once, then hand back.
+4. **Sub-agents for heavy work.** Review and fixes happen in sub-agents, not main context.
+5. **Draft PR default.** Author reviews before marking ready.
 6. **Description proportional to diff.** Small change = brief description.
 7. **Never force-push.** Always `git push`, never `git push --force`.
