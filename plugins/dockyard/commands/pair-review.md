@@ -120,6 +120,11 @@ Author: <author> | <base> ← <head> | <Draft / Ready for review>
 
 ### Files changed
 <grouped list — source, tests, config, docs>
+<if lineage map exists, annotate each file with its relationship — e.g.:
+  - `src/stale.ts` ← split from `evaluation.ts`
+  - `src/agent/review.ts` ← rewrite of `index.ts`
+  - `src/agent/guardrails/*` — removed
+Instead of listing these as simply "added" or "deleted">
 
 ### Existing reviews
 <summary of reviews already submitted>
