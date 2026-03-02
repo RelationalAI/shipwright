@@ -1,0 +1,13 @@
+{
+  "name": "shipwright",
+  "description": "Orchestrated agentic development framework — TDD-enforced bug fix workflows with triage, implementation, review, and validation agents",
+  "version": "0.1.0",
+  "author": {
+    "name": "Owais Mohamed",
+    "email": "owais.mohamed@relational.ai"
+  },
+  "homepage": "https://github.com/RelationalAI/shipwright",
+  "repository": "https://github.com/RelationalAI/shipwright",
+  "license": "TBD",
+  "keywords": ["workflow", "tdd", "code-review", "orchestration", "agents"]
+}
