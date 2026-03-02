@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
 # validate-structure.sh — Verify marketplace and plugin structure files exist.
+# Uses directory discovery instead of hardcoded file lists.
 #
 set -euo pipefail
 
@@ -40,33 +41,32 @@ echo ""
 echo "Dockyard plugin structure:"
 check "dockyard/plugin.json"      "$DOCKYARD/.claude-plugin/plugin.json"
 
-# Dockyard skills
-check "dockyard/skills/brownfield-analysis/SKILL.md"  "$DOCKYARD/skills/brownfield-analysis/SKILL.md"
-check "dockyard/skills/code-review/SKILL.md"           "$DOCKYARD/skills/code-review/SKILL.md"
-check "dockyard/skills/review-and-submit/SKILL.md"     "$DOCKYARD/skills/review-and-submit/SKILL.md"
-check "dockyard/skills/observability/SKILL.md"         "$DOCKYARD/skills/observability/SKILL.md"
+# Dockyard skills (discover from directory)
+for skill_dir in "$DOCKYARD"/skills/*/; do
+  skill_name=$(basename "$skill_dir")
+  check "dockyard/skills/$skill_name/SKILL.md" "$skill_dir/SKILL.md"
+  # Check for knowledge subdirectories
+  if [ -d "${skill_dir}knowledge" ]; then
+    while IFS= read -r -d '' knowledge_file; do
+      rel_path="${knowledge_file#"$DOCKYARD/"}"
+      check "dockyard/$rel_path" "$knowledge_file"
+    done < <(find "${skill_dir}knowledge" -name '*.md' -print0 | sort -z)
+  fi
+done
 
-# Dockyard observability knowledge files
-check "dockyard/skills/observability/knowledge/platform.md"              "$DOCKYARD/skills/observability/knowledge/platform.md"
-check "dockyard/skills/observability/knowledge/engine-failures.md"       "$DOCKYARD/skills/observability/knowledge/engine-failures.md"
-check "dockyard/skills/observability/knowledge/data-pipeline.md"         "$DOCKYARD/skills/observability/knowledge/data-pipeline.md"
-check "dockyard/skills/observability/knowledge/architecture.md"          "$DOCKYARD/skills/observability/knowledge/architecture.md"
-check "dockyard/skills/observability/knowledge/incident-patterns/engine-incidents.md"          "$DOCKYARD/skills/observability/knowledge/incident-patterns/engine-incidents.md"
-check "dockyard/skills/observability/knowledge/incident-patterns/pipeline-incidents.md"        "$DOCKYARD/skills/observability/knowledge/incident-patterns/pipeline-incidents.md"
-check "dockyard/skills/observability/knowledge/incident-patterns/control-plane-incidents.md"   "$DOCKYARD/skills/observability/knowledge/incident-patterns/control-plane-incidents.md"
-check "dockyard/skills/observability/knowledge/incident-patterns/infrastructure-incidents.md"  "$DOCKYARD/skills/observability/knowledge/incident-patterns/infrastructure-incidents.md"
+# Dockyard agents (discover from directory)
+for agent_file in "$DOCKYARD"/agents/*.md; do
+  [ -f "$agent_file" ] || continue
+  agent_name=$(basename "$agent_file")
+  check "dockyard/agents/$agent_name" "$agent_file"
+done
 
-# Dockyard agents
-check "dockyard/agents/doc-digest.md"  "$DOCKYARD/agents/doc-digest.md"
-
-# Dockyard commands
-check "dockyard/commands/codebase-analyze.md"  "$DOCKYARD/commands/codebase-analyze.md"
-check "dockyard/commands/doc-digest.md"        "$DOCKYARD/commands/doc-digest.md"
-check "dockyard/commands/investigate.md"          "$DOCKYARD/commands/investigate.md"
-check "dockyard/commands/observe.md"             "$DOCKYARD/commands/observe.md"
-check "dockyard/commands/code-review.md"             "$DOCKYARD/commands/code-review.md"
-check "dockyard/commands/review-and-submit.md"   "$DOCKYARD/commands/review-and-submit.md"
-check "dockyard/commands/feedback.md"            "$DOCKYARD/commands/feedback.md"
+# Dockyard commands (discover from directory)
+for cmd_file in "$DOCKYARD"/commands/*.md; do
+  [ -f "$cmd_file" ] || continue
+  cmd_name=$(basename "$cmd_file")
+  check "dockyard/commands/$cmd_name" "$cmd_file"
+done
 
 # --- Shipwright plugin ---
 echo ""
@@ -77,22 +77,25 @@ check "shipwright/plugin.json"    "$SHIPWRIGHT/.claude-plugin/plugin.json"
 check "shipwright/hooks/hooks.json"        "$SHIPWRIGHT/hooks/hooks.json"
 check "shipwright/hooks/check-dockyard.sh" "$SHIPWRIGHT/hooks/check-dockyard.sh"
 
-# Shipwright commands
-check "shipwright/commands/shipwright.md"  "$SHIPWRIGHT/commands/shipwright.md"
-check "shipwright/commands/feedback.md"    "$SHIPWRIGHT/commands/feedback.md"
+# Shipwright commands (discover from directory)
+for cmd_file in "$SHIPWRIGHT"/commands/*.md; do
+  [ -f "$cmd_file" ] || continue
+  cmd_name=$(basename "$cmd_file")
+  check "shipwright/commands/$cmd_name" "$cmd_file"
+done
 
-# Shipwright internal agents
-check "shipwright/internal/agents/triage.md"       "$SHIPWRIGHT/internal/agents/triage.md"
-check "shipwright/internal/agents/implementer.md"  "$SHIPWRIGHT/internal/agents/implementer.md"
-check "shipwright/internal/agents/reviewer.md"     "$SHIPWRIGHT/internal/agents/reviewer.md"
-check "shipwright/internal/agents/validator.md"    "$SHIPWRIGHT/internal/agents/validator.md"
+# Shipwright internal agents (discover from directory)
+for agent_file in "$SHIPWRIGHT"/internal/agents/*.md; do
+  [ -f "$agent_file" ] || continue
+  agent_name=$(basename "$agent_file")
+  check "shipwright/internal/agents/$agent_name" "$agent_file"
+done
 
-# Shipwright internal skills
-check "shipwright/internal/skills/tdd/SKILL.md"                        "$SHIPWRIGHT/internal/skills/tdd/SKILL.md"
-check "shipwright/internal/skills/verification-before-completion/SKILL.md" "$SHIPWRIGHT/internal/skills/verification-before-completion/SKILL.md"
-check "shipwright/internal/skills/systematic-debugging/SKILL.md"       "$SHIPWRIGHT/internal/skills/systematic-debugging/SKILL.md"
-check "shipwright/internal/skills/anti-rationalization/SKILL.md"       "$SHIPWRIGHT/internal/skills/anti-rationalization/SKILL.md"
-check "shipwright/internal/skills/decision-categorization/SKILL.md"    "$SHIPWRIGHT/internal/skills/decision-categorization/SKILL.md"
+# Shipwright internal skills (discover from directory)
+for skill_dir in "$SHIPWRIGHT"/internal/skills/*/; do
+  skill_name=$(basename "$skill_dir")
+  check "shipwright/internal/skills/$skill_name/SKILL.md" "$skill_dir/SKILL.md"
+done
 
 # --- Validate marketplace.json has required keys ---
 echo ""

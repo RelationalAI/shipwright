@@ -17,14 +17,13 @@ plugins/
 ## Plugins
 
 **Dockyard** — standalone tools that work without orchestration:
-- Skills: `brownfield-analysis`, `code-review`, `review-and-submit`, `observability`
-- Commands: `codebase-analyze`, `code-review`, `doc-digest`, `investigate`, `observe`, `review-and-submit`, `feedback`
-- Agents: `doc-digest`
+- Skills in `plugins/dockyard/skills/`
+- Commands in `plugins/dockyard/commands/`
+- Agents in `plugins/dockyard/agents/`
 
 **Shipwright** — orchestrated bug-fix pipeline (requires dockyard):
-- Commands: `shipwright`, `feedback`
-- Internal agents: `triage`, `implementer`, `reviewer`, `validator`
-- Internal skills: `tdd`, `systematic-debugging`, `verification-before-completion`, `anti-rationalization`, `decision-categorization`
+- Commands in `plugins/shipwright/commands/`
+- Internal agents and skills in `plugins/shipwright/internal/`
 - Dependency enforced via SessionStart hook (`plugins/shipwright/hooks/check-dockyard.sh`)
 
 ## Testing
