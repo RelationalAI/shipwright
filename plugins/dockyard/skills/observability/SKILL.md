@@ -1,3 +1,13 @@
+---
+name: observability
+description: >
+  RAI observability domain knowledge — Observe datasets, correlation tags, triage signals, and MCP tool usage.
+  Use this skill when the user asks questions about observability data (datasets, metrics, monitors, dashboards),
+  needs help understanding what data is available in Observe, or asks basic questions about the RAI telemetry
+  platform. For operational queries (health checks, alert status), suggest /observe instead. For incident
+  investigation, suggest /investigate instead.
+---
+
 # Observability
 
 ---
