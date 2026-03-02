@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
 # validate-commands.sh — Verify command files in both plugins meet conventions.
+# Uses directory discovery instead of hardcoded file lists.
 #
 set -euo pipefail
 
@@ -13,9 +14,10 @@ fail() { echo "  FAIL  $1"; FAIL=$((FAIL + 1)); }
 
 validate_command() {
   local plugin="$1"
-  local cmd="$2"
-  local filepath="$REPO_ROOT/plugins/$plugin/commands/$cmd"
-  local label="$plugin/$cmd"
+  local filepath="$2"
+  local cmd_name
+  cmd_name=$(basename "$filepath")
+  local label="$plugin/$cmd_name"
 
   echo ""
   echo "$label:"
@@ -53,32 +55,37 @@ validate_command() {
 
 echo "=== validate-commands ==="
 
-# --- Dockyard commands ---
+# --- Dockyard commands (discover from directory) ---
 echo ""
 echo "Dockyard commands:"
-DOCKYARD_COMMANDS=(
-  codebase-analyze.md
-  code-review.md
-  doc-digest.md
-  investigate.md
-  review-and-submit.md
-  feedback.md
-)
-
-for cmd in "${DOCKYARD_COMMANDS[@]}"; do
-  validate_command "dockyard" "$cmd"
+for cmd_file in "$REPO_ROOT"/plugins/dockyard/commands/*.md; do
+  [ -f "$cmd_file" ] || continue
+  validate_command "dockyard" "$cmd_file"
 done
 
-# --- Shipwright commands ---
+# --- Shipwright commands (discover from directory) ---
 echo ""
 echo "Shipwright commands:"
-SHIPWRIGHT_COMMANDS=(
-  shipwright.md
-  feedback.md
-)
+for cmd_file in "$REPO_ROOT"/plugins/shipwright/commands/*.md; do
+  [ -f "$cmd_file" ] || continue
+  validate_command "shipwright" "$cmd_file"
+done
 
-for cmd in "${SHIPWRIGHT_COMMANDS[@]}"; do
-  validate_command "shipwright" "$cmd"
+# --- Cross-reference: knowledge file paths in observability commands ---
+echo ""
+echo "Knowledge file cross-references:"
+DOCKYARD="$REPO_ROOT/plugins/dockyard"
+for cmd in "$DOCKYARD"/commands/investigate.md "$DOCKYARD"/commands/observe.md; do
+  [ -f "$cmd" ] || continue
+  cmd_name=$(basename "$cmd")
+  while IFS= read -r ref_path; do
+    full_path="$DOCKYARD/$ref_path"
+    if [ -s "$full_path" ]; then
+      pass "$cmd_name references $ref_path (exists)"
+    else
+      fail "$cmd_name references $ref_path (NOT FOUND)"
+    fi
+  done < <(grep -oE 'skills/observability/knowledge/[a-z/-]+\.md' "$cmd" | sort -u)
 done
 
 echo ""

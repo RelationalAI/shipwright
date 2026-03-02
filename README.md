@@ -6,7 +6,7 @@ RAI's curated Claude Code plugin marketplace.
 
 | Plugin | Description | Commands |
 |--------|-------------|----------|
-| **dockyard** | Standalone skills & commands | `codebase-analyze`, `code-review`, `doc-digest`, `investigate`, `review-and-submit`, `feedback` |
+| **dockyard** | Standalone skills & commands | `codebase-analyze`, `code-review`, `doc-digest`, `investigate`, `observe`, `review-and-submit`, `feedback` |
 | **shipwright** | Orchestrated bug-fix workflows (requires dockyard) | `shipwright`, `feedback` |
 
 ## Installation
