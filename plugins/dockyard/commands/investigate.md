@@ -330,7 +330,8 @@ CI/CD incident arrives
 │   → If no GH outage, check for Snowflake platform issues (SF releases, native app activation failures).
 │
 ├─ ArgoCD out-of-sync?
-│   → Check GitHub outage (above). If self-resolved in <20 min: transient, close.
+│   → Simultaneous multi-environment sync failure? → Bad config commit. Investigate. Revert.
+│   → Single-environment? → GitHub transient. Self-resolved <20 min? Close.
 │   → ArgoCD prod: https://argocd.prod.internal.relational.ai:8443/
 │   → ArgoCD staging: https://argocd.staging.internal.relational.ai:8443/
 │
@@ -354,6 +355,31 @@ CI/CD incident arrives
 │
 ├─ "CVE-" in title?
 │   → security_vuln. Route via code-ownership.yaml. Batch concurrent CVEs from same base image.
+│
+├─ Docker pull/push with "connection reset by peer" across repos?
+│   → GitHub runner Docker version change. Check if self-hosted runners work.
+│   → If GH-hosted fails but self-hosted passes: pin Docker version.
+│
+├─ Snowflake error 390303 (Invalid OAuth access token)?
+│   → Transient. Check if next run passes. Auto-close if resolved.
+│
+├─ "Copy Image X failed" / Docker image not found?
+│   → Check if image tag exists in source registry.
+│   → Feb 14-15 pattern: consumer-otelcol image missing.
+│
+├─ Test Ring 1 failure?
+│   → Deprioritize. Ring 1 is ~100% noise (confirmed by data).
+│   → Only investigate if 3+ repos show the same specific failure.
+│
+├─ "On-demand logs workflow tests are failing"?
+│   → Chronic flaky test. Auto-close.
+│
+├─ "Deployment failed" for *prod-uswest* + hotfix-specific-customer workflow?
+│   → Intentional test run. Close as noise.
+│
+├─ Synthetic tests failing for 3+ regions within 60 seconds?
+│   → Upstream outage. Check status.snowflake.com AND githubstatus.com.
+│   → If upstream active: close all as single event.
 │
 └─ Account matches *_cicd_validation_*?
     → Likely intentional test run. Close as non-incident.
