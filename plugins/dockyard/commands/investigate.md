@@ -50,7 +50,7 @@ Before any investigation, check the account/engine name against known patterns. 
 
 ### JIRA Ticket Path
 1. Read the JIRA ticket using Atlassian MCP (`getJiraIssue`)
-2. Read ticket comments (do NOT call `addCommentToJiraIssue` — that is a write operation)
+2. Read ticket comments (do NOT call any Atlassian write tools — see Rules section)
 3. Read remote issue links (`getJiraIssueRemoteIssueLinks`) — if this call fails, briefly note "Remote links unavailable, continuing without them" and proceed
 4. Extract anchors from ticket body, comments, and remote links:
    - Transaction IDs (UUIDs)
@@ -456,3 +456,4 @@ Prerequisites catch missing MCP servers. This section handles errors from server
 
 Follow query workflow and result presentation rules from SKILL.md. Additionally:
 - `maxlevel` is NOT transaction status. Terminal states: COMPLETED (status = success), ABORTED (status = failure).
+- **JIRA/Confluence is READ-ONLY.** Never call any Atlassian write tool during investigation. Allowed tools: `getJiraIssue`, `getJiraIssueRemoteIssueLinks`, `searchJiraIssuesUsingJql`, `getConfluencePage`, `searchConfluenceUsingCql`. Prohibited tools (non-exhaustive): `addCommentToJiraIssue`, `editJiraIssue`, `createJiraIssue`, `transitionJiraIssue`, `addWorklogToJiraIssue`, `jiraWrite`, `createConfluencePage`, `updateConfluencePage`. If in doubt whether a tool is a read or write operation, do not call it.
