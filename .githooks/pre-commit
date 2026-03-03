@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+#
+# pre-commit — Block commits when README.md is missing entries for public
+#              commands or skills. Only runs when plugin files are staged.
+#
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# Check if any public plugin commands or skills are staged
+STAGED=$(git diff --cached --name-only)
+PLUGIN_CHANGES=$(echo "$STAGED" | grep -E '^plugins/[^/]+/(commands/.*\.md|skills/[^/]+/SKILL\.md)' | grep -v '/internal/' || true)
+
+if [ -z "$PLUGIN_CHANGES" ]; then
+  exit 0
+fi
+
+# Scan file system for all public commands and skills, check each is in README
+README="$REPO_ROOT/README.md"
+MISSING=()
+
+for cmd_file in "$REPO_ROOT"/plugins/*/commands/*.md; do
+  [ -f "$cmd_file" ] || continue
+  plugin=$(echo "$cmd_file" | sed "s|.*/plugins/||" | cut -d/ -f1)
+  cmd=$(basename "$cmd_file" .md)
+  if ! grep -q "/$plugin:$cmd" "$README"; then
+    MISSING+=("/$plugin:$cmd")
+  fi
+done
+
+for skill_dir in "$REPO_ROOT"/plugins/*/skills/*/; do
+  [ -d "$skill_dir" ] || continue
+  echo "$skill_dir" | grep -q '/internal/' && continue
+  [ -f "$skill_dir/SKILL.md" ] || continue
+  skill=$(basename "$skill_dir")
+  if ! grep -q "$skill" "$README"; then
+    MISSING+=("skill: $skill")
+  fi
+done
+
+if [ ${#MISSING[@]} -gt 0 ]; then
+  echo "README.md is missing entries for:"
+  for item in "${MISSING[@]}"; do
+    echo "  - $item"
+  done
+  echo ""
+  echo "Run /update-readme to add missing entries, then stage README.md."
+  exit 1
+fi
+
+exit 0
