@@ -162,7 +162,8 @@ Present the triage card in this exact format:
 | **Confidence** | High / Medium / Low — with brief justification |
 | **Escalation** | Recommended team + Slack channel |
 | **Timeline** | Key timestamps: when started, duration, when detected |
-| **Observe Links** | Direct links from generate-query-card — use as returned |
+| **Evidence** | Observe links from queries that found errors/failures/anomalies — omit links to queries that returned clean or empty results |
+| **Dashboard** | Classification-specific investigation dashboard (see table below) |
 
 ### [Classification] Details
 
@@ -170,6 +171,19 @@ Present the triage card in this exact format:
 ```
 
 **When a field has no data:** show "—" (em dash). Never omit fields.
+
+**Classification → Investigation Dashboard:**
+
+| Classification | Dashboard |
+|---|---|
+| Crash / Brownout | [Engine Failures (41949642)](https://171608476159.observeinc.com/workspace/41759331/dashboard/Engine-failures-41949642) |
+| OOM | [OOM Investigations (41777956)](https://171608476159.observeinc.com/workspace/41759331/dashboard/OOM-Investigations-41777956) |
+| Pipeline | [O4S Pipeline Health (42090551)](https://171608476159.observeinc.com/workspace/41759331/dashboard/RelationalAI-O4S-Pipeline-Health-42090551) |
+| ERP-error / Cascade | [BlobGC (42245311)](https://171608476159.observeinc.com/workspace/41759331/dashboard/42245311) |
+| CI/CD | [Synthetic Tests Insights (42313552)](https://171608476159.observeinc.com/workspace/41759331/dashboard/Synthetic-Tests-Insights-42313552) |
+| Telemetry | [Telemetry Outages (42760073)](https://171608476159.observeinc.com/workspace/41759331/dashboard/Telemetry-Outages-42760073) |
+| Cross-service | [Account Health (42358249)](https://171608476159.observeinc.com/workspace/41759331/dashboard/42358249) |
+| Noise / Unknown | — |
 
 **Adaptive section by classification:**
 
