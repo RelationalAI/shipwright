@@ -283,7 +283,7 @@ Components: `InternalComp`, `DBRPComp`, `EngineRPComp`, `MetadataComp`, `TxnRPCo
 |---|---|---|---|
 | `erp_engine_enginepending` | Engine not ready for transaction | Transient if engine just created | Yes |
 | `erp_enginerp_engine_provision_timeout` | Engine stuck in PENDING | File Snowflake ticket | No |
-| `erp_enginerp_internal_engine_provision_timeout` | Engine provisioning timeout (internal) | File Snowflake ticket | No |
+| `erp_enginerp_internal_engine_provision_timeout` | Engine provisioning timeout (internal) | Not in runbook. File Snowflake ticket if persistent. | No |
 | `erp_spcs_awss3_txn_get_txn_artifacts_error` | Downloading artifacts from aborted txn | Often client-side wrong behavior | Varies |
 | `erp_jobrp_engine_send_rai_request_error` | Job RP can't reach engine | Transient if retry succeeds (final 200) | Usually |
 | `erp_txnrp_awss3_get_object_error` | S3 throttling (bucket repartitioning) | ERP/engine have retry logic | Yes |
@@ -302,9 +302,7 @@ Components: `InternalComp`, `DBRPComp`, `EngineRPComp`, `MetadataComp`, `TxnRPCo
 | `erp_unknown_internal_middlewarepanic` | ERP middleware panic | Not in runbook. Rare — investigate. | No |
 | `erp_blobgc_sf_sql_compute_pool_suspended` | BlobGC compute pool suspended | Not in runbook. Check for manual account changes. | No |
 | `erp_blobgc_engine_blobgc_engine_response_error` | BlobGC engine response error | Incident creation disabled (jian.fang). | Yes |
-| `erp_enginerp_internal_engine_provision_timeout` | Engine provisioning timeout (internal) | Not in runbook (Alexandre Bergel). | No |
-| `erp_txnevent_internal_request_reading_error` | TxnEvent request reading error | Not in runbook. "If not repeating, safe to close" (Wei He). | Yes |
-| `erp_logicrp_sf_unknown` | SF internal unknown error | SF internal issue. | Varies |
+| `erp_txnevent_internal_request_reading_error` | TxnEvent request reading error | Not in runbook. Safe to close if not repeating. | Yes |
 
 **Transient detection:** encounter count < 2 → likely transient, safe to mitigate. Count >= 2 or persistent → escalate to `#team-prod-engine-resource-providers-spcs`.
 

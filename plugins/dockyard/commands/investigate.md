@@ -139,7 +139,7 @@ Assign:
 - **Classification:** crash / OOM / brownout / pipeline / cross-service / erp-error / cascade / noise / cicd / telemetry / unknown
 - **Confidence:** High (anchor-correlated signal clearly matches a triage pattern) / Medium (anchor-correlated but ambiguous) / Low (no anchor-correlated signals, or conflicting signals)
 
-**New classification definitions:**
+**Classification definitions:**
 - **erp-error:** ERP subsystem error (BlobGC, CompCache, transaction manager). Use the ERP error taxonomy in the triage signals table.
 - **cascade:** Downstream symptom of an upstream failure. Example: BlobGC storage alert caused by a preceding engine crash. Always look for the parent incident.
 - **noise:** Known false positive or auto-closeable pattern (test incidents, internal dev engine heartbeats, EY old-engine DB failures, Trust Center ingestion failures, AWS key detection false positives).
