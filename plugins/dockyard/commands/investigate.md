@@ -21,6 +21,7 @@ Before starting, verify these MCP tools are available. If any are missing, stop 
 Load from the Dockyard plugin root:
 1. **Always:** `skills/observability/SKILL.md`
 2. **Always:** `skills/observability/knowledge/platform.md`
+3. **Always:** `skills/observability/knowledge/triage-signals.md`
 
 Additional knowledge files loaded in Stage 2 based on classification (see Stage 2 section).
 
@@ -129,7 +130,7 @@ A signal is **coincidental** if it:
 - Appears in the log agent's "temporally-adjacent" category
 
 **Classification rules:**
-1. Match anchor-correlated signals against the triage signals table in SKILL.md
+1. Match anchor-correlated signals against the triage signals table in triage-signals.md
 2. IGNORE coincidental signals for classification — they are noise unless they indicate a systemic issue affecting the anchor entity
 3. If multiple anchor-correlated signals exist, record ALL of them on the triage card. Do not determine root cause in Stage 1 — only classify the incident type and set confidence. Root cause determination happens in Stage 2.
 4. If the ONLY signals found are coincidental (no anchor-correlated signals), classify as **unknown / Low** — do NOT pick a coincidental error and call it root cause
@@ -229,7 +230,7 @@ Load based on Stage 1 classification:
 | Noise | No deep investigation needed — present auto-close recommendation |
 | Unknown | `skills/observability/knowledge/incident-patterns/engine-incidents.md` + `skills/observability/knowledge/incident-patterns/pipeline-incidents.md` + `skills/observability/knowledge/incident-patterns/control-plane-incidents.md` + `skills/observability/knowledge/incident-patterns/infrastructure-incidents.md` + `skills/observability/knowledge/incident-patterns/erp-incidents.md` + `skills/observability/knowledge/incident-patterns/telemetry-incidents.md` — pattern match against symptoms |
 
-> Heartbeat timeout signals use the brownout classification (see SKILL.md triage signals). The same knowledge files apply.
+> Heartbeat timeout signals use the brownout classification (see triage-signals.md). The same knowledge files apply.
 
 **Exception:** If JIRA ticket contained Confluence runbook links, read those via Atlassian MCP and use as primary investigation guide INSTEAD of knowledge files.
 - If you have the Confluence page ID → use `getConfluencePage` directly
