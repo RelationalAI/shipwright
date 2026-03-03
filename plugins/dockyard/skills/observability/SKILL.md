@@ -12,24 +12,9 @@ description: >
 
 ---
 
-## Datasets
-
-| Dataset | ID |
-|---|---|
-| Snowflake Logs | 41832558 |
-| Spans | 41867217 |
-| Transaction Info | 42728011 |
-| Transaction | 41838769 |
-| Metrics | 41861990 |
-| Engine | 41838774 |
-| Traces | 41838766 |
-| Long Running Spans | 42001379 |
-| Span Event | 42206250 |
-| Diagnostic Profiles v2 | 42394246 |
-
 ## Reference Data
 
-Lookup keys, key metrics, environments, services, and severity levels are defined in `knowledge/platform.md` (always loaded by commands).
+Dataset definitions (IDs, key fields, join paths), metrics, monitors, dashboards, environments, services, and ERP error codes are in `knowledge/platform.md` (always loaded by commands).
 
 ---
 
