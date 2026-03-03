@@ -24,6 +24,20 @@ Load from the Dockyard plugin root:
 
 Additional knowledge files loaded in Stage 2 based on classification (see Stage 2 section).
 
+## Account-Aware Pre-Triage
+
+Before any investigation, check the account/engine name against known patterns. This can short-circuit investigation for 30-40% of incidents.
+
+| Pattern | Detection | Action |
+|---|---|---|
+| `rai_studio_*`, `rai_int_*`, `rai_latest_*` | Internal test account | Lower priority; likely known error or expected behavior |
+| `*_cicd_validation_*` | CI/CD test account | Check if intentional test run; close if confirmed |
+| `ey_fabric233_*` + "database failed to open" | EY old engine version | Check for `CancelledException` in deserialization logs → close as Known Error |
+| `ritchie_brothers_*` + weekend timing | Ritchie Brothers + maintenance | Check SF maintenance window first; 33% of engine incidents are maintenance false positives |
+| Engine name matches a person's name (e.g., `tolga_*`, `ryan_gao_*`) | Dev engine | Auto-close heartbeat alerts |
+| `by_dev_*`, `by_perf_*` | BY dev/perf account | Lower priority; check for known repeat patterns |
+| UAE North region + telemetry alert | Noisy telemetry account | 38% of all telemetry incidents; check for alert storm before investigating |
+
 ## Entry Points
 
 | Input | Detection | Action |
@@ -82,9 +96,35 @@ Using anchors from the entry point, run in parallel:
 4. **Span errors:** Query spans dataset for errors related to the anchor
 
 ### Classification
-Match query results against the triage signals table in SKILL.md. Assign:
-- **Classification:** crash / OOM / brownout / pipeline / cross-service / unknown
-- **Confidence:** High (clear signals) / Medium (likely but ambiguous) / Low (need deep investigation)
+
+**Causal chain validation (CRITICAL):** Before classifying, verify that signals are directly connected to the entity being investigated — not just present in the same time window.
+
+A signal is **anchor-correlated** if it:
+- Matches the investigation's transaction ID, engine name, or account
+- Comes from the log agent's "anchor-correlated errors" category (not "temporally-adjacent")
+- Appears in span/transaction query results filtered by the investigation's anchor
+
+A signal is **coincidental** if it:
+- Was found only because it shares a time window with the incident
+- Comes from a different engine, transaction, or account than the one being investigated
+- Appears in the log agent's "temporally-adjacent" category
+
+**Classification rules:**
+1. Match anchor-correlated signals against the triage signals table in SKILL.md
+2. IGNORE coincidental signals for classification — they are noise unless they indicate a systemic issue affecting the anchor entity
+3. If multiple anchor-correlated signals exist, record ALL of them on the triage card. Do not determine root cause in Stage 1 — only classify the incident type and set confidence. Root cause determination happens in Stage 2.
+4. If the ONLY signals found are coincidental (no anchor-correlated signals), classify as **unknown / Low** — do NOT pick a coincidental error and call it root cause
+
+Assign:
+- **Classification:** crash / OOM / brownout / pipeline / cross-service / erp-error / cascade / noise / cicd / telemetry / unknown
+- **Confidence:** High (anchor-correlated signal clearly matches a triage pattern) / Medium (anchor-correlated but ambiguous) / Low (no anchor-correlated signals, or conflicting signals)
+
+**New classification definitions:**
+- **erp-error:** ERP subsystem error (BlobGC, CompCache, transaction manager). Use the ERP error taxonomy in the triage signals table.
+- **cascade:** Downstream symptom of an upstream failure. Example: BlobGC storage alert caused by a preceding engine crash. Always look for the parent incident.
+- **noise:** Known false positive or auto-closeable pattern (test incidents, internal dev engine heartbeats, EY old-engine DB failures, Trust Center ingestion failures, AWS key detection false positives).
+- **cicd:** CI/CD workflow failure (poison commit, deployment failure, test ring failure, synthetic test failure). See CI/CD decision tree.
+- **telemetry:** Telemetry pipeline outage (Observe, Snowflake tasks, event table heartbeats).
 
 ### Triage Card Output
 
@@ -117,10 +157,15 @@ Present the triage card in this exact format:
 | Classification | Adaptive section includes |
 |---|---|
 | Crash | Termination reason, crash log summary, core dump availability |
-| OOM | Termination reason, Jemalloc profile availability, memory metrics |
+| OOM | Termination reason, Jemalloc profile availability, memory metrics. OOM subtypes: GC brownout (false alarm), rapid Julia spike (pager can't react), undersized engine (OOM brake). |
 | Brownout | Heartbeat rate, Julia GC/compilation metrics, thread blocking indicators |
 | Pipeline | Pipeline stage affected, batch processing status, stream state |
 | Cross-service | SQL-layer timeline, ERP-layer timeline, correlation key used |
+| ERP-error | ERP error code, affected subsystem (BlobGC/CompCache/TxnMgr), upstream engine status, cascade check |
+| Cascade | Parent incident identification, upstream failure → downstream symptom chain |
+| Noise | Pattern matched, auto-close recommendation, justification |
+| CI/CD | Workflow name, failure stage, poison commit SHA (if applicable), next-run status, GH/SF platform status |
+| Telemetry | Affected region/account, Observe dashboard status, self-recovery check, pattern (transient/RAI-bug/misconfiguration) |
 | Unknown | Raw signals found (if any), suggested next steps, request for user context |
 
 ### After Stage 1
@@ -144,6 +189,11 @@ Load based on Stage 1 classification:
 | Crash / OOM / brownout | `skills/observability/knowledge/engine-failures.md` + `skills/observability/knowledge/incident-patterns/engine-incidents.md` |
 | Pipeline | `skills/observability/knowledge/data-pipeline.md` + `skills/observability/knowledge/incident-patterns/pipeline-incidents.md` |
 | Cross-service | `skills/observability/knowledge/architecture.md` |
+| ERP-error | `skills/observability/knowledge/incident-patterns/erp-incidents.md` + `skills/observability/knowledge/incident-patterns/control-plane-incidents.md` |
+| Cascade | Load knowledge file for the suspected parent classification + `skills/observability/knowledge/incident-patterns/erp-incidents.md` (cascades commonly involve BlobGC) |
+| CI/CD | `skills/observability/knowledge/incident-patterns/infrastructure-incidents.md` |
+| Telemetry | `skills/observability/knowledge/incident-patterns/telemetry-incidents.md` |
+| Noise | No deep investigation needed — present auto-close recommendation |
 | Unknown | `skills/observability/knowledge/incident-patterns/engine-incidents.md` + `skills/observability/knowledge/incident-patterns/pipeline-incidents.md` + `skills/observability/knowledge/incident-patterns/control-plane-incidents.md` + `skills/observability/knowledge/incident-patterns/infrastructure-incidents.md` — pattern match against symptoms |
 
 > Heartbeat timeout signals use the brownout classification (see SKILL.md triage signals). The same knowledge files apply.
@@ -164,35 +214,139 @@ Load based on Stage 1 classification:
 Update the triage card header with any new findings (confidence may increase, classification may change).
 
 Add free-form analysis body, ordered by priority:
-1. **Root cause** — lead with this if identified
+1. **Root cause** — lead with this if identified. Must be anchor-correlated (connected to the specific entity under investigation). If you cannot establish a causal chain from the root cause to the reported symptom, say "suspected root cause" and explain the gap. Never state a root cause with high confidence unless you can trace the causal chain: root cause event → intermediate effects → observed symptom.
 2. **Detailed timeline with evidence**
 3. **Impact assessment** — customers, transactions, duration
 4. **Correlated data across services**
 5. **Related historical incidents** — from incident-patterns files
 6. **Recommended actions** — mitigation, escalation, follow-up
 
+## ERP Error Decision Tree
+
+When the incident involves an ERP error code, use this decision tree before deep investigation:
+
+```
+ERP error arrives
+├─ BlobGC error?
+│   ├─ Check for upstream engine crash in same account (last 2h)
+│   │   YES → cascade classification. Link to engine incident. Close as downstream.
+│   │   NO  → Investigate BlobGC independently (metadata deserialization OOM? storage threshold?)
+│   └─ GapKeyWithoutJuliaValError in logs? → Engine version mismatch marker (not primary cause)
+│
+├─ broken_pipe / stream error? → Transient. Close if single occurrence, no txn failure.
+├─ compute_pool_suspended? → Check for manual account changes (user-initiated suspension).
+├─ circuit_breaker_open? → Find the failing upstream engine. This is a cascade.
+├─ txn_commit_error? → Check status.snowflake.com first. SF platform issue.
+├─ S3/storage rate limit (next_page_error)? → Check if internal GC span (no user txn ID). Transient.
+├─ send_rai_request_error? → Engine briefly unreachable. Check for Julia GC brownout (1-min log gap).
+└─ Account in repeat-offender list? (rai_studio_sac08949, by_dev_ov40102, rai_int_sqllib)
+    → Check if known recurring pattern for that account before investigating.
+```
+
+### ERP Runbooks
+- ERP monitoring runbook: `https://relationalai.atlassian.net/wiki/spaces/ES/pages/658407425`
+- BlobGC/CompCache: `https://relationalai.atlassian.net/wiki/spaces/ES/pages/890929153`
+- BlobGC Dashboard: `https://171608476159.observeinc.com/workspace/41759331/dashboard/42245311`
+
+## CI/CD Decision Tree
+
+When the incident involves a CI/CD workflow failure:
+
+```
+CI/CD incident arrives
+├─ Title: "Poison commit <sha> is added to repository <repo>"?
+│   → poison_commit. Extract commit SHA and repo.
+│   → Resolution: revert (preferred) or antidote workflow (forward-fix).
+│   → Check: does this root cause match a prior poison commit ticket?
+│   → Answer the 5 standard questions: how identified? why poison? why not caught? what next? follow-ups?
+│
+├─ Multiple unrelated CI systems failing simultaneously?
+│   → Check https://www.githubstatus.com FIRST.
+│   → If GitHub outage active: external_outage. Stop internal investigation.
+│   → If no GH outage, check for Snowflake platform issues (SF releases, native app activation failures).
+│
+├─ ArgoCD out-of-sync?
+│   → Check GitHub outage (above). If self-resolved in <20 min: transient, close.
+│   → ArgoCD prod: https://argocd.prod.internal.relational.ai:8443/
+│   → ArgoCD staging: https://argocd.staging.internal.relational.ai:8443/
+│
+├─ SPCS-INT workflow failure?
+│   → Check if other spcs-int sub-job failures in same 30-min window (likely same root cause).
+│   → Check if subsequent run passed → transient, close.
+│   → 87% of these are closed without root cause; auto-check is the main value add.
+│
+├─ Test Ring 3 failure?
+│   → Check if failure is from a dev branch run (should be excluded from monitor).
+│   → If not dev branch: check for specific test file/line in logs.
+│
+├─ Setup step fails (Setup Go, Setup Node)?
+│   → CI configuration regression. Find recent PR that modified go.mod/workflow YAML. Revert.
+│
+├─ "EnginePending" in logs?
+│   → Infrastructure misconfiguration. Check engine auto_suspend_mins. Recreate with auto_suspend_mins=0.
+│
+├─ "/sys/fs/cgroup/" file not found?
+│   → Environment mismatch. Revert the commit that added cgroup file access.
+│
+├─ "CVE-" in title?
+│   → security_vuln. Route via code-ownership.yaml. Batch concurrent CVEs from same base image.
+│
+└─ Account matches *_cicd_validation_*?
+    → Likely intentional test run. Close as non-incident.
+```
+
+### CI/CD Links
+- Deployment failure runbook: `https://relationalai.atlassian.net/wiki/x/AQBrWQ`
+- Repair dashboard: `https://relationalai.atlassian.net/jira/dashboards/10058`
+- Observe synthetic test dashboard: `https://171608476159.observeinc.com/workspace/41759331/dashboard/Synthetic-Tests-Insights-42313552`
+
+## Cascade Detection
+
+When any alert fires for BlobGC, storage threshold, or CompCache:
+1. Check if an engine failure occurred in the same account within the last 2 hours
+2. If yes → classify as **cascade**. The engine failure is the root cause; the BlobGC/storage alert is a downstream symptom.
+3. Link to the engine incident ticket and close as downstream.
+4. If no upstream engine failure → investigate the alert independently.
+
+Common cascade chain: **engine crash/OOM → BlobGC cannot run → storage threshold exceeded**
+
 ## Log Agent
 
 Log analysis is ALWAYS offloaded to a dedicated agent (logs are unbounded context). The main agent never sees raw log lines — only the log agent's summary.
+
+### Anchor Filtering (CRITICAL)
+
+The log agent MUST receive the investigation's anchors and use them as primary query filters. Logs contain errors from many engines/transactions simultaneously — unfiltered time-window queries will return irrelevant errors.
+
+**Pass to the log agent:** all available anchors from the entry point (transaction ID, engine name, account alias, environment). The log agent must include these in every query.
+
+**Query construction:** Always filter by anchor FIRST, then by time window and severity. Example: "Error logs for engine X in account Y in the last 30 minutes" — not "Error logs in the last 30 minutes".
+
+**If no anchors are available** (rare — symptom path with minimal info): the log agent must return ALL errors found in the time window, grouped by engine/transaction/account, and explicitly flag that results are unfiltered. The main agent must NOT pick one at random — it must ask the user which entity to focus on.
 
 ### Stage 1 Log Agent (time-bounded)
 
 Escalation ladder — each step only fires if the previous found no signal:
 
-| Step | Time Window | Severity |
-|---|---|---|
-| 1 | ±15 min around incident time | error |
-| 2 | ±30 min | error |
-| 3 | ±15 min | warning |
-| 4 | ±30 min | warning |
+| Step | Time Window | Severity | Filter |
+|---|---|---|---|
+| 1 | ±15 min around incident time | error | Anchor-filtered (transaction ID, engine name, account) |
+| 2 | ±30 min | error | Anchor-filtered |
+| 3 | ±15 min | warning | Anchor-filtered |
+| 4 | ±30 min | warning | Anchor-filtered |
 
 - Capped at 10 agent turns
 - Typical: resolves at step 1 (~20-25s). Full escalation: ~50-60s.
-- Returns: key errors found, error patterns, timeline of events
+
+**Return format — the log agent must return a structured summary:**
+1. **Anchor-correlated errors:** Errors that directly match the investigation anchors (same transaction ID, engine name, or account). These are the primary signal.
+2. **Temporally-adjacent errors:** Errors in the time window that do NOT match the anchor. Include only if they might indicate a systemic issue (e.g., same error across multiple engines). Label these clearly as "nearby but unrelated to anchor."
+3. **Error timeline:** Chronological sequence of anchor-correlated errors showing what happened first.
+4. **Error count:** Total errors found vs. anchor-correlated errors (e.g., "3 of 47 errors matched the anchor").
 
 ### Stage 2 Log Agent (unconstrained)
 
-Full severity range, wider time windows, thorough reconstruction. No turn cap.
+Full severity range, wider time windows, thorough reconstruction. No turn cap. Same anchor-filtering rules apply — always filter by anchor first.
 
 ## MCP Runtime Errors
 
