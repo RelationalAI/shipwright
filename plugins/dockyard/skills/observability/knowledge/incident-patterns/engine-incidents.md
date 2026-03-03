@@ -22,7 +22,7 @@
 | **Severity** | Typically Medium |
 | **Signature** | Alert: "SPCS: The engine X crashed in the account Y". Error logs matching "segmentation fault" and "signal". Container restart via `spcs.container.restarts.total` metric. |
 | **Root Cause** | Segfault (Julia runtime, storage/network stack), stack overflow (metadata layer), abort signal |
-| **Diagnostic Steps** | 1. Check error logs for "segmentation fault" 2. Identify crash component from stack trace in error logs (core dumps unavailable on SPCS since 2025-09-17) 3. Identify crash component from logs 4. Check `spcs.container.state.last.finished.reason` = `Failed` or `Done` |
+| **Diagnostic Steps** | 1. Check error logs for "segmentation fault" 2. Identify crash component from stack trace in error logs (core dumps unavailable on SPCS since 2025-09-17) 3. Check `spcs.container.state.last.finished.reason` = `Failed` or `Done` |
 | **Resolution** | Engine auto-restarts and resumes. Most are transient. Route to owning team based on crash component. |
 | **Recurring Accounts** | `rai_studio_sac08949` (daily crashes, multiple engine types: LD_SF100, MD_SF100 — appears to be stress testing) |
 | **Related Monitors** | [Engine crash detection (42938640)](https://171608476159.observeinc.com/workspace/41759331/threshold-monitor/42938640) |
