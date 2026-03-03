@@ -23,6 +23,19 @@ See `platform.md` for ERP error codes and their transient/permanent classificati
 
 ---
 
+## Pattern: BlobGC Death Loop (XL Engines)
+
+| Field | Value |
+|---|---|
+| **Frequency** | Low — specific to XL engines selected for BlobGC |
+| **Severity** | High |
+| **Signature** | BlobGC engine crashes repeatedly on same account, always during gc operations |
+| **Chain** | XL engine selected for BlobGC -> gc interval >250G -> OOMGuardian can't keep up (>50% wall time on gc) -> container OOM killed -> restarted -> re-selected -> infinite loop |
+| **Key Insight** | Do NOT investigate each BlobGC OOM independently — they are symptoms of the same loop |
+| **Source** | Todd Veldhuizen (NCDNTS-4515) |
+
+---
+
 ## Pattern: Errors in Monitored Accounts (Bot-Generated)
 
 | Field | Value |
@@ -73,8 +86,22 @@ See `platform.md` for ERP error codes and their transient/permanent classificati
 | **Root Cause** | Version change, previous failure, or warehouse suspended. |
 | **Diagnostic Steps** | 1. Check [Compilations Cache ERP Monitor](https://171608476159.observeinc.com/workspace/41759331/threshold-monitor/Compilations-Cache-ERP-Monitor-42287441) 2. Check if warehouse suspended 3. If cache loading crashes engine → disable cache on account |
 | **Resolution** | Warehouse suspended → user misconfiguration. ERP restart during provisioning → usually ignore single occurrence. Engine crash from cache → disable cache, reprovision engines. |
+| **Three-Strike Rule** | CompCache stops after 3 consecutive failures. If CompCache suddenly stops working, check for 3 prior failures in logs (jian.fang). CompCache auto-retries every 2h; single failure is not actionable. |
+| **Known Bug** | Race condition on raicloud (EY): cache loading and writing happen simultaneously with same name, corrupting cache. Fixed in raicode/SPCS but still recurring on raicloud (maintenance mode). |
 | **Recurring Accounts** | Various |
 | **Related Monitors** | [Compilations Cache ERP Monitor (42287441)](https://171608476159.observeinc.com/workspace/41759331/threshold-monitor/Compilations-Cache-ERP-Monitor-42287441), [CompCache Coordinator (42312891)](https://171608476159.observeinc.com/workspace/41759331/count-monitor/SEV3-CompCache-Coordinator-job-failed-42312891) |
+
+---
+
+## Pattern: ERP Error Cascade
+
+| Field | Value |
+|---|---|
+| **Frequency** | High — cascades appear in many multi-alert ERP incidents |
+| **Severity** | Medium (the cascade itself is noise; the root cause may be high) |
+| **Signature** | Multiple ERP errors fire for same account within 2h |
+| **Diagnostic** | Check for cascade chain: Engine crash -> BlobGC -> storage threshold. SF maintenance -> engine restart -> transaction abort -> BlobGC failure. Find earliest error in account within 2h; later errors are likely cascading downstream symptoms. |
+| **Race Condition** | When two ERP errors fire within seconds for same account, they're usually the same failure reported by two components. Investigate only the first (Irfan Bunjaku). |
 
 ## Cross-References
 
