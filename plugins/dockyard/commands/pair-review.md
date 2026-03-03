@@ -153,6 +153,7 @@ This principle applies to **all three diff exploration options**. Never present 
 ### Structure
 
 - **Layer 1 (always shown):** A substantive "why" paragraph — the problem being solved and approach taken, synthesized from PR description, commit messages, and code understanding. This is not a mechanical list of what changed — it's the narrative a colleague would give you at your desk.
+- **Lineage context (refactoring PRs):** When a lineage map exists, Layer 1 must describe changes in terms of their relationship to the old architecture — "this file was split out of X" or "this replaces Y with a different approach." Never describe a file with known lineage as "new."
 - **File/change list:** Brief mechanical details after the "why."
 - **Layer 2 (on demand):** Specific follow-up threads named explicitly based on what Claude noticed. Not generic "ask me anything" — concrete threads like "I can walk through the commit progression to show how this evolved" or "the removal of the old guardrails is interesting — I can explain why they were safe to drop."
 
@@ -203,6 +204,8 @@ This keeps pair-review's suggestions in sync as code-review's passes evolve. Do 
 **Explain why, not just what.** When asked about code, explain what it does *and* why the change was needed — how it connects to the PR's overall goal. If the reviewer asks "what does this file do," proactively include "why this change was needed" context.
 
 **Use the full codebase.** The real value is connecting the diff to the broader system. Navigate beyond changed files — read callers, trace data flow, check type definitions, find related patterns.
+
+**Check lineage first.** When the reviewer asks about a file that has a known predecessor in the lineage map, read the base-branch version of the predecessor before explaining what changed. This prevents mischaracterizing refactored code as new functionality.
 
 **Reference automated review findings.** If the user asks about something the automated review already flagged, surface that. Don't make the reviewer rediscover what's already been found.
 
