@@ -213,7 +213,7 @@ Load based on Stage 1 classification:
 | CI/CD | `skills/observability/knowledge/incident-patterns/infrastructure-incidents.md` |
 | Telemetry | `skills/observability/knowledge/incident-patterns/telemetry-incidents.md` |
 | Noise | No deep investigation needed — present auto-close recommendation |
-| Unknown | `skills/observability/knowledge/incident-patterns/engine-incidents.md` + `skills/observability/knowledge/incident-patterns/pipeline-incidents.md` + `skills/observability/knowledge/incident-patterns/control-plane-incidents.md` + `skills/observability/knowledge/incident-patterns/infrastructure-incidents.md` — pattern match against symptoms |
+| Unknown | `skills/observability/knowledge/incident-patterns/engine-incidents.md` + `skills/observability/knowledge/incident-patterns/pipeline-incidents.md` + `skills/observability/knowledge/incident-patterns/control-plane-incidents.md` + `skills/observability/knowledge/incident-patterns/infrastructure-incidents.md` + `skills/observability/knowledge/incident-patterns/erp-incidents.md` + `skills/observability/knowledge/incident-patterns/telemetry-incidents.md` — pattern match against symptoms |
 
 > Heartbeat timeout signals use the brownout classification (see SKILL.md triage signals). The same knowledge files apply.
 
