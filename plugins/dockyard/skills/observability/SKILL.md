@@ -53,6 +53,17 @@ Lookup keys, key metrics, environments, services, and severity levels are define
 3. Analyze results before running more queries
 4. Use retry strategies if no data: rephrase → broaden time range → try different dataset → fall back to `generate-knowledge-graph-context` to discover valid names
 
+### Query Failure Handling
+
+When a `generate-query-card` call returns no result, an error, or empty data:
+
+1. **Tell the user immediately.** Do not silently skip the failed query. State:
+   - Which query failed (e.g., "Error logs query for engine X returned no results")
+   - What data is now missing (e.g., "I don't have error log data for the incident window")
+   - Impact on the analysis (e.g., "I cannot confirm whether a segfault occurred — my crash assessment may be incomplete")
+2. **Proceed with available data.** Do not block on a failed query — use results from other parallel queries that succeeded.
+3. **If ALL queries fail or return no results**, tell the user Observe may be degraded and suggest checking `#ext-relationalai-observe`. Do not attempt to analyze without data.
+
 ### Result Presentation
 - Include Observe links from `generate-query-card` only when the query returned errors, failures, or anomalies — omit links to clean/empty results. Do not construct URLs manually.
 - Convert nanosecond durations to human-readable
@@ -151,9 +162,18 @@ These patterns can be auto-triaged without deep investigation:
 1. Direct to setup: https://171608476159.observeinc.com/settings/mcp
 2. If no access: whitelist via #ext-relationalai-observe (post :ticket: emoji)
 
-### Observe MCP degraded
-1. Run `/dockyard:feedback`
-2. Direct to #ext-relationalai-observe
+### Observe MCP degraded (partial failures)
+When some queries succeed but others fail:
+1. Inform the user which queries failed and what data is missing
+2. Proceed with available results, noting any gaps in your analysis
+3. If the missing data is critical to the classification or root cause, say so explicitly
+
+### Observe MCP degraded (all queries fail)
+When all `generate-query-card` calls fail:
+1. Tell the user: "Observe appears to be degraded — all queries failed. I cannot proceed with data-driven analysis."
+2. Suggest checking `#ext-relationalai-observe` for platform status
+3. Run `/dockyard:feedback` to report the issue
+4. Do NOT guess or speculate without data
 
 ### Atlassian MCP unavailable
 1. Direct to: https://www.atlassian.com/solutions/ai/mcp
