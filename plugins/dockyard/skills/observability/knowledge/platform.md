@@ -177,6 +177,16 @@ Snowflake query:      SF Query ID → Logs (sf_query_id) → Spans (sf_query_id)
 | CDC Investigations | 42469929 | Observe workspace | Failed data streams, batch processing errors |
 | Telemetry Outages | 42760073 | Observe workspace | Telemetry pipeline outages |
 | Account Health | 42358249 | Observe workspace | Customer-specific issues, account SLA |
+| Telemetry Heartbeats | 42384426 | Observe workspace | Heartbeat monitoring for telemetry pipeline |
+| Pager | 42313242 | Observe workspace | OOM pager activity and memory pressure |
+| Memory Breakdown | Memory-Breakdown-42602551 | Observe workspace | Detailed engine memory analysis |
+| Continuous CPU Profiling | RelationalAI-Continuous-CPU-Profiling-41782266 | Observe workspace | CPU hotspot analysis (linked from Diagnostic Profiles) |
+| Engine Overview | RelationalAI-Engine-Overview-MR-WIP-41925747 | Observe workspace | Multi-region engine health overview |
+| ERP Restart | ERP-Restart-42156070 | Observe workspace | ERP service restart tracking |
+| ERP Actionable Monitor V2 | ERP-actionable-monitor-v2-42488209 | Observe workspace | ERP error monitoring dashboard |
+| Product SLOs | Product-SLOs-42733752 | Observe workspace | Product-level SLO tracking |
+| Engineering SLOs | Engineering-SLOs-42723876 | Observe workspace | Engineering-level SLO tracking |
+| SPCS Versions | SPCS-Versions-42021302 | Observe workspace | SPCS version deployment tracking |
 
 **Fallback:** DataDog "Engine failures (SPCS version)" at `https://app.datadoghq.com/dashboard/5u7-367-vkv`
 
@@ -288,8 +298,19 @@ Components: `InternalComp`, `DBRPComp`, `EngineRPComp`, `MetadataComp`, `TxnRPCo
 | `erp_sf_unknown` | Generic Snowflake SQL error | Get sf.query_id, check logs | Varies |
 | `erp_blobgc_internal_blobgc_circuit_breaker_open` | 3 consecutive BlobGC failures, 12h block | Search logs for root cause error | No |
 | `*_transaction_cache_not_found_error` | ERP restart lost mapping cache | Safe to close if no customer concern | Yes |
+| `erp_unknown_internal_middlewarepanic` | ERP middleware panic | Not in runbook. Rare — investigate. | No |
+| `erp_blobgc_sf_sql_compute_pool_suspended` | BlobGC compute pool suspended | Not in runbook. Check for manual account changes. | No |
+| `erp_blobgc_engine_blobgc_engine_response_error` | BlobGC engine response error | Incident creation disabled (jian.fang). | Yes |
+| `erp_enginerp_internal_engine_provision_timeout` | Engine provisioning timeout (internal) | Not in runbook (Alexandre Bergel). | No |
+| `erp_txnevent_internal_request_reading_error` | TxnEvent request reading error | Not in runbook. "If not repeating, safe to close" (Wei He). | Yes |
+| `erp_logicrp_sf_unknown` | SF internal unknown error | SF internal issue. | Varies |
 
 **Transient detection:** encounter count < 2 → likely transient, safe to mitigate. Count >= 2 or persistent → escalate to `#team-prod-engine-resource-providers-spcs`.
+
+## ArgoCD URLs
+
+- ArgoCD prod: `https://argocd.prod.internal.relational.ai:8443/`
+- ArgoCD staging: `https://argocd.staging.internal.relational.ai:8443/`
 
 ## Query Patterns
 
