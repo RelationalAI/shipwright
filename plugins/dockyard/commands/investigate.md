@@ -95,6 +95,25 @@ Using anchors from the entry point, run in parallel:
 3. **Active alerts:** Query monitors that fired near the incident time
 4. **Span errors:** Query spans dataset for errors related to the anchor
 
+### Alert Storm / Duplicate Check
+
+Before classifying, check if this incident is part of an alert storm:
+
+1. If the incident is from an automated monitor, search JIRA for other open incidents with the same monitor name or entity (engine name, pod name, account, region) in the last 24h
+2. If an existing open incident exists for the same entity, classify as **noise** and recommend closing as duplicate — link to the root incident
+
+**Known alert storm patterns:**
+
+| Pattern | Detection | Action |
+|---|---|---|
+| Pod memory alerts | Same `pod_name` with existing open incident | Close as duplicate of root ticket |
+| AWS Key/Token detection | Same detection event within 24h | Close all but first |
+| Telemetry outages (same region) | Same region, multiple signal types (NA Logs, SPCS Logs, OTEL Metrics, SF Platform Metrics, NA Spans) within 30 min | Single event — investigate one, close rest |
+| Telemetry outages (multi-region) | 3+ regions within 60 min | Single upstream event — investigate one, close rest |
+| Synthetic tests | 3+ regions failing within 60 seconds | Upstream outage — check status pages, close all |
+| SPCS-INT sub-jobs | Same GitHub Actions run ID | Same failure — close extras |
+| Engine provisioning | Same Datadog monitor re-firing at SEV2 and SEV3 | Single event — close extras |
+
 ### Classification
 
 **Causal chain validation (CRITICAL):** Before classifying, verify that signals are directly connected to the entity being investigated — not just present in the same time window.
