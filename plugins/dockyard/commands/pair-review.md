@@ -74,7 +74,7 @@ gh api repos/{owner}/{repo}/pulls/<number>/comments --jq '.[] | {user: .user.log
 
 ### Detect refactoring signals
 
-After fetching PR data, check whether this PR involves structural reorganization:
+After fetching PR data, check whether this PR involves structural reorganization. This step requires a local checkout — if the branch no longer exists and no worktree was created, skip lineage mapping entirely.
 
 ```bash
 # Check for renames, copies, and file additions/deletions
@@ -99,7 +99,8 @@ When refactoring signals are detected, build an internal map of old→new file r
 - **Rewrite** — same responsibility, substantially changed implementation
 - **Split** — one old file became multiple new files
 - **Absorbed** — old file's content was merged into another existing file
-- **Removed** — deleted with no replacement
+
+**For deleted files with no replacement,** classify as **Removed** and note the deletion in the lineage map so it appears in file annotations rather than being silently dropped.
 
 **How to determine relationships:** For each added file without a git-detected rename, read its content and the content of each deleted file. Look for shared function names, similar logic, matching exports, or comments referencing the old file. If the PR description includes a "key files" or migration table, use that as a starting hint.
 
