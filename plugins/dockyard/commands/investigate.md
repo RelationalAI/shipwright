@@ -464,7 +464,12 @@ Prerequisites catch missing MCP servers. This section handles errors from server
 
 ### Observe MCP query failure
 - Follow retry strategies from SKILL.md (rephrase → broaden time range → different dataset)
-- If persistent, suggest user check Observe MCP status in #ext-relationalai-observe
+- If a query fails after retry, tell the user: which query failed, what data is missing, and how it affects the investigation. Examples:
+  - "Transaction status query failed — I cannot confirm whether the transaction completed or aborted. Classification confidence is reduced."
+  - "Error logs query returned no results — I cannot check for segfaults or OOM signals. Proceeding with span and monitor data only."
+  - "All Observe queries failed — I cannot perform data-driven triage. Observe may be degraded. Check #ext-relationalai-observe."
+- If partial data is available, proceed but flag gaps in the triage card Confidence field (reduce to Medium or Low and state why)
+- If ALL queries fail, do not attempt classification — tell the user and suggest manual investigation via Observe dashboards
 
 ## Rules
 
