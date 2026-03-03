@@ -55,16 +55,6 @@ When a `generate-query-card` call returns no result, an error, or empty data:
 - Distinguish "all clear" (no errors, system healthy) from "no data available" (possible data gap)
 - Summarize results — do not dump raw query output
 
-## Routing
-
-| User intent | Route to |
-|---|---|
-| Specific incident, failure, error, or JIRA ticket to diagnose | Suggest `/investigate` |
-| Check current state, fleet health, or run ad-hoc queries | Suggest `/observe` |
-| Basic observability question ("what dataset has X?") | Answer directly from this skill |
-
----
-
 ## MCP Degradation
 
 ### Observe MCP unavailable
