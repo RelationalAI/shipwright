@@ -43,7 +43,7 @@ Dataset definitions (IDs, key fields, join paths), metrics, monitors, dashboards
 
 When a `generate-query-card` call returns no result, an error, or empty data:
 
-1. **Tell the user immediately.** Do not silently skip the failed query. State:
+1. **Tell the user** when a query still fails after retry strategies (step 4 above). Do not silently skip the failed query. State:
    - Which query failed (e.g., "Error logs query for engine X returned no results")
    - What data is now missing (e.g., "I don't have error log data for the incident window")
    - Impact on the analysis (e.g., "I cannot confirm whether a segfault occurred — my crash assessment may be incomplete")
