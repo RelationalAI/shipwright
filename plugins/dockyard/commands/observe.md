@@ -65,10 +65,7 @@ Ask the user what they want to check. Suggest:
 3. If query succeeds: present results with Observe links (only include links where query returned data). Summarize — do not dump raw data.
 4. If query fails after retry: tell the user what you tried and that it failed. Suggest rephrasing or checking #ext-relationalai-observe if Observe appears degraded.
 
-## Result Presentation
+## Rules
 
-Follow result presentation rules from SKILL.md.
-
-## MCP Degradation
-
-If Observe MCP tools are unavailable or return errors, follow the degradation guidance in SKILL.md.
+- Follow result presentation rules from SKILL.md.
+- If Observe MCP tools are unavailable or return errors, follow degradation guidance in SKILL.md.
