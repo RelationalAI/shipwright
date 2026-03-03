@@ -58,6 +58,7 @@ Ask the user what they want to check. Suggest:
 1. Query monitor status using `generate-query-card` with the monitor names/IDs from `platform.md`
 2. Filter by severity if specified (SEV2, SEV3)
 3. Present: monitor name, status, last triggered, affected entity
+4. If query fails: tell the user which monitors could not be checked. Suggest checking #ext-relationalai-observe if Observe appears degraded.
 
 ### Ad-Hoc Query
 1. Use `generate-query-card` with the user's natural language query
