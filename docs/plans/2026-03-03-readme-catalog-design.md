@@ -29,21 +29,25 @@ The README gains a detailed catalog between the overview table and installation 
 
 ### Keeping It Up to Date
 
-Two mechanisms work together:
+Three mechanisms work together:
 
-**1. Pre-commit validation hook** (`.claude/hooks.json` + `.claude/hooks/check-readme.sh`)
+**1. Git pre-commit hook** (`.githooks/pre-commit`)
 
-Repo-level hook, not distributed with any plugin. Logic:
+A standard git pre-commit hook, tracked in the repo. Logic:
 
 1. Check if any staged files match `plugins/*/commands/*.md` or `plugins/*/skills/*/SKILL.md` (excluding `internal/`)
 2. If no matches, exit 0 (nothing to validate)
 3. If matches found, scan file system for all public commands and skills
 4. Parse README.md for listed items
-5. If any item exists on disk but is missing from README, exit 2 with an error listing missing items and suggesting `/update-readme`
+5. If any item exists on disk but is missing from README, exit 1 with an error listing missing items and suggesting `/update-readme`
 
 The hook checks **completeness, not content**. It does not validate whether descriptions are accurate or fresh — that's Claude's job.
 
-**2. `/update-readme` skill** (`.claude/skills/update-readme/SKILL.md`)
+**2. SessionStart hook to ensure git hooks are active** (`.claude/hooks.json`)
+
+A Claude Code SessionStart hook that runs `git config core.hooksPath .githooks` on every session start. Since all changes go through Claude Code, this guarantees the git pre-commit hook is always wired up — no manual setup step for contributors.
+
+**3. `/update-readme` skill** (`.claude/skills/update-readme/SKILL.md`)
 
 Repo-level skill for maintaining this repository, not distributed to users. Invoked when the hook blocks a commit or proactively. When invoked:
 
@@ -64,7 +68,8 @@ Key guidance in the skill:
 | Concern | Location |
 |---------|----------|
 | README catalog format and structure | README.md itself |
-| Completeness enforcement | Repo-level pre-commit hook (`.claude/hooks/check-readme.sh`) |
+| Completeness enforcement | Git pre-commit hook (`.githooks/pre-commit`) |
+| Git hooks activation | Claude Code SessionStart hook (`.claude/hooks.json`) |
 | Description authoring guidance | Repo-level skill (`.claude/skills/update-readme/SKILL.md`) |
 | Project instructions | CLAUDE.md (no README-specific content needed) |
 
@@ -82,6 +87,7 @@ Key guidance in the skill:
 
 - **Descriptions are authored, not generated.** They're written once by Claude with user refinement, then maintained over time. This allows incorporating context that isn't in the source files.
 - **Hook checks completeness, not content.** It ensures every public item has a README entry but doesn't validate description quality.
-- **Repo-level, not plugin-level.** The hook and skill live in `.claude/` at the repo root. They're tooling for maintaining this repository, not features distributed to plugin consumers.
+- **Repo-level, not plugin-level.** The hook and skill live at the repo root (`.githooks/`, `.claude/`). They're tooling for maintaining this repository, not features distributed to plugin consumers.
+- **No manual setup.** A Claude Code SessionStart hook automatically configures `core.hooksPath` so the git pre-commit hook is always active. No contributor action needed.
 - **No CLAUDE.md bloat.** All README maintenance knowledge lives in the skill, loaded only when needed.
 - **Structure accommodates growth.** Both plugins have Commands and Skills sections. Sections are omitted when empty but the hook and skill know to check both plugins.
