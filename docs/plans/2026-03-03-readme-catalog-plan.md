@@ -14,11 +14,10 @@
 
 ### Task 1: Write the validate-readme smoke test
 
-Write the test before the implementation. This test checks that every public command and skill on disk has a corresponding entry in README.md.
+Write the test before the implementation. This test checks that every public command and skill on disk has a corresponding entry in README.md. The test lives at the repo root (`tests/smoke/`) because README validation is a repo-level concern, not a dockyard plugin concern.
 
 **Files:**
-- Create: `plugins/dockyard/tests/smoke/validate-readme.sh`
-- Modify: `plugins/dockyard/tests/smoke/run-all.sh`
+- Create: `tests/smoke/validate-readme.sh`
 
 **Step 1: Write validate-readme.sh**
 
@@ -29,7 +28,7 @@ Write the test before the implementation. This test checks that every public com
 #
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 README="$REPO_ROOT/README.md"
 PASS=0
 FAIL=0
@@ -85,24 +84,18 @@ fi
 exit 0
 ```
 
-**Step 2: Register the new suite in run-all.sh**
+Note: `REPO_ROOT` is `../..` from `tests/smoke/`, not `../../../..` as it would be from the dockyard test directory.
 
-Add after the existing `validate-commands` line:
+**Step 2: Run the smoke test to verify it fails**
 
-```bash
-run_suite "validate-readme"  "$SCRIPT_DIR/validate-readme.sh"
-```
-
-**Step 3: Run the smoke test to verify it fails**
-
-Run: `bash plugins/dockyard/tests/smoke/validate-readme.sh`
+Run: `bash tests/smoke/validate-readme.sh`
 
 Expected: FAIL — the current README doesn't have `/dockyard:codebase-analyze` etc. in the expected format.
 
-**Step 4: Commit**
+**Step 3: Commit**
 
 ```bash
-git add plugins/dockyard/tests/smoke/validate-readme.sh plugins/dockyard/tests/smoke/run-all.sh
+git add tests/smoke/validate-readme.sh
 git commit -m "test: add validate-readme smoke test (fails until README is populated)"
 ```
 
@@ -443,9 +436,14 @@ Read through the complete README to verify formatting, links, and flow.
 
 **Step 3: Run full smoke tests**
 
-Run: `bash plugins/dockyard/tests/smoke/run-all.sh`
+Run both test suites:
 
-Expected: all 5 suites pass.
+```bash
+bash plugins/dockyard/tests/smoke/run-all.sh
+bash tests/smoke/validate-readme.sh
+```
+
+Expected: dockyard 4/4 suites pass, validate-readme passes.
 
 **Step 4: Commit**
 
@@ -456,24 +454,36 @@ git commit -m "feat: populate README catalog with command and skill descriptions
 
 ---
 
-### Task 7: Update CLAUDE.md smoke test count
+### Task 7: Update CLAUDE.md with repo-level test info
 
 **Files:**
 - Modify: `CLAUDE.md`
 
-**Step 1: Update the test description**
+**Step 1: Add repo-level testing section**
 
-Change "Runs 4 suites" to "Runs 5 suites" and add "readme" to the list:
+The dockyard smoke test suite (4 suites) is unchanged. Add a note about the repo-level README validation test after the existing testing section:
 
 ```
-Runs 5 suites: structure, skills, agents, commands, readme. Validates both plugins.
+## Testing
+
+```bash
+# Plugin smoke tests
+bash plugins/dockyard/tests/smoke/run-all.sh
+
+# Repo-level tests
+bash tests/smoke/validate-readme.sh
+```
+
+Plugin smoke tests run 4 suites: structure, skills, agents, commands. Validates both plugins.
+
+Repo-level tests validate the README catalog against actual plugin contents.
 ```
 
 **Step 2: Commit**
 
 ```bash
 git add CLAUDE.md
-git commit -m "docs: update CLAUDE.md to reflect 5 smoke test suites"
+git commit -m "docs: update CLAUDE.md with repo-level test info"
 ```
 
 ---
@@ -482,9 +492,14 @@ git commit -m "docs: update CLAUDE.md to reflect 5 smoke test suites"
 
 **Step 1: Run all smoke tests**
 
-Run: `bash plugins/dockyard/tests/smoke/run-all.sh`
+Run both test suites:
 
-Expected: 5/5 suites pass.
+```bash
+bash plugins/dockyard/tests/smoke/run-all.sh
+bash tests/smoke/validate-readme.sh
+```
+
+Expected: dockyard 4/4 suites pass, validate-readme passes.
 
 **Step 2: Test pre-commit hook end-to-end**
 

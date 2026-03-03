@@ -69,9 +69,12 @@ Key guidance in the skill:
 |---------|----------|
 | README catalog format and structure | README.md itself |
 | Completeness enforcement | Git pre-commit hook (`.githooks/pre-commit`) |
+| Completeness smoke test | Repo-root test (`tests/smoke/validate-readme.sh`) |
 | Git hooks activation | Claude Code SessionStart hook (`.claude/hooks.json`) |
 | Description authoring guidance | Repo-level skill (`.claude/skills/update-readme/SKILL.md`) |
 | Project instructions | CLAUDE.md (no README-specific content needed) |
+
+Note: The README smoke test lives at the repo root (`tests/smoke/`), not inside dockyard's test suite. Dockyard's `plugins/dockyard/tests/smoke/` contains plugin-level validation; the README is a repo-level concern.
 
 ### What's Listed
 
