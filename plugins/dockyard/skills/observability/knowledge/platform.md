@@ -187,6 +187,7 @@ Snowflake query:      SF Query ID → Logs (sf_query_id) → Spans (sf_query_id)
 | Product SLOs | Product-SLOs-42733752 | Observe workspace | Product-level SLO tracking |
 | Engineering SLOs | Engineering-SLOs-42723876 | Observe workspace | Engineering-level SLO tracking |
 | SPCS Versions | SPCS-Versions-42021302 | Observe workspace | SPCS version deployment tracking |
+| Synthetic Tests Insights | Synthetic-Tests-Insights-42313552 | Observe workspace | Synthetic test pass rates by region |
 
 **Fallback:** DataDog "Engine failures (SPCS version)" at `https://app.datadoghq.com/dashboard/5u7-367-vkv`
 

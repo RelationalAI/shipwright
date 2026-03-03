@@ -118,19 +118,6 @@ These patterns can be auto-triaged without deep investigation:
 
 ---
 
-## Key Observe Dashboards
-
-| Dashboard | ID | Use For |
-|---|---|---|
-| Engine failures | `Engine-failures-41949642` | All engine_failed and crash incidents — first stop |
-| OOM Investigations | `OOM-Investigations-41777956` | Julia GC bytes, pager metrics, eviction rounds |
-| Pager | `42313242` | Buffer pool health, pinned pages |
-| DWI | `41946298` | In-flight transactions, engine activity |
-| BlobGC | `42245311` | BlobGC health, storage thresholds |
-| Telemetry Outages | `Telemetry-Outages-42760073` | Telemetry pipeline health |
-| Telemetry Heartbeats | `Telemetry-heartbeats-42384426` | Event table heartbeat status |
-| Synthetic Tests | `Synthetic-Tests-Insights-42313552` | Synthetic test pass rates by region |
-
 ## Routing
 
 | User intent | Route to |
