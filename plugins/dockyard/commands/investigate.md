@@ -1,6 +1,6 @@
 ---
 description: Investigate live service issues using observability data (logs, spans, metrics)
-argument-hint: [incident key, transaction ID, error description, or service name]
+argument-hint: "[incident key, transaction ID, error description, or service name]"
 ---
 
 # /investigate — Issue Investigation
@@ -23,7 +23,7 @@ Load from the Dockyard plugin root:
 2. **Always:** `skills/observability/knowledge/platform.md`
 3. **Always:** `skills/observability/knowledge/triage-signals.md`
 
-Additional knowledge files loaded in Stage 2 based on classification (see Stage 2 section).
+Additional knowledge files loaded in Stage 2 based on Stage 2's own classification (see Knowledge File Loading in Stage 2 section).
 
 ## Account-Aware Pre-Triage
 
@@ -204,9 +204,9 @@ Present the triage card in this exact format:
 
 ### After Stage 1
 
-If confidence is High and the issue is clear-cut, Stage 1 may be sufficient. Present the triage card and ask if the user wants deep investigation.
+Present the triage card. If classification is **noise**, stop — present auto-close recommendation and do not proceed to Stage 2.
 
-If confidence is Medium or Low, automatically proceed to Stage 2.
+For all other classifications, **always proceed to Stage 2** regardless of confidence level. If confidence is High, briefly tell the user: "Stage 1 looks clear-cut, but running deep investigation to confirm." Do not ask whether to proceed.
 
 ## Stage 2: Deep Investigation
 
@@ -216,7 +216,11 @@ When triage identifies multiple distinct investigation threads (e.g., engine cra
 
 ### Knowledge File Loading
 
-Load based on Stage 1 classification:
+Stage 2 loads knowledge files based on its own Phase B classification, not Stage 1. Stage 1's classification is used as an initial hint for pre-loading, but Phase B may override it.
+
+**Initial pre-load** (before Phase A completes): use Stage 1 classification to pre-load from the table below. If Stage 1 classification is unavailable, pre-load using the Unknown row.
+
+**Post-Phase B**: if Phase B changes the classification, load the correct files per the table below and discard the pre-loaded ones. If Phase B confirms Stage 1, proceed with the pre-loaded files.
 
 | Classification | Load |
 |---|---|
@@ -227,10 +231,11 @@ Load based on Stage 1 classification:
 | Cascade | Load knowledge file for the suspected parent classification + `skills/observability/knowledge/incident-patterns/erp-incidents.md` (cascades commonly involve BlobGC) |
 | CI/CD | `skills/observability/knowledge/incident-patterns/infrastructure-incidents.md` |
 | Telemetry | `skills/observability/knowledge/incident-patterns/telemetry-incidents.md` |
-| Noise | No deep investigation needed — present auto-close recommendation |
 | Unknown | `skills/observability/knowledge/incident-patterns/engine-incidents.md` + `skills/observability/knowledge/incident-patterns/pipeline-incidents.md` + `skills/observability/knowledge/incident-patterns/control-plane-incidents.md` + `skills/observability/knowledge/incident-patterns/infrastructure-incidents.md` + `skills/observability/knowledge/incident-patterns/erp-incidents.md` + `skills/observability/knowledge/incident-patterns/telemetry-incidents.md` — pattern match against symptoms |
 
 > Heartbeat timeout signals use the brownout classification (see triage-signals.md). The same knowledge files apply.
+
+> Noise is excluded — Stage 2 does not run for noise (see After Stage 1).
 
 **Exception:** If JIRA ticket contained Confluence runbook links, read those via Atlassian MCP and use as primary investigation guide INSTEAD of knowledge files.
 - If you have the Confluence page ID → use `getConfluencePage` directly
@@ -251,11 +256,12 @@ Load based on Stage 1 classification:
   - Anchor-correlated vs temporally-adjacent
   - Description
 
-**Phase B — Classification Re-evaluation:**
-- Compare error inventory against Stage 1 classification
-- If inventory reveals contradicting signals (e.g., Stage 1 said OOM but inventory shows preceding segfault), update classification and load the correct knowledge file
-- If inventory reveals the incident is part of a broader alert storm not caught in Stage 1, reclassify as noise/cascade
-- If classification holds, proceed with already-loaded knowledge file
+**Phase B — Independent Classification:**
+- Classify the incident from the Phase A error inventory using the classification rules and triage-signals.md patterns (crash / OOM / brownout / pipeline / cross-service / erp-error / cascade / noise / cicd / telemetry / unknown)
+- If Stage 1 classification is available, compare: if Phase A evidence contradicts it (e.g., Stage 1 said OOM but inventory shows preceding segfault), override with the Phase A-based classification and load the correct knowledge file per the table above
+- If Phase A evidence confirms Stage 1, proceed with the pre-loaded knowledge file
+- If Stage 1 classification is unavailable, classify purely from Phase A evidence
+- If inventory reveals the incident is part of a broader alert storm, reclassify as noise/cascade
 
 **Phase C — Grouping:**
 - Group inventory into **candidate causes** (not a flat timeline)
