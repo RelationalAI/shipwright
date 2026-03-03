@@ -36,8 +36,6 @@
 
 > **Warning:** Logs often contain errors from many engines simultaneously. A segfault from engine-A does NOT explain a failure on engine-B. Always verify the signal belongs to the entity under investigation.
 
-**Abort reasons (Transaction Info):** `None`, `engine failed`, `system internal error`
-
 ---
 
 ## Known Noisy Alert Patterns
