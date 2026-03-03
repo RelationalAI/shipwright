@@ -158,7 +158,7 @@ Present the triage card in this exact format:
 | **Who** | Customer (org_alias + account_alias), reporter if from JIRA |
 | **Where** | Environment, region, service, engine |
 | **Status** | Transaction state, abort reason, current incident status |
-| **Classification** | Crash / OOM / brownout / pipeline / cross-service / unknown |
+| **Classification** | Crash / OOM / brownout / pipeline / cross-service / erp-error / cascade / noise / cicd / telemetry / unknown |
 | **Confidence** | High / Medium / Low — with brief justification |
 | **Escalation** | Recommended team + Slack channel |
 | **Timeline** | Key timestamps: when started, duration, when detected |
