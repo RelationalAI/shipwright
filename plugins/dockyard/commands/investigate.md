@@ -222,11 +222,56 @@ Load based on Stage 1 classification:
 - If you only have the page title → use `searchConfluenceUsingCql` with `title = "Page Title"`
 - Do NOT use WebFetch on Confluence URLs — they require authentication and will redirect
 
-### Investigation Steps
-1. Follow the runbook (ticket-linked Confluence or knowledge file)
-2. Run targeted diagnostic queries based on the runbook
-3. Check for historical incident patterns (from incident-patterns/ files)
-4. Correlate across services if classification suggests cross-service impact
+### Investigation Steps: Collect Then Eliminate
+
+**Phase A — Comprehensive Error Inventory:**
+- Dispatch Stage 2 log agent (unconstrained) with full anchor set
+- Query ALL failed transactions on this engine/account in the incident window (not just the reported one)
+- Query ALL error spans on this engine/account in the incident window
+- Query ALL monitor detections for this account/engine in the +/-2h window
+- If Confluence runbook linked in JIRA, read it and add its diagnostic queries
+- Produce an **error inventory**: flat list of every error/failure/anomaly, each tagged with:
+  - Timestamp
+  - Source (logs / spans / metrics / monitors)
+  - Anchor-correlated vs temporally-adjacent
+  - Description
+
+**Phase B — Classification Re-evaluation:**
+- Compare error inventory against Stage 1 classification
+- If inventory reveals contradicting signals (e.g., Stage 1 said OOM but inventory shows preceding segfault), update classification and load the correct knowledge file
+- If inventory reveals the incident is part of a broader alert storm not caught in Stage 1, reclassify as noise/cascade
+- If classification holds, proceed with already-loaded knowledge file
+
+**Phase C — Grouping:**
+- Group inventory into **candidate causes** (not a flat timeline)
+- Errors sharing component, error code prefix, or causal proximity = one group
+- Use knowledge file patterns to recognize known cascades:
+  - Engine crash followed by BlobGC errors within 2h = cascade (not two separate incidents)
+  - SF maintenance followed by multiple "engine failed" aborts = single event
+  - GitHub outage followed by ArgoCD + synthetic + CI/CD failures = single event
+  - Azure outage followed by provisioning + disk mount + webhook failures = single event
+
+**Phase D — Evaluation and Elimination:**
+For each candidate cause, check:
+1. **Causal chain:** Can you trace candidate -> intermediate effects -> observed symptom?
+2. **Timing:** Did candidate occur BEFORE the symptom?
+3. **Scope:** Does candidate affect the investigated entity (not a different engine/account)?
+4. **Knowledge match:** Does a pattern in the knowledge file explain this candidate?
+5. **Upstream check:** Is this a known downstream symptom? (BlobGC after engine crash, "engine failed" after SF maintenance, CI failure after GH outage)
+
+Eliminate candidates that fail checks. Note WHY each was eliminated (one line per elimination).
+
+**Phase E — Root Cause Declaration:**
+
+| Situation | Action |
+|---|---|
+| One candidate, clear causal chain | Root cause — High confidence |
+| One candidate, gap in chain | "Suspected root cause" — Medium confidence, explain gap |
+| Multiple candidates survive | "Multiple potential causes" — list each with evidence and what would distinguish them |
+| No candidates survive | "Root cause undetermined" — list what was checked and what is missing |
+| Upstream/external cause identified | "External root cause" — name the upstream system (SF, GitHub, Azure), link to status page |
+
+**Never declare root cause by picking the earliest error.** The earliest error is often a symptom of a deeper cause (e.g., SF maintenance triggers engine restart which triggers transaction abort which triggers BlobGC failure).
 
 ### Deep Investigation Output
 
