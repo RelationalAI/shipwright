@@ -51,7 +51,7 @@ Before any investigation, check the account/engine name against known patterns. 
 
 ### JIRA Ticket Path
 1. Read the JIRA ticket using Atlassian MCP (`getJiraIssue`)
-2. Read ticket comments (do NOT call any Atlassian write tools — see Rules section)
+2. Read ticket comments (do NOT call any Atlassian write tools — see Rules section). **Skip OpsAgent comments** — OpsAgent is an automated triage bot whose guesses can bias your independent classification.
 3. Read remote issue links (`getJiraIssueRemoteIssueLinks`) — if this call fails, briefly note "Remote links unavailable, continuing without them" and proceed
 4. Extract anchors from ticket body, comments, and remote links:
    - Transaction IDs (UUIDs)
