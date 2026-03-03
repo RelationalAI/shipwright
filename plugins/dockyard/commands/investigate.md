@@ -140,7 +140,7 @@ Assign:
 - **Confidence:** High (anchor-correlated signal clearly matches a triage pattern) / Medium (anchor-correlated but ambiguous) / Low (no anchor-correlated signals, or conflicting signals)
 
 **Classification definitions:**
-- **erp-error:** ERP subsystem error (BlobGC, CompCache, transaction manager). Use the ERP error taxonomy in the triage signals table.
+- **erp-error:** ERP subsystem error (BlobGC, CompCache, transaction manager). Use the ERP error taxonomy in erp-incidents.md.
 - **cascade:** Downstream symptom of an upstream failure. Example: BlobGC storage alert caused by a preceding engine crash. Always look for the parent incident.
 - **noise:** Known false positive or auto-closeable pattern (test incidents, internal dev engine heartbeats, EY old-engine DB failures, Trust Center ingestion failures, AWS key detection false positives).
 - **cicd:** CI/CD workflow failure (poison commit, deployment failure, test ring failure, synthetic test failure). See CI/CD decision tree.
@@ -190,7 +190,7 @@ Present the triage card in this exact format:
 
 | Classification | Adaptive section includes |
 |---|---|
-| Crash | Termination reason, crash log summary, core dump availability |
+| Crash | Termination reason, crash log summary, stack trace from error logs |
 | OOM | Termination reason, Jemalloc profile availability, memory metrics. OOM subtypes: GC brownout (false alarm), rapid Julia spike (pager can't react), undersized engine (OOM brake). |
 | Brownout | Heartbeat rate, Julia GC/compilation metrics, thread blocking indicators |
 | Pipeline | Pipeline stage affected, batch processing status, stream state |
