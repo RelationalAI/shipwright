@@ -37,7 +37,7 @@ For execution details (sub-agent spawning, model selection), see `references/orc
 
 ## Confidence Scoring
 
-After all passes complete, score each finding independently using the rubric in `references/scoring-rubric.md`. The scorer must be independent of the review passes — it evaluates findings on their own merits, not defending or attacking the reviewer's conclusions. Findings below 75 are dropped.
+After all passes complete, score each finding independently using the rubric in `references/scoring-rubric.md`. The scorer must be independent of the review passes — it evaluates findings on their own merits, not defending or attacking the reviewer's conclusions. Findings below the threshold defined in `references/scoring-rubric.md` are dropped.
 
 ## Output Format
 
@@ -45,7 +45,7 @@ Produce structured JSON output matching the schema in `references/output-schema.
 
 Key rules:
 - If ANY finding has severity `blocker`, recommendation is `NEEDS_CHANGES`. Otherwise `APPROVE`.
-- Only findings scoring 75+ survive into the output.
+- Only findings scoring above the threshold in `references/scoring-rubric.md` survive into the output.
 - Convention findings need a `citation` with exact quoted `CLAUDE.md` text — without one, the finding is opinion rather than a verifiable violation.
 
 ## False Positive Avoidance

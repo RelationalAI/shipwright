@@ -44,7 +44,7 @@ Spawn one Haiku Task sub-agent that receives:
 
 The scorer:
 1. Scores each finding independently
-2. Drops findings below 75
+2. Drops findings below the threshold in `scoring-rubric.md`
 3. Returns the final JSON output (recommendation + filtered findings + summary) in its response
 
 ## Step 3: Use results
