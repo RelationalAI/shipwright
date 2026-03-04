@@ -18,7 +18,7 @@ Detection and evaluation are separate concerns. The review passes cast a wide ne
 
 ## Threshold
 
-Drop all findings scoring below 75. Only findings scoring 75+ are included in the output.
+Drop all findings scoring below 80. Only findings scoring 80+ are included in the output.
 
 ## Scoring Process
 
