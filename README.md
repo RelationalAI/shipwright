@@ -32,7 +32,6 @@ Standalone tools that work without orchestration.
 | [`brownfield-analysis`](plugins/dockyard/skills/brownfield-analysis/SKILL.md) | Analyzes an existing codebase and produces 7 profile documents covering stack, architecture, integrations, structure, conventions, testing, and concerns. Profiles auto-refresh incrementally (fast-path for <10 commits, full rewrite at 10+), so they stay current without manual re-runs. |
 | [`code-review`](plugins/dockyard/skills/code-review/SKILL.md) | Three isolated review passes — correctness, conventions, and test quality — each with dedicated reference criteria. Independent confidence scoring drops findings below 75%, and strict false-positive rules mean every flagged issue is worth your attention. |
 | [`observability`](plugins/dockyard/skills/observability/SKILL.md) | RAI observability domain knowledge — Observe datasets, correlation tags, triage signals, and MCP tool usage. Loaded automatically by `/investigate` and `/observe`; also answers standalone questions about what telemetry data is available. |
-| [`review-and-submit`](plugins/dockyard/skills/review-and-submit/SKILL.md) | Defines the 5-step flow from finished code to draft PR: gather context, run 3-pass review in a sub-agent, fix loop with developer selection, generate proportional PR description, and create the draft. Designed for context efficiency — heavy work stays in sub-agents. |
 
 ## Shipwright
 
