@@ -31,7 +31,7 @@ Each pass reads its reference file for detailed criteria:
 |------|-------|-----------|
 | 1 | Correctness — bugs, edge cases, regressions, error handling, security | `references/pass-correctness.md` |
 | 2 | Conventions — CLAUDE.md compliance, code comment compliance, pattern consistency | `references/pass-conventions.md` |
-| 3 | Test Quality — testing the right thing, determinism, speed, behavior over implementation | `references/pass-test-quality.md` |
+| 3 | Test Quality — testing the right thing, determinism, speed, behavior over implementation, mocking discipline | `references/pass-test-quality.md` |
 
 For execution details (sub-agent spawning, model selection), see `references/orchestration.md`.
 
