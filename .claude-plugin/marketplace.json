@@ -10,13 +10,13 @@
     {
       "name": "dockyard",
       "description": "Standalone skills and commands for engineering workflows — brownfield analysis, observability, debugging, codebase profiling",
-      "version": "0.2.1",
+      "version": "0.3.1",
       "source": "./plugins/dockyard"
     },
     {
       "name": "shipwright",
       "description": "Orchestrated agentic development framework — TDD-enforced bug fix workflows with triage, implementation, review, and validation agents",
-      "version": "0.1.0",
+      "version": "0.3.1",
       "source": "./plugins/shipwright"
     }
   ]
