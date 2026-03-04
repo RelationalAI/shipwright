@@ -89,12 +89,13 @@ Detect whether the incident was system-reported or human-reported:
 
 Target: resolve 50-80% of issues without deep investigation. Run immediately.
 
-### Parallel Queries (3-4 simultaneous)
+### Parallel Queries (3-5 simultaneous)
 Using anchors from the entry point, run in parallel:
 1. **Transaction status:** Query transaction + transaction info datasets for the anchor
 2. **Error logs:** Dispatch log agent (see Log Agent section)
 3. **Active alerts:** Query monitors that fired near the incident time
 4. **Span errors:** Query spans dataset for errors related to the anchor
+5. **External status (CI/CD only):** If the incident appears to be a CI/CD workflow failure (detected from JIRA title/labels containing "workflow", "deployment", "CI", "CD", GitHub Actions links, or `cd` label), check https://www.githubstatus.com using WebFetch for active GitHub Actions incidents around the incident time. ~70% of CI/CD failures trace to GitHub platform issues — checking early avoids unnecessary internal investigation.
 
 ### Alert Storm / Duplicate Check
 
@@ -198,7 +199,7 @@ Present the triage card in this exact format:
 | ERP-error | ERP error code, affected subsystem (BlobGC/CompCache/TxnMgr), upstream engine status, cascade check |
 | Cascade | Parent incident identification, upstream failure → downstream symptom chain |
 | Noise | Pattern matched, auto-close recommendation, justification |
-| CI/CD | Workflow name, failure stage, poison commit SHA (if applicable), next-run status, GH/SF platform status |
+| CI/CD | Workflow name, failure stage, poison commit SHA (if applicable), next-run status, **GitHub Actions status** (from githubstatus.com — always checked), SF platform status if relevant |
 | Telemetry | Affected region/account, Observe dashboard status, self-recovery check, pattern (transient/RAI-bug/misconfiguration) |
 | Unknown | Raw signals found (if any), suggested next steps, request for user context |
 
@@ -339,6 +340,13 @@ When the incident involves a CI/CD workflow failure:
 
 ```
 CI/CD incident arrives
+│
+├─ ALWAYS: Check https://www.githubstatus.com for active GitHub Actions incidents.
+│   → ~70% of CI/CD failures trace to GitHub platform issues.
+│   → Use WebFetch to check the status page as part of Stage 1 parallel queries.
+│   → If GitHub outage active: external_outage. Stop internal investigation.
+│   → If no GH outage: continue to branch-specific checks below.
+│
 ├─ Title: "Poison commit <sha> is added to repository <repo>"?
 │   → poison_commit. Extract commit SHA and repo.
 │   → Resolution: revert (preferred) or antidote workflow (forward-fix).
@@ -346,8 +354,7 @@ CI/CD incident arrives
 │   → Answer the 5 standard questions: how identified? why poison? why not caught? what next? follow-ups?
 │
 ├─ Multiple unrelated CI systems failing simultaneously?
-│   → Check https://www.githubstatus.com FIRST.
-│   → If GitHub outage active: external_outage. Stop internal investigation.
+│   → GitHub status already checked above.
 │   → If no GH outage, check for Snowflake platform issues (SF releases, native app activation failures).
 │
 ├─ ArgoCD out-of-sync?
