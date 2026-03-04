@@ -8,7 +8,7 @@
 | **Severity** | Typically High |
 | **Signature** | Alert: "[Observe] Telemetry outage in REGION_NAME". No data flowing into Observe dashboards for affected region. Multiple monitors across the region may trigger simultaneously. |
 | **Root Cause** | Snowflake event table issues, O4S task problems, or Observe platform issues. Clusters suggest platform-level rather than region-specific problems. |
-| **Diagnostic Steps** | 1. Check [Observe Status Page](https://status.observeinc.com/) 2. Verify event table has recent telemetry (< 20 min) 3. If no telemetry → Snowflake pipeline issue → file Sev-1 support case 4. If telemetry exists → check O4S task status 5. If task stuck (EXECUTING > 20 min) → cancel with `SYSTEM$CANCEL_QUERY` 6. If no scheduled tasks → check O4S app installed → raise Observe incident |
+| **Diagnostic Steps** | 1. Check [Observe Status Page](https://status.observeinc.com/) 2. Verify event table has recent telemetry (< 20 min) 3. If no telemetry → Snowflake pipeline issue → file Sev-1 support case 4. If telemetry exists → check O4S task status 5. If task stuck (EXECUTING > 20 min) → check for query_id. If no query_id, cannot cancel — suspend and restart the task instead. 6. If no scheduled tasks → check O4S app installed → raise Observe incident |
 | **Resolution** | Varies: Snowflake Sev-1 ticket, O4S task cancellation, Observe incident, or warehouse upsizing |
 | **Recurring Accounts** | N/A — affects regions, not accounts |
 | **Related Monitors** | [Event Table Telemetry Outage (42741161)](https://171608476159.observeinc.com/workspace/41759331/count-monitor/42741161), [SPCS Logs Outage (42750468)](https://171608476159.observeinc.com/workspace/41759331/count-monitor/42750468), [NA Logs Outage (42750481)](https://171608476159.observeinc.com/workspace/41759331/count-monitor/42750481), [OTEL Metrics Outage (42750529)](https://171608476159.observeinc.com/workspace/41759331/count-monitor/42750529), [NA Spans Outage (42750527)](https://171608476159.observeinc.com/workspace/41759331/count-monitor/42750527) |
@@ -78,6 +78,67 @@ AWS_US_WEST_2 (most frequent), AWS_US_EAST_1, AWS_EU_WEST_1, AWS_EU_CENTRAL_1, A
 ### Escalation
 
 Thread in `#ext-relationalai-observe` tagging @Austin Nixon @Arthur Dayton. Notify `@reliability` in `#helpdesk-observability`.
+
+---
+
+## Three-Tier Monitoring Architecture
+<!-- Also appears in telemetry-incidents.md — keep in sync -->
+
+Source: Ruba Doleh, Nov 2025.
+
+| Tier | Monitor | Threshold | Action |
+|---|---|---|---|
+| 1 | Event Table heartbeat (42741161) | 20 min no data | Immediate: check O4S task status |
+| 2 | Observe Ingestion Lag | 1 hour latency | Resize warehouse (M -> L) |
+| 3 | Telemetry-type monitors | 4 hours specific type missing | Evaluated every 4h |
+
+Investigation order: check Tier 1 first. If event table has data but Observe doesn't, problem is Tier 2/3.
+
+---
+
+## O4S Task Diagnostics
+<!-- Also appears in telemetry-incidents.md — keep in sync -->
+
+```sql
+SELECT *, DATEDIFF('minute', QUERY_START_TIME, COMPLETED_TIME) AS DURATION_MINUTES
+FROM TABLE(SNOWFLAKE.INFORMATION_SCHEMA.TASK_HISTORY(
+    SCHEDULED_TIME_RANGE_START => DATEADD('hour', -24, current_timestamp()),
+    RESULT_LIMIT => 100,
+    TASK_NAME => '<O4S_TASK_NAME>'
+));
+```
+
+- If task stuck EXECUTING with no query_id: suspend and restart.
+- If task latency increasing steadily: upsize warehouse. Consider Snowpark-optimized warehouse for /tmp space.
+
+---
+
+## Alert Storm Handling
+
+A single outage event triggers 2-6 monitors per region (Telemetry outage, NA Logs, SPCS Logs, OTEL Metrics, SF Platform Metrics, NA Spans). Multi-region outages generate 10-30+ tickets from one event. No suppression logic exists between tiers.
+
+---
+
+## UAE North Specifics
+<!-- Also appears in telemetry-incidents.md — keep in sync -->
+
+- 38% of telemetry incidents. Alert storm handling: investigate one, close rest as duplicates.
+- Access blocker: `rai_oncaller` workflow doesn't work. Manual IT/ACCOUNTADMIN intervention required.
+- Muting is error-prone (muted one monitor but not another -> re-fire).
+- Limited Snowflake support coverage.
+
+---
+
+## Pattern: Snowflake Platform Outage (Sustained)
+
+| Field | Value |
+|---|---|
+| **Frequency** | Low — ~2-3 per 6 months |
+| **Severity** | High |
+| **Signature** | Multi-region telemetry outages, 12+ hours. Confirmed via status.snowflake.com. |
+| **Distinct From** | Transient O4S task failures (which self-resolve in <30 min) |
+| **Example** | Dec 16, 2025 — AWS_EU_WEST_1, 12h outage |
+| **Resolution** | SF applies mitigation. RAI oncall cannot fix. File Sev-1 SF support ticket. |
 
 ## Cross-References
 

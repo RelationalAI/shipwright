@@ -2,34 +2,18 @@
 name: observability
 description: >
   RAI observability domain knowledge — Observe datasets, correlation tags, triage signals, and MCP tool usage.
-  Use this skill when the user asks questions about observability data (datasets, metrics, monitors, dashboards),
-  needs help understanding what data is available in Observe, or asks basic questions about the RAI telemetry
-  platform. For operational queries (health checks, alert status), suggest /observe instead. For incident
-  investigation, suggest /investigate instead.
+  Shared library loaded by /investigate and /observe commands — do not invoke directly. When the user asks
+  about observability data, dashboards, or metrics, suggest /observe. For incident investigation, suggest
+  /investigate.
 ---
 
 # Observability
 
 ---
 
-## Datasets
-
-| Dataset | ID |
-|---|---|
-| Snowflake Logs | 41832558 |
-| Spans | 41867217 |
-| Transaction Info | 42728011 |
-| Transaction | 41838769 |
-| Metrics | 41861990 |
-| Engine | 41838774 |
-| Traces | 41838766 |
-| Long Running Spans | 42001379 |
-| Span Event | 42206250 |
-| Diagnostic Profiles v2 | 42394246 |
-
 ## Reference Data
 
-Lookup keys, key metrics, environments, services, and severity levels are defined in `knowledge/platform.md` (always loaded by commands).
+Core dataset definitions (IDs, key fields, join paths), correlation tags, and dashboards are in `knowledge/platform.md` (always loaded by commands). Monitors, metrics catalog, enumerated values, ERP error codes, and query patterns are in `knowledge/platform-extended.md` (loaded conditionally by Stage 2 and /observe).
 
 ---
 
@@ -53,39 +37,22 @@ Lookup keys, key metrics, environments, services, and severity levels are define
 3. Analyze results before running more queries
 4. Use retry strategies if no data: rephrase → broaden time range → try different dataset → fall back to `generate-knowledge-graph-context` to discover valid names
 
+### Query Failure Handling
+
+When a `generate-query-card` call returns no result, an error, or empty data:
+
+1. **Tell the user** when a query still fails after retry strategies (step 4 above). Do not silently skip the failed query. State:
+   - Which query failed (e.g., "Error logs query for engine X returned no results")
+   - What data is now missing (e.g., "I don't have error log data for the incident window")
+   - Impact on the analysis (e.g., "I cannot confirm whether a segfault occurred — my crash assessment may be incomplete")
+2. **Proceed with available data.** Do not block on a failed query — use results from other parallel queries that succeeded.
+3. **If ALL queries fail or return no results**, tell the user Observe may be degraded and suggest checking `#ext-relationalai-observe`. Do not attempt to analyze without data.
+
 ### Result Presentation
-- Always include Observe links as returned from `generate-query-card` — do not construct URLs
+- Include Observe links from `generate-query-card` only when the query returned errors, failures, or anomalies — omit links to clean/empty results. Do not construct URLs manually.
 - Convert nanosecond durations to human-readable
 - Distinguish "all clear" (no errors, system healthy) from "no data available" (possible data gap)
 - Summarize results — do not dump raw query output
-
----
-
-## Triage Signals
-
-| Signal | Classification | Confidence |
-|---|---|---|
-| segfault in logs, engine termination = Failed (Engine Failures dashboard) | Crash | High |
-| `[Jemalloc]` profile logs, engine termination = FailedWithOOM | OOM | High |
-| Heartbeat rate drop, no termination | Brownout | Medium |
-| No heartbeat for 20 min, abort "engine failed" | Heartbeat timeout | High |
-| process_batches failures, quarantine records | Pipeline | High |
-| Errors in both SQL-layer and ERP-layer spans | Cross-service | Medium |
-| No clear signal | Unknown | Low |
-
-> **Note:** Heartbeat timeout maps to the **brownout** classification in the triage card. The distinct signal helps the agent load the right knowledge file (engine-failures.md Pattern D).
-
-**Abort reasons (Transaction Info):** `None`, `engine failed`, `system internal error`
-
-## Routing
-
-| User intent | Route to |
-|---|---|
-| Specific incident, failure, error, or JIRA ticket to diagnose | Suggest `/investigate` |
-| Check current state, fleet health, or run ad-hoc queries | Suggest `/observe` |
-| Basic observability question ("what dataset has X?") | Answer directly from this skill |
-
----
 
 ## MCP Degradation
 
@@ -93,9 +60,18 @@ Lookup keys, key metrics, environments, services, and severity levels are define
 1. Direct to setup: https://171608476159.observeinc.com/settings/mcp
 2. If no access: whitelist via #ext-relationalai-observe (post :ticket: emoji)
 
-### Observe MCP degraded
-1. Run `/dockyard:feedback`
-2. Direct to #ext-relationalai-observe
+### Observe MCP degraded (partial failures)
+When some queries succeed but others fail:
+1. Inform the user which queries failed and what data is missing
+2. Proceed with available results, noting any gaps in your analysis
+3. If the missing data is critical to the classification or root cause, say so explicitly
+
+### Observe MCP degraded (all queries fail)
+When all `generate-query-card` calls fail:
+1. Tell the user: "Observe appears to be degraded — all queries failed. I cannot proceed with data-driven analysis."
+2. Suggest checking `#ext-relationalai-observe` for platform status
+3. Run `/dockyard:feedback` to report the issue
+4. Do NOT guess or speculate without data
 
 ### Atlassian MCP unavailable
 1. Direct to: https://www.atlassian.com/solutions/ai/mcp

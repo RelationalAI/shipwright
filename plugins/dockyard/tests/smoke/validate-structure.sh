@@ -116,13 +116,13 @@ else
   FAIL=$((FAIL + 3))
 fi
 
-# --- Validate each plugin.json has required keys ---
+# --- Validate each plugin.json has required keys (version lives in marketplace.json, not here) ---
 echo ""
 echo "Plugin manifest validation:"
 for plugin_name in dockyard shipwright; do
   plugin_json="$REPO_ROOT/plugins/$plugin_name/.claude-plugin/plugin.json"
   if [ -f "$plugin_json" ]; then
-    for key in name description version; do
+    for key in name description; do
       if grep -qE "^  \"$key\"" "$plugin_json"; then
         echo "  PASS  $plugin_name/plugin.json contains \"$key\""
         PASS=$((PASS + 1))
@@ -133,9 +133,43 @@ for plugin_name in dockyard shipwright; do
     done
   else
     echo "  SKIP  $plugin_name/plugin.json key checks (file missing)"
-    FAIL=$((FAIL + 3))
+    FAIL=$((FAIL + 2))
   fi
 done
+
+# --- Validate marketplace.json plugin entries have version fields ---
+echo ""
+echo "Marketplace version validation:"
+if command -v jq &>/dev/null && [ -f "$REPO_ROOT/.claude-plugin/marketplace.json" ]; then
+  # Check that every plugin entry has a version
+  plugin_count=$(jq '.plugins | length' "$REPO_ROOT/.claude-plugin/marketplace.json")
+  versioned_count=$(jq '[.plugins[] | select(.version != null and .version != "")] | length' "$REPO_ROOT/.claude-plugin/marketplace.json")
+  if [ "$plugin_count" -eq "$versioned_count" ]; then
+    echo "  PASS  All $plugin_count marketplace plugin entries have version fields"
+    PASS=$((PASS + 1))
+  else
+    echo "  FAIL  Only $versioned_count/$plugin_count marketplace plugin entries have version fields"
+    FAIL=$((FAIL + 1))
+  fi
+
+  # Check that all versions are identical (unified versioning)
+  unique_versions=$(jq -r '[.plugins[].version] | unique | length' "$REPO_ROOT/.claude-plugin/marketplace.json")
+  if [ "$unique_versions" -eq 1 ]; then
+    unified_version=$(jq -r '.plugins[0].version' "$REPO_ROOT/.claude-plugin/marketplace.json")
+    echo "  PASS  All marketplace plugin versions are unified ($unified_version)"
+    PASS=$((PASS + 1))
+  else
+    echo "  FAIL  Marketplace plugin versions are not unified (found $unique_versions distinct versions)"
+    FAIL=$((FAIL + 1))
+  fi
+else
+  if ! command -v jq &>/dev/null; then
+    echo "  SKIP  Marketplace version checks (jq not available)"
+  else
+    echo "  SKIP  Marketplace version checks (file missing)"
+  fi
+  FAIL=$((FAIL + 2))
+fi
 
 # --- .gitignore includes .workflow/ ---
 echo ""

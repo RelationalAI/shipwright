@@ -47,4 +47,7 @@ Repo-level tests validate the README catalog against actual plugin contents.
 - Agents are markdown files in `agents/` (dockyard) or `internal/agents/` (shipwright)
 - Cross-plugin skill references use `dockyard:<skill-name>` notation
 - `${CLAUDE_PLUGIN_ROOT}` works in hooks.json but NOT in markdown files
-- Bump `version` in plugin.json for users to receive updates (cache is keyed on version)
+- Version lives only in marketplace.json (not plugin.json)
+- All plugin entries share the same version (bumped together)
+- PRs should NOT include version bumps (CI will block them)
+- To release: `./scripts/release.sh <patch|minor|major>` — creates a PR; merging it triggers a GitHub release

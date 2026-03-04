@@ -1,6 +1,6 @@
 # Marketplace registry -- plugin additions require CODEOWNERS approval
-/.claude-plugin/marketplace.json @omohamed-rai
+/.claude-plugin/marketplace.json @owaism @larf311  # Owais Mohamed, Trevor Paddock
 
 # Plugin-level ownership
-/plugins/dockyard/ @omohamed-rai
-/plugins/shipwright/ @omohamed-rai
+/plugins/dockyard/ @owaism @larf311  # Owais Mohamed, Trevor Paddock
+/plugins/shipwright/ @owaism @larf311  # Owais Mohamed, Trevor Paddock
