@@ -23,7 +23,7 @@ Load from the Dockyard plugin root:
 2. **Always:** `skills/observability/knowledge/platform.md`
 3. **Always:** `skills/observability/knowledge/triage-signals.md`
 
-Additional knowledge files loaded in Stage 2 based on Stage 2's own classification (see Knowledge File Loading in Stage 2 section).
+Additional knowledge files loaded in Stage 2 — initially pre-loaded from Stage 1's classification, then confirmed or overridden by Stage 2's own Phase B classification (see Knowledge File Loading in Stage 2 section).
 
 ## Account-Aware Pre-Triage
 
@@ -233,6 +233,8 @@ Stage 2 loads knowledge files based on its own Phase B classification, not Stage
 | CI/CD | `skills/observability/knowledge/incident-patterns/infrastructure-incidents.md` |
 | Telemetry | `skills/observability/knowledge/incident-patterns/telemetry-incidents.md` |
 | Unknown | `skills/observability/knowledge/incident-patterns/engine-incidents.md` + `skills/observability/knowledge/incident-patterns/pipeline-incidents.md` + `skills/observability/knowledge/incident-patterns/control-plane-incidents.md` + `skills/observability/knowledge/incident-patterns/infrastructure-incidents.md` + `skills/observability/knowledge/incident-patterns/erp-incidents.md` + `skills/observability/knowledge/incident-patterns/telemetry-incidents.md` — pattern match against symptoms |
+
+> **Context management for Unknown:** If context limits become an issue, prioritize knowledge files by matching Phase A inventory signals — load only the 2-3 files whose patterns match observed errors.
 
 > Heartbeat timeout signals use the brownout classification (see triage-signals.md). The same knowledge files apply.
 
