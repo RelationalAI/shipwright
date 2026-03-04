@@ -6,15 +6,9 @@ After all review passes complete, each finding is scored independently by a sepa
 
 Detection and evaluation are separate concerns. The review passes cast a wide net (high recall). The scorer filters noise (high precision). Combining both in one step leads to anchoring — the reviewer justifies its own findings rather than evaluating them objectively.
 
-## Rubric
+## Scale
 
-| Score | Meaning | Example |
-|-------|---------|---------|
-| 0 | False positive — does not hold up to scrutiny, or pre-existing issue | "Bug" that is actually handled by a try/catch 3 lines below |
-| 25 | Might be real — could not verify with available context | Potential race condition, but unclear if this code path is concurrent |
-| 50 | Verified real — but nitpick, rare in practice, or cosmetic | Unused import, inconsistent spacing that doesn't violate CLAUDE.md |
-| 75 | Verified — very likely real, important, should be addressed | Missing null check on user input that will throw in production |
-| 100 | Definitely real — evidence directly confirms, happens frequently | SQL injection via string concatenation with request parameter |
+Scores are integers 0–100. 0 means false positive, 100 means certainty. Use the full range — the score reflects how confident you are that the finding is real and important.
 
 ## Threshold
 
