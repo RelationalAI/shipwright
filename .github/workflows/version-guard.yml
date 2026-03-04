@@ -14,11 +14,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Checkout base branch marketplace.json
-        run: git fetch origin ${{ github.base_ref }} --depth=1
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: git fetch origin "$BASE_REF" --depth=1
 
       - name: Compare versions
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
-          base_versions=$(git show origin/${{ github.base_ref }}:.claude-plugin/marketplace.json | jq -r '[.plugins[].version] | sort | unique | .[]')
+          base_versions=$(git show "origin/$BASE_REF:.claude-plugin/marketplace.json" | jq -r '[.plugins[].version] | sort | unique | .[]')
           pr_versions=$(jq -r '[.plugins[].version] | sort | unique | .[]' .claude-plugin/marketplace.json)
 
           if [ "$base_versions" != "$pr_versions" ]; then

@@ -51,16 +51,18 @@ case "$bump_type" in
 esac
 new_version="$major.$minor.$patch"
 
-echo "Bumping version: $current_version → $new_version"
+echo "Bumping version: $current_version -> $new_version"
+
+# --- Create branch, then modify files ---
+branch="release/v$new_version"
+original_branch=$(git rev-parse --abbrev-ref HEAD)
+trap 'git checkout "$original_branch" 2>/dev/null' ERR
+git checkout -b "$branch"
 
 # --- Update all plugin versions in marketplace.json ---
 tmp=$(mktemp)
 jq --arg v "$new_version" '.plugins |= map(.version = $v)' "$MARKETPLACE" > "$tmp"
 mv "$tmp" "$MARKETPLACE"
-
-# --- Create branch, commit, push, and open PR ---
-branch="release/v$new_version"
-git checkout -b "$branch"
 git add "$MARKETPLACE"
 git commit -m "release: v$new_version"
 git push -u origin "$branch"
