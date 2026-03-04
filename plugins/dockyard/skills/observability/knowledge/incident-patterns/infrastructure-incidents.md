@@ -1,5 +1,30 @@
 # Infrastructure Incident Patterns
 
+## CI/CD Triage Decision Tree
+
+When investigating a CI/CD incident, walk this tree top-to-bottom. Stop at the first match.
+
+1. **GitHub status check** — always first. If active GitHub Actions incident overlaps failure time → `external_outage`. Stop.
+2. **Poison commit** — title matches "Poison commit \<sha\> is added to repository \<repo\>" → see Pattern: Poison Commits below.
+3. **Multi-system simultaneous failure** — check for Snowflake platform issues if no GH outage.
+4. **ArgoCD out-of-sync** — multi-env = bad config commit (investigate); single-env + self-resolved <20min = transient (close). ArgoCD prod: `https://argocd.prod.internal.relational.ai:8443/` / staging: `https://argocd.staging.internal.relational.ai:8443/`
+5. **SPCS-INT workflow** — see auto-close rule in Pattern: CI/CD Workflow Failures.
+6. **Test Ring 3** — exclude dev branch runs; check specific test file/line.
+7. **Setup step failure** (Setup Go, Setup Node) — CI config regression. Find PR that modified go.mod/workflow YAML.
+8. **"EnginePending" in logs** — check engine `auto_suspend_mins`. Recreate with `auto_suspend_mins=0`.
+9. **"/sys/fs/cgroup/" file not found** — environment mismatch. Revert offending commit.
+10. **"CVE-" in title** — `security_vuln`. Route via code-ownership.yaml.
+11. **Snowflake error 390303** (Invalid OAuth access token) — transient. Check if next run passes. Auto-close if resolved.
+12. **Remaining patterns** — see Quick-Reference Patterns table below.
+
+### CI/CD Links
+
+- Deployment failure runbook: `https://relationalai.atlassian.net/wiki/x/AQBrWQ`
+- Repair dashboard: `https://relationalai.atlassian.net/jira/dashboards/10058`
+- Observe synthetic test dashboard: `https://171608476159.observeinc.com/workspace/41759331/dashboard/Synthetic-Tests-Insights-42313552`
+
+---
+
 ## Pattern: CI/CD Workflow Failures
 
 | Field | Value |

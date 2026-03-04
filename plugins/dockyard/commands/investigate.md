@@ -350,87 +350,9 @@ ERP error arrives
 
 ## CI/CD Decision Tree
 
-When the incident involves a CI/CD workflow failure:
+For CI/CD classification, follow the triage decision tree in `skills/observability/knowledge/incident-patterns/infrastructure-incidents.md`. That file contains the full decision tree, pattern details, routing table, and CI/CD links.
 
-```
-CI/CD incident arrives
-│
-├─ ALWAYS: Check https://www.githubstatus.com for active GitHub Actions incidents.
-│   → ~70% of CI/CD failures trace to GitHub platform issues.
-│   → Use WebFetch to check the status page as part of Stage 1 parallel queries.
-│   → If GitHub outage active: external_outage. Stop internal investigation.
-│   → If no GH outage: continue to branch-specific checks below.
-│
-├─ Title: "Poison commit <sha> is added to repository <repo>"?
-│   → poison_commit. Extract commit SHA and repo.
-│   → Resolution: revert (preferred) or antidote workflow (forward-fix).
-│   → Check: does this root cause match a prior poison commit ticket?
-│   → Answer the 5 standard questions: how identified? why poison? why not caught? what next? follow-ups?
-│
-├─ Multiple unrelated CI systems failing simultaneously?
-│   → GitHub status already checked above.
-│   → If no GH outage, check for Snowflake platform issues (SF releases, native app activation failures).
-│
-├─ ArgoCD out-of-sync?
-│   → Simultaneous multi-environment sync failure? → Bad config commit. Investigate. Revert.
-│   → Single-environment? → GitHub transient. Self-resolved <20 min? Close.
-│   → ArgoCD prod: https://argocd.prod.internal.relational.ai:8443/
-│   → ArgoCD staging: https://argocd.staging.internal.relational.ai:8443/
-│
-├─ SPCS-INT workflow failure?
-│   → Check if other spcs-int sub-job failures in same 30-min window (likely same root cause).
-│   → Check if subsequent run passed → transient, close.
-│   → 87% of these are closed without root cause; auto-check is the main value add.
-│
-├─ Test Ring 3 failure?
-│   → Check if failure is from a dev branch run (should be excluded from monitor).
-│   → If not dev branch: check for specific test file/line in logs.
-│
-├─ Setup step fails (Setup Go, Setup Node)?
-│   → CI configuration regression. Find recent PR that modified go.mod/workflow YAML. Revert.
-│
-├─ "EnginePending" in logs?
-│   → Infrastructure misconfiguration. Check engine auto_suspend_mins. Recreate with auto_suspend_mins=0.
-│
-├─ "/sys/fs/cgroup/" file not found?
-│   → Environment mismatch. Revert the commit that added cgroup file access.
-│
-├─ "CVE-" in title?
-│   → security_vuln. Route via code-ownership.yaml. Batch concurrent CVEs from same base image.
-│
-├─ Docker pull/push with "connection reset by peer" across repos?
-│   → GitHub runner Docker version change. Check if self-hosted runners work.
-│   → If GH-hosted fails but self-hosted passes: pin Docker version.
-│
-├─ Snowflake error 390303 (Invalid OAuth access token)?
-│   → Transient. Check if next run passes. Auto-close if resolved.
-│
-├─ "Copy Image X failed" / Docker image not found?
-│   → Check if image tag exists in source registry.
-│   → Feb 14-15 pattern: consumer-otelcol image missing.
-│
-├─ Test Ring 1 failure?
-│   → Deprioritize. Ring 1 is ~100% noise (confirmed by data).
-│   → Only investigate if 3+ repos show the same specific failure.
-│
-├─ "On-demand logs workflow tests are failing"?
-│   → Chronic flaky test. Auto-close.
-│
-├─ "Deployment failed" for *prod-uswest* + hotfix-specific-customer workflow?
-│   → Intentional test run. Close as noise.
-│
-├─ Synthetic tests failing for 3+ regions within 60 seconds?
-│   → Upstream outage. Check status.snowflake.com AND githubstatus.com.
-│   → If upstream active: close all as single event.
-│
-└─ Account matches *_cicd_validation_*?
-    → Likely intentional test run. Close as non-incident.
-```
-
-### CI/CD Links
-- Deployment failure runbook: `https://relationalai.atlassian.net/wiki/x/AQBrWQ`
-- Repair dashboard: `https://relationalai.atlassian.net/jira/dashboards/10058`
-- Observe synthetic test dashboard: `https://171608476159.observeinc.com/workspace/41759331/dashboard/Synthetic-Tests-Insights-42313552`
+Key Stage 1 rule (always apply, do not defer to Stage 2): **Always check https://www.githubstatus.com first.** If GitHub Actions outage is active and overlaps the failure time, classify as `cicd (external outage)` immediately.
 
 ## Cascade Detection
 
