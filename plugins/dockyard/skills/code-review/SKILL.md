@@ -98,9 +98,33 @@ Pass 3 (dockyard:code-reviewer):
 
 Each sub-agent returns a JSON object containing its `pass` name and the `findings` array. The coordinator extracts the findings from each sub-agent's response.
 
+## Review Agent Return Schema
+
+Each review sub-agent must return its findings using exactly this schema:
+
+```json
+{
+  "pass": "correctness",
+  "findings": [
+    {
+      "file": "exact/file/path.ts",
+      "line_start": 42,
+      "line_end": 45,
+      "severity": "blocker | warning | nit",
+      "category": "correctness | convention | test-quality",
+      "description": "What the issue is and why it matters",
+      "suggested_fix": "Concrete suggestion for how to resolve it",
+      "citation": "Exact quoted text from CLAUDE.md (convention findings only, null otherwise)"
+    }
+  ]
+}
+```
+
+Do NOT include `confidence`, `recommendation`, or `summary` — these are added by the scorer.
+
 ## Confidence Scoring
 
-After all passes complete, spawn one Haiku Task sub-agent to score findings independently. The scorer receives all three findings arrays and the relevant diff context.
+After all passes complete, spawn one Haiku Task sub-agent to score findings independently. The scorer receives raw findings without confidence scores. Review agents must not pre-score findings — the scorer is the sole source of confidence values. The scorer receives all three findings arrays and the relevant diff context.
 
 Scores are integers 0–100. 0 means false positive, 100 means certainty. The scorer evaluates each finding on its own merits — one finding's score must not influence another's. Drop all findings scoring below **80**.
 

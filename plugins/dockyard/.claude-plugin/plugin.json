@@ -3,8 +3,8 @@
   "description": "Standalone skills and commands for engineering workflows — brownfield analysis, observability, debugging, codebase profiling",
   "version": "0.3.1",
   "author": {
-    "name": "Owais Mohamed",
-    "email": "owais.mohamed@relational.ai"
+    "name": "Shipwright Team",
+    "email": "shipwright-team@relational.ai"
   },
   "homepage": "https://github.com/RelationalAI/shipwright",
   "repository": "https://github.com/RelationalAI/shipwright",
