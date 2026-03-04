@@ -97,6 +97,16 @@ Using anchors from the entry point, run in parallel:
 4. **Span errors:** Query spans dataset for errors related to the anchor
 5. **External status (CI/CD only):** If the incident appears to be a CI/CD workflow failure (detected from JIRA title/labels containing "workflow", "deployment", "CI", "CD", GitHub Actions links, or `cd` label), check https://www.githubstatus.com using WebFetch for active GitHub Actions incidents around the incident time. ~70% of CI/CD failures trace to GitHub platform issues — checking early avoids unnecessary internal investigation.
 
+### CI/CD Fast Path
+
+When the incident is detected as CI/CD (from JIRA title/labels containing "workflow", "deployment", "CI", "CD", GitHub Actions links, or `cd` label):
+
+1. **Do not wait for all parallel queries to complete.** As soon as the GitHub status check (query 5) returns AND the JIRA ticket has been read, present the Stage 1 triage card immediately with whatever data is available.
+2. The log agent (query 2), monitor query (query 3), and span query (query 4) continue running in the background — their results feed into Stage 2, not Stage 1.
+3. Transaction status (query 1) is also skipped for CI/CD — CD workflows don't produce RAI transactions.
+4. If the GitHub status check confirms an active GitHub Actions incident overlapping the failure time, classify as **cicd (external outage) / Medium** and present the triage card. Stage 2 will confirm or override.
+5. If no GitHub outage is active, wait for the remaining queries to complete before classifying (fall back to normal Stage 1 flow).
+
 ### Alert Storm / Duplicate Check
 
 Before classifying, check if this incident is part of an alert storm:
@@ -206,6 +216,8 @@ Present the triage card in this exact format:
 ### After Stage 1
 
 Present the triage card. If classification is **noise**, stop — present auto-close recommendation and do not proceed to Stage 2.
+
+For **CI/CD fast-path** (triage card presented before all queries complete): launch Stage 2 immediately as a background agent. The remaining Stage 1 queries (log agent, monitors, spans) feed into Stage 2's Phase A error inventory instead of the Stage 1 triage card.
 
 For all other classifications, **always proceed to Stage 2** regardless of confidence level. If confidence is High, briefly tell the user: "Stage 1 looks clear-cut, but running deep investigation to confirm." Do not ask whether to proceed.
 
@@ -454,6 +466,8 @@ Escalation ladder — each step only fires if the previous found no signal:
 | 2 | ±30 min | error | Anchor-filtered |
 | 3 | ±15 min | warning | Anchor-filtered |
 | 4 | ±30 min | warning | Anchor-filtered |
+
+**CI/CD early exit:** If the incident classification is CI/CD (detected from JIRA labels/title) and step 1 returns no anchor-correlated errors, stop the escalation ladder. Do not run steps 2-4. CI/CD workflow failures typically occur in GitHub Actions runners, not in Observe-monitored services — continuing the ladder wastes ~60s on queries guaranteed to return nothing. Return immediately with "No relevant logs found — CI/CD failures are not captured in Observe logs."
 
 - Capped at 10 agent turns
 - Typical: resolves at step 1 (~20-25s). Full escalation: ~50-60s.
