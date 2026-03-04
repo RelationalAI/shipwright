@@ -333,13 +333,7 @@ Key Stage 1 rule (always apply, do not defer to Stage 2): **Always check https:/
 
 ## Cascade Detection
 
-When any alert fires for BlobGC, storage threshold, or CompCache:
-1. Check if an engine failure occurred in the same account within the last 2 hours
-2. If yes → classify as **cascade**. The engine failure is the root cause; the BlobGC/storage alert is a downstream symptom.
-3. Link to the engine incident ticket and close as downstream.
-4. If no upstream engine failure → investigate the alert independently.
-
-Common cascade chain: **engine crash/OOM → BlobGC cannot run → storage threshold exceeded**
+See BlobGC Cascade pattern in `skills/observability/knowledge/incident-patterns/erp-incidents.md`. Quick rule: BlobGC/storage/CompCache alert + engine failure in same account within 2h = cascade.
 
 ## Log Agent
 
