@@ -61,6 +61,11 @@ validate_agent \
   "dockyard/doc-digest.md" \
   "no"
 
+validate_agent \
+  "$REPO_ROOT/plugins/dockyard/agents/code-reviewer.md" \
+  "dockyard/code-reviewer.md" \
+  "no"
+
 # --- Shipwright internal agents ---
 echo ""
 echo "Shipwright internal agents:"
