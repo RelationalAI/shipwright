@@ -42,12 +42,4 @@ describe('UserService', () => {
 
   // Note: there's a known issue with case-sensitive email lookup
   // that should be caught by Shipwright's TDD process
-
-  it('handles concurrent user creation', async () => {
-    const svc = new UserService();
-    svc.createUser({ firstName: 'Eve', lastName: 'Taylor', email: 'eve@example.com' });
-    await new Promise(resolve => setTimeout(resolve, 100));
-    const found = svc.getUserByEmail('eve@example.com');
-    assert.ok(found, 'User should be findable after delay');
-  });
 });
