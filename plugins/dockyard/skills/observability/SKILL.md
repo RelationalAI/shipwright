@@ -13,7 +13,20 @@ description: >
 
 ## Reference Data
 
-Core dataset definitions (IDs, key fields, join paths), correlation tags, and dashboards are in `knowledge/platform.md` (always loaded by commands). Monitors, metrics catalog, enumerated values, ERP error codes, and query patterns are in `knowledge/platform-extended.md` (loaded conditionally by Stage 2 and /observe).
+Core dataset definitions (IDs, key fields, join paths), correlation tags, and dashboards are in `${CLAUDE_SKILL_DIR}/knowledge/platform.md` (always loaded by commands). Monitors, metrics catalog, enumerated values, ERP error codes, and query patterns are in `${CLAUDE_SKILL_DIR}/knowledge/platform-extended.md` (loaded conditionally by Stage 2 and /observe).
+
+Additional knowledge files (load as needed):
+- CDC / pipeline / batch / stream: `${CLAUDE_SKILL_DIR}/knowledge/data-pipeline.md`
+- Engine crash / OOM / brownout: `${CLAUDE_SKILL_DIR}/knowledge/engine-failures.md`
+- Architecture / cross-service: `${CLAUDE_SKILL_DIR}/knowledge/architecture.md`
+- Triage signal classification: `${CLAUDE_SKILL_DIR}/knowledge/triage-signals.md`
+- Incident patterns by classification:
+  - Crash/OOM/brownout: `${CLAUDE_SKILL_DIR}/knowledge/incident-patterns/engine-incidents.md`
+  - Pipeline: `${CLAUDE_SKILL_DIR}/knowledge/incident-patterns/pipeline-incidents.md`
+  - Control plane: `${CLAUDE_SKILL_DIR}/knowledge/incident-patterns/control-plane-incidents.md`
+  - ERP errors: `${CLAUDE_SKILL_DIR}/knowledge/incident-patterns/erp-incidents.md`
+  - CI/CD / infrastructure: `${CLAUDE_SKILL_DIR}/knowledge/incident-patterns/infrastructure-incidents.md`
+  - Telemetry: `${CLAUDE_SKILL_DIR}/knowledge/incident-patterns/telemetry-incidents.md`
 
 ---
 
