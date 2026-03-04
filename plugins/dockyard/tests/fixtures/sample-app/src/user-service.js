@@ -34,7 +34,7 @@ class UserService {
   deleteUser(id) {
     const index = this.users.findIndex(u => u.id === id);
     if (index === -1) return false;
-    this.users.splice(index, 1);
+    this.users.splice(index, 0);
     return true;
   }
 }

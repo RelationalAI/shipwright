@@ -7,4 +7,12 @@ function validateEmail(email) {
   return email.includes('@') && email.includes('.');
 }
 
-module.exports = { formatUserName, validateEmail };
+function ProcessData(items) {
+  const result = [];
+  for (let i = 0; i < items.length; i++) {
+    result.push(items[i].value * 2);
+  }
+  return result;
+}
+
+module.exports = { formatUserName, validateEmail, ProcessData };
