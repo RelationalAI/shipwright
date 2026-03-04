@@ -246,6 +246,8 @@ Stage 2 loads knowledge files based on its own Phase B classification, not Stage
 | Telemetry | `skills/observability/knowledge/incident-patterns/telemetry-incidents.md` |
 | Unknown | `skills/observability/knowledge/incident-patterns/engine-incidents.md` + `skills/observability/knowledge/incident-patterns/pipeline-incidents.md` + `skills/observability/knowledge/incident-patterns/control-plane-incidents.md` + `skills/observability/knowledge/incident-patterns/infrastructure-incidents.md` + `skills/observability/knowledge/incident-patterns/erp-incidents.md` + `skills/observability/knowledge/incident-patterns/telemetry-incidents.md` — pattern match against symptoms |
 
+**Always load in Stage 2:** `skills/observability/knowledge/platform-extended.md` — contains Tier 3-5 datasets, monitors, metrics catalog, ERP error codes, and query patterns needed for deep investigation.
+
 > **Context management for Unknown:** If context limits become an issue, prioritize knowledge files by matching Phase A inventory signals — load only the 2-3 files whose patterns match observed errors.
 
 > Heartbeat timeout signals use the brownout classification (see triage-signals.md). The same knowledge files apply.
