@@ -18,12 +18,11 @@ Before starting, verify these MCP tools are available. If any are missing, stop 
 
 ## Setup
 
-Load from the Dockyard plugin root:
-1. **Always:** `skills/observability/SKILL.md`
-2. **Always:** `skills/observability/knowledge/platform.md`
-3. **Always:** `skills/observability/knowledge/triage-signals.md`
+1. **Always:** Read the `dockyard:observability` skill. It contains tool usage rules, query workflow, failure handling, and paths to all knowledge files.
+2. **Always:** Read the platform knowledge file at the path listed in the skill's Reference Data section (`platform.md`).
+3. **Always:** Read the triage signals file at the path listed in the skill's Reference Data section (`triage-signals.md`).
 
-Additional knowledge files loaded in Stage 2 — initially pre-loaded from Stage 1's classification, then confirmed or overridden by Stage 2's own Phase B classification (see Knowledge File Loading in Stage 2 section).
+Additional knowledge files loaded in Stage 2 — use the paths from the skill's Reference Data section. Initially pre-loaded from Stage 1's classification, then confirmed or overridden by Stage 2's own Phase B classification (see Knowledge File Loading in Stage 2 section).
 
 ## Account-Aware Pre-Triage
 
@@ -237,16 +236,16 @@ Stage 2 loads knowledge files based on its own Phase B classification, not Stage
 
 | Classification | Load |
 |---|---|
-| Crash / OOM / brownout | `skills/observability/knowledge/engine-failures.md` + `skills/observability/knowledge/incident-patterns/engine-incidents.md` |
-| Pipeline | `skills/observability/knowledge/data-pipeline.md` + `skills/observability/knowledge/incident-patterns/pipeline-incidents.md` |
-| Cross-service | `skills/observability/knowledge/architecture.md` |
-| ERP-error | `skills/observability/knowledge/incident-patterns/erp-incidents.md` + `skills/observability/knowledge/incident-patterns/control-plane-incidents.md` |
-| Cascade | Load knowledge file for the suspected parent classification + `skills/observability/knowledge/incident-patterns/erp-incidents.md` (cascades commonly involve BlobGC) |
-| CI/CD | `skills/observability/knowledge/incident-patterns/infrastructure-incidents.md` |
-| Telemetry | `skills/observability/knowledge/incident-patterns/telemetry-incidents.md` |
-| Unknown | `skills/observability/knowledge/incident-patterns/engine-incidents.md` + `skills/observability/knowledge/incident-patterns/pipeline-incidents.md` + `skills/observability/knowledge/incident-patterns/control-plane-incidents.md` + `skills/observability/knowledge/incident-patterns/infrastructure-incidents.md` + `skills/observability/knowledge/incident-patterns/erp-incidents.md` + `skills/observability/knowledge/incident-patterns/telemetry-incidents.md` — pattern match against symptoms |
+| Crash / OOM / brownout | `engine-failures.md` + `incident-patterns/engine-incidents.md` |
+| Pipeline | `data-pipeline.md` + `incident-patterns/pipeline-incidents.md` |
+| Cross-service | `architecture.md` |
+| ERP-error | `incident-patterns/erp-incidents.md` + `incident-patterns/control-plane-incidents.md` |
+| Cascade | Load knowledge file for the suspected parent classification + `incident-patterns/erp-incidents.md` (cascades commonly involve BlobGC) |
+| CI/CD | `incident-patterns/infrastructure-incidents.md` |
+| Telemetry | `incident-patterns/telemetry-incidents.md` |
+| Unknown | `incident-patterns/engine-incidents.md` + `incident-patterns/pipeline-incidents.md` + `incident-patterns/control-plane-incidents.md` + `incident-patterns/infrastructure-incidents.md` + `incident-patterns/erp-incidents.md` + `incident-patterns/telemetry-incidents.md` — pattern match against symptoms |
 
-**Always load in Stage 2:** `skills/observability/knowledge/platform-extended.md` — contains Tier 3-5 datasets, monitors, metrics catalog, ERP error codes, and query patterns needed for deep investigation.
+**Always load in Stage 2:** `platform-extended.md` — contains Tier 3-5 datasets, monitors, metrics catalog, ERP error codes, and query patterns needed for deep investigation.
 
 > **Context management for Unknown:** If context limits become an issue, prioritize knowledge files by matching Phase A inventory signals — load only the 2-3 files whose patterns match observed errors.
 
@@ -325,17 +324,17 @@ Add free-form analysis body, ordered by priority:
 
 ## ERP Error Decision Tree
 
-For ERP error classification, follow the decision tree and signal-vs-noise table in `skills/observability/knowledge/incident-patterns/erp-incidents.md`. That file contains the full taxonomy, cascade patterns, repeat-offender accounts, and runbook links.
+For ERP error classification, follow the decision tree and signal-vs-noise table in `incident-patterns/erp-incidents.md`. That file contains the full taxonomy, cascade patterns, repeat-offender accounts, and runbook links.
 
 ## CI/CD Decision Tree
 
-For CI/CD classification, follow the triage decision tree in `skills/observability/knowledge/incident-patterns/infrastructure-incidents.md`. That file contains the full decision tree, pattern details, routing table, and CI/CD links.
+For CI/CD classification, follow the triage decision tree in `incident-patterns/infrastructure-incidents.md`. That file contains the full decision tree, pattern details, routing table, and CI/CD links.
 
 Key Stage 1 rule (always apply, do not defer to Stage 2): **Always check https://www.githubstatus.com first.** If GitHub Actions outage is active and overlaps the failure time, classify as `cicd (external outage)` immediately.
 
 ## Cascade Detection
 
-See BlobGC Cascade pattern in `skills/observability/knowledge/incident-patterns/erp-incidents.md`. Quick rule: BlobGC/storage/CompCache alert + engine failure in same account within 2h = cascade.
+See BlobGC Cascade pattern in `incident-patterns/erp-incidents.md`. Quick rule: BlobGC/storage/CompCache alert + engine failure in same account within 2h = cascade.
 
 ## Log Agent
 
