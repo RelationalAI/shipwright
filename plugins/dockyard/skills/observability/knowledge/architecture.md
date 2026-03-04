@@ -108,7 +108,7 @@ SPCS Services (rai-server, spcs-control-plane, etc.)
 
 ## ERP Error Codes
 
-ERP error codes are defined in `platform.md`.
+ERP error codes are defined in `platform-extended.md`.
 
 ## Escalation
 

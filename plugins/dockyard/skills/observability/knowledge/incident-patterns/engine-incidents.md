@@ -1,5 +1,19 @@
 # Engine Incident Patterns
 
+## Pattern: Snowflake Maintenance (False Positive)
+
+| Field | Value |
+|---|---|
+| **Frequency** | Very High — 33% of ALL engine incidents |
+| **Severity** | Noise — non-actionable |
+| **Signature** | Engine state = PENDING around alert time. Container status `running -> pending (~25min) -> running` in Engine failures dashboard. Multiple "engine failed" transaction aborts on same engine within minutes. |
+| **Root Cause** | Snowflake-initiated container restart during maintenance window. Heartbeat cache evicts in-flight transactions, causing "engine failed" abort. |
+| **Diagnostic Steps** | 1. CHECK FIRST: Before investigating ANY "engine failed" incident, check SF maintenance status 2. Open Engine failures dashboard, look for engine state = PENDING 3. If container shows 25-min pending gap -> SF maintenance, not a RAI crash 4. Confirm timing against known SF maintenance windows (typically weekends) |
+| **Resolution** | Close immediately after confirming maintenance timing. No RAI action needed. |
+| **Recurring Accounts** | `ritchie_brothers_oob38648` (most affected — weekend CDC workloads), any account with always-on engines |
+
+---
+
 ## Pattern: Engine Crash (SPCS)
 
 | Field | Value |
@@ -8,7 +22,7 @@
 | **Severity** | Typically Medium |
 | **Signature** | Alert: "SPCS: The engine X crashed in the account Y". Error logs matching "segmentation fault" and "signal". Container restart via `spcs.container.restarts.total` metric. |
 | **Root Cause** | Segfault (Julia runtime, storage/network stack), stack overflow (metadata layer), abort signal |
-| **Diagnostic Steps** | 1. Check error logs for "segmentation fault" 2. If segfault, retrieve core dump (ES page 385253381) 3. Identify crash component from logs 4. Check `spcs.container.state.last.finished.reason` = `Failed` or `Done` |
+| **Diagnostic Steps** | 1. Check error logs for "segmentation fault" 2. Identify crash component from stack trace in error logs (core dumps unavailable on SPCS since 2025-09-17) 3. Check `spcs.container.state.last.finished.reason` = `Failed` or `Done` |
 | **Resolution** | Engine auto-restarts and resumes. Most are transient. Route to owning team based on crash component. |
 | **Recurring Accounts** | `rai_studio_sac08949` (daily crashes, multiple engine types: LD_SF100, MD_SF100 — appears to be stress testing) |
 | **Related Monitors** | [Engine crash detection (42938640)](https://171608476159.observeinc.com/workspace/41759331/threshold-monitor/42938640) |
@@ -31,7 +45,7 @@
 | **Severity** | Typically Medium |
 | **Signature** | Alert: "Transactions were aborted with reason 'engine failed' on the engine X". Multiple transactions may be affected simultaneously. |
 | **Root Cause** | ERP didn't receive heartbeat for 20 minutes. Sub-causes: crash, OOM, brownout, Snowflake maintenance, long heartbeat requests, lifecycle events. |
-| **Diagnostic Steps** | 1. Open [Engine failures dashboard (41949642)](https://171608476159.observeinc.com/workspace/41759331/dashboard/Engine-failures-41949642) with transaction ID, engine name, account ID 2. Check "Engine last termination reason" card 3. Check "Server heartbeats per second" for brownout 4. Check "Service lifecycle events" for user-initiated operations 5. Check timing for Snowflake maintenance (Mon-Thu 11PM-5AM local) |
+| **Diagnostic Steps** | 1. Open [Engine failures dashboard (41949642)](https://171608476159.observeinc.com/workspace/41759331/dashboard/Engine-failures-41949642) with transaction ID, engine name, account ID 2. Check "Engine last termination reason" card 3. Check "Server heartbeats per second" for brownout 4. Check "Service lifecycle events" for user-initiated operations 5. Check timing for Snowflake maintenance (Mon-Thu 11PM-5AM local) 6. Check ERP logs for engine deletion/replacement events — user may have deleted or resized engine during transaction (user explicitly deleted engine NCDNTS-10953 -> close as false positive; user resized engine = delete old + create new NCDNTS-10059 -> `container.state.last.finished.reason` increments on deletion, triggering false crash alert) |
 | **Resolution** | Depends on sub-cause — see diagnostic lookup table below |
 | **Recurring Accounts** | Various — high volume across production |
 | **Related Monitors** | [Transaction abort detection (42297913)](https://171608476159.observeinc.com/workspace/41759331/count-monitor/42297913) |
