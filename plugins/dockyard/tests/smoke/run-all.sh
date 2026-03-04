@@ -34,6 +34,7 @@ run_suite "validate-structure" "$SCRIPT_DIR/validate-structure.sh"
 run_suite "validate-skills"    "$SCRIPT_DIR/validate-skills.sh"
 run_suite "validate-agents"    "$SCRIPT_DIR/validate-agents.sh"
 run_suite "validate-commands"  "$SCRIPT_DIR/validate-commands.sh"
+run_suite "validate-doc-digest-consistency" "$SCRIPT_DIR/validate-doc-digest-consistency.sh"
 
 echo ""
 echo "================================================================"

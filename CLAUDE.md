@@ -36,7 +36,7 @@ bash plugins/dockyard/tests/smoke/run-all.sh
 bash tests/smoke/validate-readme.sh
 ```
 
-Plugin smoke tests run 4 suites: structure, skills, agents, commands. Validates both plugins.
+Plugin smoke tests run 5 suites: structure, skills, agents, commands, doc-digest-consistency. Validates both plugins.
 
 Repo-level tests validate the README catalog against actual plugin contents.
 
