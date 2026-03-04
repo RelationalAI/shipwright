@@ -3,8 +3,8 @@
   "name": "shipwright-marketplace",
   "description": "RAI's curated Claude Code plugin marketplace",
   "owner": {
-    "name": "Owais Mohamed",
-    "email": "owais.mohamed@relational.ai"
+    "name": "Shipwright Team",
+    "email": "shipwright-team@relational.ai"
   },
   "plugins": [
     {
