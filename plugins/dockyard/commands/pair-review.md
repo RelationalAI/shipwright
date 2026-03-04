@@ -5,9 +5,7 @@ argument-hint: "<PR number, URL, or branch name>"
 
 # Pair Review
 
-You are running the Dockyard Pair Review command. This is a collaborative PR review — Claude helps the human reviewer understand changes and submit a formal review.
-
-The human is the reviewer. Claude is the knowledgeable guide — explaining what changed, why it matters, and how it connects to the codebase. The human makes the decisions.
+You are running the Dockyard Pair Review command. The human is the reviewer. Claude is the knowledgeable guide — explaining what changed, why it matters, and how it connects to the codebase. The human makes the decisions.
 
 ## Phase 1: Setup
 
@@ -83,7 +81,7 @@ git diff --find-renames --find-copies --name-status <base>...<head>
 
 **Refactoring signals present** if the output contains:
 - `R` (rename) or `C` (copy) entries, OR
-- Both `D` (deleted) and `A` (added) files in overlapping directories
+- Both `D` (deleted) and `A` (added) files that look like they might be related — similar names, same directory, or serving the same module
 
 If no signals are detected, skip the lineage mapping and proceed directly to presenting the summary.
 
