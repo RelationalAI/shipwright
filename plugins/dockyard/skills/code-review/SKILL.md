@@ -100,7 +100,7 @@ Each sub-agent returns a JSON object containing its `pass` name and the `finding
 
 After all passes complete, spawn one Haiku Task sub-agent to score findings independently. The scorer receives all three findings arrays and the relevant diff context.
 
-Scores are integers 0–100. 0 means false positive, 100 means certainty. The scorer evaluates each finding on its own merits — one finding's score must not influence another's. Drop all findings scoring below **80**.
+Scores are integers 1–5. 1 means false positive, 5 means certainty. The scorer evaluates each finding on its own merits — one finding's score must not influence another's. Drop all findings scoring below **4**.
 
 The scorer returns the final JSON output (recommendation + filtered findings + summary).
 
@@ -116,7 +116,7 @@ The scorer returns the final JSON output (recommendation + filtered findings + s
       "line_end": 45,
       "severity": "blocker | warning | nit",
       "category": "correctness | convention | test-quality",
-      "confidence": 80,
+      "confidence": 4,
       "description": "What the issue is and why it matters",
       "suggested_fix": "Concrete suggestion for how to resolve it",
       "citation": "Exact quoted text from CLAUDE.md (convention findings only, null otherwise)"
@@ -132,7 +132,7 @@ The scorer returns the final JSON output (recommendation + filtered findings + s
 - **findings**: Only findings surviving the confidence threshold. Empty array if none survive.
 - **severity**: `blocker` (must fix before merge), `warning` (should fix, not blocking), `nit` (suggestion, optional)
 - **category**: Which review pass produced the finding.
-- **confidence**: Integer 80+.
+- **confidence**: Integer 4–5 (only findings scoring 4 or above survive filtering).
 - **citation**: Required for `convention` category — exact quoted text from `CLAUDE.md`. `null` for other categories.
 - **summary**: 2-4 sentences. Be specific about what the diff does well and where the human reviewer should focus.
 
