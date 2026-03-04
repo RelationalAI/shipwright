@@ -100,7 +100,7 @@ Rule: verify error is a NEW pattern before deep investigation on repeat-offender
 
 ## Cross-References
 
-- Cascade detection: see BlobGC Cascade pattern above and triage-signals.md cascade rules
-- ERP error codes: `platform-extended.md` ERP codes section
+- Cascade detection: see BlobGC Cascade pattern above and [triage-signals.md](../triage-signals.md) cascade rules
+- ERP error codes: [platform-extended.md](../platform-extended.md) ERP codes section
 - Engine incidents: [engine-incidents.md](engine-incidents.md)
 - BlobGC dashboard: [BlobGC (42245311)](https://171608476159.observeinc.com/workspace/41759331/dashboard/42245311)

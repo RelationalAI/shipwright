@@ -50,6 +50,7 @@
 ---
 
 ## Alert Storm Handling (CRITICAL)
+<!-- Also appears in pipeline-incidents.md — keep in sync -->
 
 A single pipeline failure triggers 2-6 monitors per region:
 - Telemetry outage (general)
@@ -66,6 +67,7 @@ Multi-region outages multiply further: 5 regions x 5 signals = 25+ tickets.
 ---
 
 ## O4S Task Diagnostics
+<!-- Also appears in pipeline-incidents.md — keep in sync -->
 
 ```sql
 SELECT *, DATEDIFF('minute', QUERY_START_TIME, COMPLETED_TIME) AS DURATION_MINUTES
@@ -82,6 +84,7 @@ FROM TABLE(SNOWFLAKE.INFORMATION_SCHEMA.TASK_HISTORY(
 ---
 
 ## Three-Tier Monitoring Architecture
+<!-- Also appears in pipeline-incidents.md — keep in sync -->
 
 Source: Ruba Doleh, Nov 2025.
 
@@ -98,6 +101,7 @@ Investigation order: check Tier 1 first. If event table has data but Observe doe
 ---
 
 ## UAE North Specifics
+<!-- Also appears in pipeline-incidents.md — keep in sync -->
 
 - 38% of ALL telemetry incidents (20/53 in 6mo) come from `rai_azure_uaenorth_events_ye96117`
 - Oct 16, 2025: single outage generated 11 tickets in one day

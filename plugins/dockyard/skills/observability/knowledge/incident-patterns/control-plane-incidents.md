@@ -25,14 +25,7 @@ See `platform-extended.md` for ERP error codes and their transient/permanent cla
 
 ## Pattern: BlobGC Death Loop (XL Engines)
 
-| Field | Value |
-|---|---|
-| **Frequency** | Low — specific to XL engines selected for BlobGC |
-| **Severity** | High |
-| **Signature** | BlobGC engine crashes repeatedly on same account, always during gc operations |
-| **Chain** | XL engine selected for BlobGC -> gc interval >250G -> OOMGuardian can't keep up (>50% wall time on gc) -> container OOM killed -> restarted -> re-selected -> infinite loop |
-| **Key Insight** | Do NOT investigate each BlobGC OOM independently — they are symptoms of the same loop |
-| **Source** | Todd Veldhuizen (NCDNTS-4515) |
+See [erp-incidents.md](erp-incidents.md) for the full BlobGC Death Loop pattern (Todd Veldhuizen, NCDNTS-4515).
 
 ---
 

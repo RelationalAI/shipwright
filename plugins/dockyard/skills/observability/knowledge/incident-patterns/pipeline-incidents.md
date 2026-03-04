@@ -82,6 +82,7 @@ Thread in `#ext-relationalai-observe` tagging @Austin Nixon @Arthur Dayton. Noti
 ---
 
 ## Three-Tier Monitoring Architecture
+<!-- Also appears in telemetry-incidents.md — keep in sync -->
 
 Source: Ruba Doleh, Nov 2025.
 
@@ -96,6 +97,7 @@ Investigation order: check Tier 1 first. If event table has data but Observe doe
 ---
 
 ## O4S Task Diagnostics
+<!-- Also appears in telemetry-incidents.md — keep in sync -->
 
 ```sql
 SELECT *, DATEDIFF('minute', QUERY_START_TIME, COMPLETED_TIME) AS DURATION_MINUTES
@@ -118,6 +120,7 @@ A single outage event triggers 2-6 monitors per region (Telemetry outage, NA Log
 ---
 
 ## UAE North Specifics
+<!-- Also appears in telemetry-incidents.md — keep in sync -->
 
 - 38% of telemetry incidents. Alert storm handling: investigate one, close rest as duplicates.
 - Access blocker: `rai_oncaller` workflow doesn't work. Manual IT/ACCOUNTADMIN intervention required.

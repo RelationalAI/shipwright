@@ -61,7 +61,7 @@ When investigating a CI/CD incident, walk this tree top-to-bottom. Stop at the f
 | **Root Cause** | Commit that breaks the build/test pipeline. |
 | **Diagnostic Steps** | 1. Identify the offending commit and its impact 2. Check if already released to production 3. If prod affected: rollback or hotfix needed |
 | **Resolution** | Prefer revert over forward-fix. Post-mortem required: how identified, why not caught earlier, follow-ups. |
-| **Antidote Note** | Antidotes must be registered in `raicloud-deployment/cicd/poison`. Staging does NOT fail on poison commits. |
+| **Antidote Note** | Antidotes must be registered in `raicloud-deployment/cicd/poison`. Staging does NOT fail on poison commits (Thiago Tonelli). |
 | **Recurring Accounts** | N/A |
 | **Related Monitors** | CI/CD poison commit detection |
 
@@ -171,8 +171,6 @@ Note: billing runbook is outdated — do not rely on it.
 ---
 
 ## Additional Notes
-
-**Antidote Registration:** Antidotes must be registered in `raicloud-deployment/cicd/poison`. Staging does NOT fail on poison commits (Thiago Tonelli).
 
 **Customer Azure Instability:** ATT and EY incidents trace to Azure infrastructure instability (SIGTERM, disk mount, storage provisioning). AWS customers not represented. For ATT/EY engine failures on Azure, check Azure status first.
 
