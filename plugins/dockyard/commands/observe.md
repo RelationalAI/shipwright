@@ -24,6 +24,7 @@ Load these files from the Dockyard plugin root:
    - CDC / pipeline / batch / stream → also load `skills/observability/knowledge/data-pipeline.md`
    - Engine crash / OOM / brownout → also load `skills/observability/knowledge/engine-failures.md`
    - Architecture / services / cross-service → also load `skills/observability/knowledge/architecture.md`
+   - Monitor status queries or metrics exploration → also load `skills/observability/knowledge/platform-extended.md`
 
 ## Entry Points
 
@@ -55,7 +56,7 @@ Ask the user what they want to check. Suggest:
    - **No data:** If all queries failed, tell the user Observe appears degraded. Do not report "all clear" when you have no data.
 
 ### Monitor Query
-1. Query monitor status using `generate-query-card` with the monitor names/IDs from `platform.md`
+1. Query monitor status using `generate-query-card` with the monitor names/IDs from `platform-extended.md`
 2. Filter by severity if specified (SEV2, SEV3)
 3. Present: monitor name, status, last triggered, affected entity
 4. If query fails: tell the user which monitors could not be checked. Suggest checking #ext-relationalai-observe if Observe appears degraded.
