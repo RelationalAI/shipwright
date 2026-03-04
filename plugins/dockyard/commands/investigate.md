@@ -99,7 +99,7 @@ Using anchors from the entry point, run in parallel:
 
 ### CI/CD Fast Path
 
-When the incident is detected as CI/CD (from JIRA title/labels containing "workflow", "deployment", "CI", "CD", GitHub Actions links, or `cd` label):
+When the incident is detected as CI/CD (using the criteria from query 5 above):
 
 1. **Do not wait for all parallel queries to complete.** As soon as the GitHub status check (query 5) returns AND the JIRA ticket has been read, present the Stage 1 triage card immediately with whatever data is available.
 2. The log agent (query 2), monitor query (query 3), and span query (query 4) continue running in the background — their results feed into Stage 2, not Stage 1.
