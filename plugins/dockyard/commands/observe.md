@@ -17,14 +17,13 @@ Before starting, verify the Observe MCP tool is available. If missing, stop and 
 
 ## Setup
 
-Load these files from the Dockyard plugin root:
-1. **Always:** `skills/observability/SKILL.md`
-2. **Always:** `skills/observability/knowledge/platform.md`
-3. **Conditionally:** Load additional knowledge files ONLY when the query explicitly references that domain:
-   - CDC / pipeline / batch / stream → also load `skills/observability/knowledge/data-pipeline.md`
-   - Engine crash / OOM / brownout → also load `skills/observability/knowledge/engine-failures.md`
-   - Architecture / services / cross-service → also load `skills/observability/knowledge/architecture.md`
-   - Monitor status queries or metrics exploration → also load `skills/observability/knowledge/platform-extended.md`
+1. **Always:** Read the `dockyard:observability` skill. It contains tool usage rules, query workflow, failure handling, and paths to all knowledge files.
+2. **Always:** Read the platform knowledge file at the path listed in the skill's Reference Data section (`platform.md`).
+3. **Conditionally:** Read additional knowledge files ONLY when the query explicitly references that domain. Use the paths listed in the skill's Reference Data section:
+   - CDC / pipeline / batch / stream → `data-pipeline.md`
+   - Engine crash / OOM / brownout → `engine-failures.md`
+   - Architecture / services / cross-service → `architecture.md`
+   - Monitor status queries or metrics exploration → `platform-extended.md`
 
 ## Entry Points
 
