@@ -71,22 +71,37 @@ for cmd_file in "$REPO_ROOT"/plugins/shipwright/commands/*.md; do
   validate_command "shipwright" "$cmd_file"
 done
 
-# --- Cross-reference: knowledge file paths in observability commands ---
+# --- Cross-reference: knowledge file paths in observability skill ---
 echo ""
 echo "Knowledge file cross-references:"
 DOCKYARD="$REPO_ROOT/plugins/dockyard"
-for cmd in "$DOCKYARD"/commands/investigate.md "$DOCKYARD"/commands/observe.md; do
-  [ -f "$cmd" ] || continue
-  cmd_name=$(basename "$cmd")
-  while IFS= read -r ref_path; do
-    full_path="$DOCKYARD/$ref_path"
-    if [ -s "$full_path" ]; then
-      pass "$cmd_name references $ref_path (exists)"
-    else
-      fail "$cmd_name references $ref_path (NOT FOUND)"
-    fi
-  done < <(grep -oE 'skills/observability/knowledge/[a-z/-]+\.md' "$cmd" | sort -u)
-done
+SKILL_DIR="$DOCKYARD/skills/observability"
+
+# Extract knowledge file paths from SKILL.md (strip ${CLAUDE_SKILL_DIR}/ prefix)
+while IFS= read -r ref_path; do
+  full_path="$SKILL_DIR/$ref_path"
+  if [ -s "$full_path" ]; then
+    pass "observability skill references $ref_path (exists)"
+  else
+    fail "observability skill references $ref_path (NOT FOUND)"
+  fi
+done < <(grep -oE '\$\{CLAUDE_SKILL_DIR\}/knowledge/[a-z/-]+\.md' "$SKILL_DIR/SKILL.md" \
+  | sed 's|\${CLAUDE_SKILL_DIR}/||' | sort -u)
+
+# --- Cross-reference: reference file paths in code-review skill ---
+echo ""
+echo "Code-review reference cross-references:"
+CR_SKILL_DIR="$DOCKYARD/skills/code-review"
+
+while IFS= read -r ref_path; do
+  full_path="$CR_SKILL_DIR/$ref_path"
+  if [ -s "$full_path" ]; then
+    pass "code-review skill references $ref_path (exists)"
+  else
+    fail "code-review skill references $ref_path (NOT FOUND)"
+  fi
+done < <(grep -oE '\$\{CLAUDE_SKILL_DIR\}/references/[a-z/-]+\.md' "$CR_SKILL_DIR/SKILL.md" \
+  | sed 's|\${CLAUDE_SKILL_DIR}/||' | sort -u)
 
 echo ""
 TOTAL=$((PASS + FAIL))
