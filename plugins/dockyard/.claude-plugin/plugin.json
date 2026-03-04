@@ -1,7 +1,7 @@
 {
   "name": "dockyard",
   "description": "Standalone skills and commands for engineering workflows — brownfield analysis, observability, debugging, codebase profiling",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "author": {
     "name": "Owais Mohamed",
     "email": "owais.mohamed@relational.ai"
