@@ -9,28 +9,35 @@ You are running the Dockyard Code Review command. This is a standalone review �
 
 ## Setup
 
-Read the code-review skill from `skills/code-review/SKILL.md` in the Dockyard plugin directory. That skill defines the 3-pass review process, confidence scoring, and output format. Follow all of its rules.
+Invoke the `dockyard:code-review` skill using the Skill tool. That skill defines the 3-pass review process, confidence scoring, and output format. Follow all of its rules.
 
 ## Execution
 
-### Determine the base branch and diff
+### Determine the base branch
 
 ```bash
 BASE_BRANCH="${ARGUMENTS:-main}"
-git diff "$BASE_BRANCH"...HEAD
+git diff --stat "$BASE_BRANCH"...HEAD
 ```
 
-If the diff is empty, stop: "No committed changes found relative to $BASE_BRANCH."
+If the diff stat is empty, stop: "No committed changes found relative to $BASE_BRANCH."
 
-### Gather context
+Do NOT read the full diff here — that happens inside the sub-agents.
+
+### Gather context (lightweight)
 
 - Read `CLAUDE.md` from the project root (if it exists)
-- Scan `docs/plans/` for recently modified files related to this work
 - Collect commit messages: `git log "$BASE_BRANCH"..HEAD --format="%s%n%b"`
 
 ### Run the review
 
-Invoke the code-review skill with the diff and gathered context. Present findings to the developer in the format defined by the skill.
+Follow the skill's Orchestration section exactly. Spawn exactly **three** parallel sub-agents — one per review pass (correctness, conventions, test quality). Do not split by file or change area.
+
+Each sub-agent runs `git diff "$BASE_BRANCH"...HEAD` itself to get the full diff. This keeps the full diff out of the main context.
+
+After all three return, spawn one scorer sub-agent to filter findings by confidence.
+
+Present findings to the developer in the format defined by the skill.
 
 ### After the review
 
