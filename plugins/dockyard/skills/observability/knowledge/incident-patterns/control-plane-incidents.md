@@ -15,7 +15,7 @@
 
 ### Most Common Error Types
 
-See `platform.md` for ERP error codes and their transient/permanent classification.
+See `platform-extended.md` for ERP error codes and their transient/permanent classification.
 
 ### Alert Channel
 
@@ -107,4 +107,4 @@ See `platform.md` for ERP error codes and their transient/permanent classificati
 
 - ERP errors may co-occur with engine incidents → see [engine-incidents.md](engine-incidents.md)
 - Post-upgrade image errors cluster with deployment failures → see [infrastructure-incidents.md](infrastructure-incidents.md)
-- ERP error codes reference → see [platform.md](../platform.md)
+- ERP error codes reference → see [platform-extended.md](../platform-extended.md)

@@ -13,7 +13,7 @@ description: >
 
 ## Reference Data
 
-Dataset definitions (IDs, key fields, join paths), metrics, monitors, dashboards, environments, services, and ERP error codes are in `knowledge/platform.md` (always loaded by commands).
+Core dataset definitions (IDs, key fields, join paths), correlation tags, and dashboards are in `knowledge/platform.md` (always loaded by commands). Monitors, metrics catalog, enumerated values, ERP error codes, and query patterns are in `knowledge/platform-extended.md` (loaded conditionally by Stage 2 and /observe).
 
 ---
 

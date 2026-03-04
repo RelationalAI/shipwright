@@ -120,5 +120,5 @@ Investigation order: check Tier 1 first. If event table has data but Observe doe
 ## Cross-References
 
 - Pipeline-level patterns: [pipeline-incidents.md](pipeline-incidents.md)
-- Monitor IDs: `platform.md` monitors section
+- Monitor IDs: `platform-extended.md` monitors section
 - Observe dashboards: [Telemetry Outages (42760073)](https://171608476159.observeinc.com/workspace/41759331/dashboard/Telemetry-Outages-42760073), [Telemetry Heartbeats (42384426)](https://171608476159.observeinc.com/workspace/41759331/dashboard/42384426)
