@@ -210,11 +210,6 @@ Components: `InternalComp`, `DBRPComp`, `EngineRPComp`, `MetadataComp`, `TxnRPCo
 
 **Transient detection:** encounter count < 2 → likely transient, safe to mitigate. Count >= 2 or persistent → escalate to `#team-prod-engine-resource-providers-spcs`.
 
-## ArgoCD URLs
-
-- ArgoCD prod: `https://argocd.prod.internal.relational.ai:8443/`
-- ArgoCD staging: `https://argocd.staging.internal.relational.ai:8443/`
-
 ## Query Patterns
 
 | # | Scenario | Query for generate-query-card |
