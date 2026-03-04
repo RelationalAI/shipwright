@@ -88,6 +88,15 @@ Rule: verify error is a NEW pattern before deep investigation on repeat-offender
 | `erp_txnevent_*` not repeating | "Safe to close" (Wei He) |
 | `middlewarepanic` | Rare — investigate |
 | `blobgc_engine_response_error` | Incident creation disabled (jian.fang) — noise |
+| `txn_commit_error` | Check status.snowflake.com first — SF platform issue |
+| `next_page_error` (S3/storage rate limit) | Check if internal GC span (no user txn ID). Transient. |
+| `send_rai_request_error` | Engine briefly unreachable. Check for Julia GC brownout (1-min log gap). |
+
+## Runbooks
+
+- ERP monitoring runbook: `https://relationalai.atlassian.net/wiki/spaces/ES/pages/658407425`
+- BlobGC/CompCache: `https://relationalai.atlassian.net/wiki/spaces/ES/pages/890929153`
+- BlobGC Dashboard: `https://171608476159.observeinc.com/workspace/41759331/dashboard/42245311`
 
 ## Cross-References
 

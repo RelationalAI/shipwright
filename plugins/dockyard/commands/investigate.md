@@ -323,30 +323,7 @@ Add free-form analysis body, ordered by priority:
 
 ## ERP Error Decision Tree
 
-When the incident involves an ERP error code, use this decision tree before deep investigation:
-
-```
-ERP error arrives
-├─ BlobGC error?
-│   ├─ Check for upstream engine crash in same account (last 2h)
-│   │   YES → cascade classification. Link to engine incident. Close as downstream.
-│   │   NO  → Investigate BlobGC independently (metadata deserialization OOM? storage threshold?)
-│   └─ GapKeyWithoutJuliaValError in logs? → Engine version mismatch marker (not primary cause)
-│
-├─ broken_pipe / stream error? → Transient. Close if single occurrence, no txn failure.
-├─ compute_pool_suspended? → Check for manual account changes (user-initiated suspension).
-├─ circuit_breaker_open? → Find the failing upstream engine. This is a cascade.
-├─ txn_commit_error? → Check status.snowflake.com first. SF platform issue.
-├─ S3/storage rate limit (next_page_error)? → Check if internal GC span (no user txn ID). Transient.
-├─ send_rai_request_error? → Engine briefly unreachable. Check for Julia GC brownout (1-min log gap).
-└─ Account in repeat-offender list? (rai_studio_sac08949, by_dev_ov40102, rai_int_sqllib)
-    → Check if known recurring pattern for that account before investigating.
-```
-
-### ERP Runbooks
-- ERP monitoring runbook: `https://relationalai.atlassian.net/wiki/spaces/ES/pages/658407425`
-- BlobGC/CompCache: `https://relationalai.atlassian.net/wiki/spaces/ES/pages/890929153`
-- BlobGC Dashboard: `https://171608476159.observeinc.com/workspace/41759331/dashboard/42245311`
+For ERP error classification, follow the decision tree and signal-vs-noise table in `skills/observability/knowledge/incident-patterns/erp-incidents.md`. That file contains the full taxonomy, cascade patterns, repeat-offender accounts, and runbook links.
 
 ## CI/CD Decision Tree
 
