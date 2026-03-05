@@ -17,14 +17,13 @@ Before starting, verify the Observe MCP tool is available. If missing, stop and 
 
 ## Setup
 
-Load these files from the Dockyard plugin root:
-1. **Always:** `skills/observability/SKILL.md`
-2. **Always:** `skills/observability/knowledge/platform.md`
-3. **Conditionally:** Load additional knowledge files ONLY when the query explicitly references that domain:
-   - CDC / pipeline / batch / stream → also load `skills/observability/knowledge/data-pipeline.md`
-   - Engine crash / OOM / brownout → also load `skills/observability/knowledge/engine-failures.md`
-   - Architecture / services / cross-service → also load `skills/observability/knowledge/architecture.md`
-   - Monitor status queries or metrics exploration → also load `skills/observability/knowledge/platform-extended.md`
+1. **Always:** Read the `dockyard:observability` skill. It contains tool usage rules, query workflow, failure handling, and paths to all knowledge files.
+2. **Always:** Read the platform knowledge file at the path listed in the skill's Reference Data section (`platform.md`).
+3. **Conditionally:** Read additional knowledge files ONLY when the query explicitly references that domain. Use the paths listed in the skill's Reference Data section:
+   - CDC / pipeline / batch / stream → `data-pipeline.md`
+   - Engine crash / OOM / brownout → `engine-failures.md`
+   - Architecture / services / cross-service → `architecture.md`
+   - Monitor status queries or metrics exploration → `platform-extended.md`
 
 ## Entry Points
 
@@ -49,9 +48,13 @@ Ask the user what they want to check. Suggest:
 1. Query active alerts/monitors using `generate-query-card`: "active SEV2 and SEV3 alerts in the last hour"
 2. Query error rates: "error rate across all services in the last hour"
 3. Query transaction failure rate: "transaction failure rate in the last hour"
-4. Present results:
+4. **Enrich alert severity:** For each active monitor, determine its true operational severity by checking:
+   - The monitor's configured threshold severity (Error, Critical, Informational) from Monitor Detections
+   - What JIRA incident severity the monitor creates (SEV2, SEV3) — query the JIRA Incidents dataset (42521777) for recent incidents created by the same monitor name to determine the JIRA severity level
+   - Present alerts grouped by effective severity (SEV2 > SEV3 > informational), not just raw count
+5. Present results:
    - **All clear:** "No active alerts. Error rates nominal. Transaction success rate: X%." — Zero active alerts is a positive signal, not silence.
-   - **Issues found:** Summarize alerts, error trends, affected services. Suggest `/investigate` for any specific issue.
+   - **Issues found:** Summarize alerts by severity tier, error trends, affected services. Lead with SEV2 alerts (page-worthy), then SEV3 (ack within 1 business day), then informational. Suggest `/investigate` for any specific issue.
    - **Partial data:** If some queries failed, report health based on available data and note which checks could not be performed.
    - **No data:** If all queries failed, tell the user Observe appears degraded. Do not report "all clear" when you have no data.
 

@@ -18,12 +18,11 @@ Before starting, verify these MCP tools are available. If any are missing, stop 
 
 ## Setup
 
-Load from the Dockyard plugin root:
-1. **Always:** `skills/observability/SKILL.md`
-2. **Always:** `skills/observability/knowledge/platform.md`
-3. **Always:** `skills/observability/knowledge/triage-signals.md`
+1. **Always:** Read the `dockyard:observability` skill. It contains tool usage rules, query workflow, failure handling, and paths to all knowledge files.
+2. **Always:** Read the platform knowledge file at the path listed in the skill's Reference Data section (`platform.md`).
+3. **Always:** Read the triage signals file at the path listed in the skill's Reference Data section (`triage-signals.md`).
 
-Additional knowledge files loaded in Stage 2 — initially pre-loaded from Stage 1's classification, then confirmed or overridden by Stage 2's own Phase B classification (see Knowledge File Loading in Stage 2 section).
+Additional knowledge files loaded in Stage 2 — use the paths from the skill's Reference Data section. Initially pre-loaded from Stage 1's classification, then confirmed or overridden by Stage 2's own Phase B classification (see Knowledge File Loading in Stage 2 section).
 
 ## Account-Aware Pre-Triage
 
@@ -51,7 +50,10 @@ Before any investigation, check the account/engine name against known patterns. 
 
 ### JIRA Ticket Path
 1. Read the JIRA ticket using Atlassian MCP (`getJiraIssue`)
+   - **If Atlassian MCP fails:** Fall back to querying the Observe `JIRA Incidents` dataset (42521777) for the ticket key (e.g., `Key = 'NCDNTS-13047'`). Tell the user: "Atlassian MCP unavailable — reading ticket from Observe JIRA Incidents dataset instead."
+   - **If both Atlassian MCP and Observe JIRA Incidents fail:** Hard stop. Tell the user: "Cannot read JIRA ticket from either Atlassian MCP or Observe. Please check MCP configuration or provide the ticket details manually." Do NOT proceed to investigate a different incident.
 2. Read ticket comments (do NOT call any Atlassian write tools — see Rules section). **Skip OpsAgent comments** — OpsAgent is an automated triage bot whose guesses can bias your independent classification.
+   - If using the Observe fallback, comments are not available — note this limitation and proceed without them.
 3. Read remote issue links (`getJiraIssueRemoteIssueLinks`) — if this call fails, briefly note "Remote links unavailable, continuing without them" and proceed
 4. Extract anchors from ticket body, comments, and remote links:
    - Transaction IDs (UUIDs)
@@ -60,8 +62,9 @@ Before any investigation, check the account/engine name against known patterns. 
    - Observe dashboard/query links
    - Confluence runbook links — save page title and URL for Stage 2 (do NOT fetch or search Confluence now)
    - Ignore external links (GitHub Actions, PRs, etc.) — they are not investigation anchors
-5. Determine time anchor (see Time Anchor Strategy)
-6. Proceed to Stage 1
+5. Also query the Observe JIRA Incidents dataset for prior incidents with similar titles/patterns (e.g., same monitor name, same alert type). If duplicates exist, note them for the Alert Storm / Duplicate Check.
+6. Determine time anchor (see Time Anchor Strategy)
+7. Proceed to Stage 1
 
 ### Transaction ID Path
 1. Use the transaction ID as the primary anchor
@@ -231,22 +234,24 @@ When triage identifies multiple distinct investigation threads (e.g., engine cra
 
 Stage 2 loads knowledge files based on its own Phase B classification, not Stage 1. Stage 1's classification is used as an initial hint for pre-loading, but Phase B may override it.
 
+All filenames below are relative to the `dockyard:observability` skill's `knowledge/` directory. Invoke the skill first — it resolves the full paths via `${CLAUDE_SKILL_DIR}`.
+
 **Initial pre-load** (before Phase A completes): use Stage 1 classification to pre-load from the table below. If Stage 1 classification is unavailable, pre-load using the Unknown row.
 
 **Post-Phase B**: if Phase B changes the classification, load the correct files per the table below and discard the pre-loaded ones. If Phase B confirms Stage 1, proceed with the pre-loaded files.
 
 | Classification | Load |
 |---|---|
-| Crash / OOM / brownout | `skills/observability/knowledge/engine-failures.md` + `skills/observability/knowledge/incident-patterns/engine-incidents.md` |
-| Pipeline | `skills/observability/knowledge/data-pipeline.md` + `skills/observability/knowledge/incident-patterns/pipeline-incidents.md` |
-| Cross-service | `skills/observability/knowledge/architecture.md` |
-| ERP-error | `skills/observability/knowledge/incident-patterns/erp-incidents.md` + `skills/observability/knowledge/incident-patterns/control-plane-incidents.md` |
-| Cascade | Load knowledge file for the suspected parent classification + `skills/observability/knowledge/incident-patterns/erp-incidents.md` (cascades commonly involve BlobGC) |
-| CI/CD | `skills/observability/knowledge/incident-patterns/infrastructure-incidents.md` |
-| Telemetry | `skills/observability/knowledge/incident-patterns/telemetry-incidents.md` |
-| Unknown | `skills/observability/knowledge/incident-patterns/engine-incidents.md` + `skills/observability/knowledge/incident-patterns/pipeline-incidents.md` + `skills/observability/knowledge/incident-patterns/control-plane-incidents.md` + `skills/observability/knowledge/incident-patterns/infrastructure-incidents.md` + `skills/observability/knowledge/incident-patterns/erp-incidents.md` + `skills/observability/knowledge/incident-patterns/telemetry-incidents.md` — pattern match against symptoms |
+| Crash / OOM / brownout | `engine-failures.md` + `incident-patterns/engine-incidents.md` |
+| Pipeline | `data-pipeline.md` + `incident-patterns/pipeline-incidents.md` |
+| Cross-service | `architecture.md` |
+| ERP-error | `incident-patterns/erp-incidents.md` + `incident-patterns/control-plane-incidents.md` |
+| Cascade | Load knowledge file for the suspected parent classification + `incident-patterns/erp-incidents.md` (cascades commonly involve BlobGC) |
+| CI/CD | `incident-patterns/infrastructure-incidents.md` |
+| Telemetry | `incident-patterns/telemetry-incidents.md` |
+| Unknown | `incident-patterns/engine-incidents.md` + `incident-patterns/pipeline-incidents.md` + `incident-patterns/control-plane-incidents.md` + `incident-patterns/infrastructure-incidents.md` + `incident-patterns/erp-incidents.md` + `incident-patterns/telemetry-incidents.md` — pattern match against symptoms |
 
-**Always load in Stage 2:** `skills/observability/knowledge/platform-extended.md` — contains Tier 3-5 datasets, monitors, metrics catalog, ERP error codes, and query patterns needed for deep investigation.
+**Always load in Stage 2:** `platform-extended.md` — contains Tier 3-5 datasets, monitors, metrics catalog, ERP error codes, and query patterns needed for deep investigation.
 
 > **Context management for Unknown:** If context limits become an issue, prioritize knowledge files by matching Phase A inventory signals — load only the 2-3 files whose patterns match observed errors.
 
@@ -325,17 +330,17 @@ Add free-form analysis body, ordered by priority:
 
 ## ERP Error Decision Tree
 
-For ERP error classification, follow the decision tree and signal-vs-noise table in `skills/observability/knowledge/incident-patterns/erp-incidents.md`. That file contains the full taxonomy, cascade patterns, repeat-offender accounts, and runbook links.
+For ERP error classification, follow the decision tree and signal-vs-noise table in `incident-patterns/erp-incidents.md`. That file contains the full taxonomy, cascade patterns, repeat-offender accounts, and runbook links.
 
 ## CI/CD Decision Tree
 
-For CI/CD classification, follow the triage decision tree in `skills/observability/knowledge/incident-patterns/infrastructure-incidents.md`. That file contains the full decision tree, pattern details, routing table, and CI/CD links.
+For CI/CD classification, follow the triage decision tree in `incident-patterns/infrastructure-incidents.md`. That file contains the full decision tree, pattern details, routing table, and CI/CD links.
 
 Key Stage 1 rule (always apply, do not defer to Stage 2): **Always check https://www.githubstatus.com first.** If GitHub Actions outage is active and overlaps the failure time, classify as `cicd (external outage)` immediately.
 
 ## Cascade Detection
 
-See BlobGC Cascade pattern in `skills/observability/knowledge/incident-patterns/erp-incidents.md`. Quick rule: BlobGC/storage/CompCache alert + engine failure in same account within 2h = cascade.
+See BlobGC Cascade pattern in `incident-patterns/erp-incidents.md`. Quick rule: BlobGC/storage/CompCache alert + engine failure in same account within 2h = cascade.
 
 ## Log Agent
 
@@ -382,7 +387,8 @@ Full severity range, wider time windows, thorough reconstruction. No turn cap. S
 Prerequisites catch missing MCP servers. This section handles errors from servers that are present but return failures.
 
 ### Atlassian MCP call failure
-- If any single Atlassian MCP call errors (e.g., `getJiraIssueRemoteIssueLinks`, `searchConfluenceUsingCql`), tell the user in one line what failed and that you're working around it — e.g., "Remote links unavailable, continuing without them"
+- **For `getJiraIssue` failure (JIRA Ticket Path):** Fall back to querying the Observe `JIRA Incidents` dataset (42521777) — see JIRA Ticket Path step 1 for details. If both fail, hard stop.
+- If any other single Atlassian MCP call errors (e.g., `getJiraIssueRemoteIssueLinks`, `searchConfluenceUsingCql`), tell the user in one line what failed and that you're working around it — e.g., "Remote links unavailable, continuing without them"
 - Do NOT surface raw MCP error details to the user
 - If `searchConfluenceUsingCql` fails, try `getConfluencePage` with the page ID if available, or skip the runbook and fall back to knowledge files
 - Continue investigation with available data
