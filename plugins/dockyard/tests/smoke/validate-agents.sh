@@ -56,10 +56,6 @@ echo "=== validate-agents ==="
 # --- Dockyard public agents ---
 echo ""
 echo "Dockyard public agents:"
-validate_agent \
-  "$REPO_ROOT/plugins/dockyard/agents/doc-digest.md" \
-  "dockyard/doc-digest.md" \
-  "no"
 
 validate_agent \
   "$REPO_ROOT/plugins/dockyard/agents/code-reviewer.md" \

@@ -1,0 +1,25 @@
+Widget deployment follows a three-phase process. First, the widget package is
+uploaded to the staging environment where automated tests verify compatibility
+with the current platform version.
+
+Second, a canary deployment is performed. The widget is made available to 5%
+of users for 24 hours. During this period, error rates and performance metrics
+are monitored against baseline thresholds.
+
+Third, if the canary phase passes all checks, the widget is promoted to
+general availability. Rollback is automatic if error rates exceed 2% during
+any phase.
+
+Configuration changes do not require redeployment. The platform polls for
+config updates every 60 seconds. Widgets receive config change events via
+the onConfigUpdate lifecycle hook.
+
+Logging is handled by the platform. Widgets should use the provided logger
+instance rather than console.log. Log levels are: debug, info, warn, error.
+Production environments suppress debug-level logs by default.
+
+Resource limits per widget instance:
+- Memory: 256 MB
+- CPU: 0.5 vCPU
+- Network egress: 10 MB/s
+- Storage: 100 MB (ephemeral, cleared on restart)

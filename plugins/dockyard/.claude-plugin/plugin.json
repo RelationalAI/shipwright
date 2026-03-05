@@ -1,6 +1,6 @@
 {
   "name": "dockyard",
-  "description": "Standalone skills and commands for engineering workflows — brownfield analysis, observability, debugging, codebase profiling",
+  "description": "Standalone skills and commands for engineering workflows — brownfield analysis, observability, debugging, codebase profiling, document review",
   "author": {
     "name": "Shipwright Team",
     "email": "shipwright-team@relational.ai"
@@ -8,5 +8,5 @@
   "homepage": "https://github.com/RelationalAI/shipwright",
   "repository": "https://github.com/RelationalAI/shipwright",
   "license": "TBD",
-  "keywords": ["skills", "debugging", "observability", "brownfield-analysis", "codebase-profiling"]
+  "keywords": ["skills", "debugging", "observability", "brownfield-analysis", "codebase-profiling", "doc-digest"]
 }

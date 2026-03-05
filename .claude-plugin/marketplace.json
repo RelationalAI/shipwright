@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "dockyard",
-      "description": "Standalone skills and commands for engineering workflows — brownfield analysis, observability, debugging, codebase profiling",
+      "description": "Standalone skills and commands for engineering workflows — brownfield analysis, observability, debugging, codebase profiling, document review",
       "version": "0.4.0",
       "source": "./plugins/dockyard"
     },
