@@ -76,7 +76,7 @@ Each sub-agent receives:
   - Pass 1: copy the entire "Pass 1: Correctness" section above (from "Examine the diff for defects..." through the verification process)
   - Pass 2: copy the entire "Pass 2: Conventions" section above (from "Check the diff against..." through the "not a finding" rule)
   - Pass 3: copy the entire "Pass 3: Test Quality" section above (from "Evaluate whether tests..." through the pre-existing issues rule)
-- The full JSON schema from the "Output Format" section below — copy the complete JSON block and all field rules into each sub-agent prompt
+- The full JSON schema from the "Review Agent Return Schema" section below — copy the complete JSON block and all field rules into each sub-agent prompt
 - Instruction to return findings as a JSON object
 
 ```
