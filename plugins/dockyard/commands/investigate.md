@@ -234,7 +234,7 @@ When triage identifies multiple distinct investigation threads (e.g., engine cra
 
 Stage 2 loads knowledge files based on its own Phase B classification, not Stage 1. Stage 1's classification is used as an initial hint for pre-loading, but Phase B may override it.
 
-All filenames below are relative to the skill's `${CLAUDE_SKILL_DIR}/knowledge/` directory — read the `dockyard:observability` skill first to resolve the full paths.
+All filenames below are relative to the `dockyard:observability` skill's `knowledge/` directory. Invoke the skill first — it resolves the full paths via `${CLAUDE_SKILL_DIR}`.
 
 **Initial pre-load** (before Phase A completes): use Stage 1 classification to pre-load from the table below. If Stage 1 classification is unavailable, pre-load using the Unknown row.
 
