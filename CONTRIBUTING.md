@@ -20,7 +20,7 @@ Shipwright Marketplace is RAI's curated Claude Code plugin marketplace. It hosts
    - Agents: `plugins/<plugin>/agents/<agent-name>.md`
    - Commands: `plugins/<plugin>/commands/<command-name>.md`
 3. **Follow the templates** in `templates/SKILL_TEMPLATE.md` or `templates/AGENT_TEMPLATE.md`.
-4. **Bump the version** in the plugin's `plugin.json`. Claude Code caches plugins by version string, so users will not receive your update unless the version is incremented.
+4. **Do not bump versions** — versions are managed centrally in `marketplace.json` and updated automatically by `release.sh`. CI will block PRs that include version changes.
 5. **Open a PR** against `main`.
 
 ## Quality Gates
@@ -40,6 +40,8 @@ New plugins require CODEOWNERS approval. To request one:
 
 ## Version Bumps
 
-Claude Code caches installed plugins by version string. If you change any skill, agent, command, or configuration in a plugin, you **must** bump the `version` field in that plugin's `plugin.json`. Without this, users will not see the update until they manually reinstall.
+Claude Code caches installed plugins by version string. Versions live only in `marketplace.json` (not in `plugin.json`) and all plugins share the same version, bumped together.
+
+**Do not bump versions in feature PRs** — CI will block them. To release, run `./scripts/release.sh <patch|minor|major>`, which bumps the version, updates `source.ref`, and creates a release PR.
 
 Plugin sources in `marketplace.json` are pinned to release tags via `git-subdir`. The `source.ref` field is updated automatically by `release.sh` — do not change it manually.
