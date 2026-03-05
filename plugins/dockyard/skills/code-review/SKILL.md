@@ -1,6 +1,7 @@
 ---
 name: code-review
 description: Use when reviewing code diffs for correctness bugs, convention compliance, and test quality. Applies to PR submissions, pre-commit reviews, CI automation, or any request to review, check, or audit code changes.
+allowed-tools: Read, Glob, Grep, Bash(git diff *), Bash(git log *), Bash(git rev-parse *), Bash(git merge-base *), Agent, LSP
 ---
 
 # Code Review
@@ -66,34 +67,35 @@ Only evaluate tests that are part of the diff or directly related to changed cod
 
 ## Orchestration
 
-Spawn three Task sub-agents in parallel — one per pass. Do NOT instruct sub-agents to write files. All communication is inline — sub-agents return their results as JSON in their response messages.
+Spawn three `dockyard:code-reviewer` sub-agents in parallel — one per pass. All communication is inline — sub-agents return their results as JSON in their response messages.
 
 Each sub-agent receives:
 - The git command to run the diff (e.g., `git diff "$BASE_BRANCH"...HEAD`) — sub-agents run this themselves to keep the full diff out of the coordinator's context
 - `CLAUDE.md` content
 - Rationale context (if available)
-- The pass criteria from the relevant section above (copy the criteria into the sub-agent prompt)
-- The return schema (from the "Review Agent Return Schema" section below)
+- The full text of the relevant pass criteria section — copy the complete section content into the sub-agent prompt:
+  - Pass 1: copy the entire "Pass 1: Correctness" section above (from "Examine the diff for defects..." through the verification process)
+  - Pass 2: copy the entire "Pass 2: Conventions" section above (from "Check the diff against..." through the "not a finding" rule)
+  - Pass 3: copy the entire "Pass 3: Test Quality" section above (from "Evaluate whether tests..." through the pre-existing issues rule)
+- The full JSON schema from the "Review Agent Return Schema" section below — copy the complete JSON block and all field rules into each sub-agent prompt
 - Instruction to return findings as a JSON object
 
 ```
-Pass 1 sub-agent:
-  Include: Pass 1 criteria (from "Pass 1: Correctness" above)
-  Include: Return schema (from "Review Agent Return Schema" below)
+Pass 1 (dockyard:code-reviewer):
+  Include: Full text of "Pass 1: Correctness" section
+  Include: Full JSON schema and field rules from "Output Format"
   Return: { "pass": "correctness", "findings": [...] }
 
-Pass 2 sub-agent:
-  Include: Pass 2 criteria (from "Pass 2: Conventions" above)
-  Include: Return schema (from "Review Agent Return Schema" below)
+Pass 2 (dockyard:code-reviewer):
+  Include: Full text of "Pass 2: Conventions" section
+  Include: Full JSON schema and field rules from "Output Format"
   Return: { "pass": "conventions", "findings": [...] }
 
-Pass 3 sub-agent:
-  Include: Pass 3 criteria (from "Pass 3: Test Quality" above)
-  Include: Return schema (from "Review Agent Return Schema" below)
+Pass 3 (dockyard:code-reviewer):
+  Include: Full text of "Pass 3: Test Quality" section
+  Include: Full JSON schema and field rules from "Output Format"
   Return: { "pass": "test-quality", "findings": [...] }
 ```
-
-**Model:** Opus for all review passes.
 
 Each sub-agent returns a JSON object containing its `pass` name and the `findings` array. The coordinator extracts the findings from each sub-agent's response.
 

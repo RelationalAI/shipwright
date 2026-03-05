@@ -45,7 +45,7 @@ Repo-level tests validate the README catalog against actual plugin contents.
 - Commands use YAML frontmatter with `description:` and optional `argument-hint:`
 - Skills live in `skills/<name>/SKILL.md`
 - Agents are markdown files in `agents/` (dockyard) or `internal/agents/` (shipwright)
-- Cross-plugin skill references use `dockyard:<skill-name>` notation
+- Cross-plugin references use `dockyard:<name>` notation (skills and agents)
 - `${CLAUDE_PLUGIN_ROOT}` works in hooks.json but NOT in markdown files
 - Version lives only in marketplace.json (not plugin.json)
 - All plugin entries share the same version (bumped together)

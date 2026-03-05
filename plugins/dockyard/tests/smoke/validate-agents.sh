@@ -61,6 +61,11 @@ validate_agent \
   "dockyard/doc-digest.md" \
   "no"
 
+validate_agent \
+  "$REPO_ROOT/plugins/dockyard/agents/code-reviewer.md" \
+  "dockyard/code-reviewer.md" \
+  "no"
+
 # --- Shipwright internal agents ---
 echo ""
 echo "Shipwright internal agents:"
@@ -78,20 +83,28 @@ for agent in "${SHIPWRIGHT_AGENTS[@]}"; do
     "yes"
 done
 
-# --- Cross-plugin skill reference validation ---
+# --- Cross-plugin reference validation ---
 echo ""
-echo "Cross-plugin skill references:"
-# Verify that dockyard:X references in shipwright agents resolve to actual dockyard skills
-for agent in "$REPO_ROOT/plugins/shipwright/internal/agents/"*.md "$REPO_ROOT/plugins/shipwright/commands/shipwright.md"; do
-  refs=$(grep -oE 'dockyard:[a-z-]+' "$agent" 2>/dev/null | sort -u || true)
+echo "Cross-plugin references:"
+# Verify that dockyard:X references resolve to actual dockyard skills, agents, or commands
+SCAN_FILES=(
+  "$REPO_ROOT/plugins/shipwright/internal/agents/"*.md
+  "$REPO_ROOT/plugins/shipwright/commands/shipwright.md"
+  "$REPO_ROOT/plugins/dockyard/skills/"*/SKILL.md
+)
+for file in "${SCAN_FILES[@]}"; do
+  [ -f "$file" ] || continue
+  refs=$(grep -oE 'dockyard:[a-z-]+' "$file" 2>/dev/null | sort -u || true)
   for ref in $refs; do
-    skill_name="${ref#dockyard:}"
-    skill_path="$REPO_ROOT/plugins/dockyard/skills/$skill_name/SKILL.md"
-    label="$(basename "$agent"):$ref"
-    if [ -f "$skill_path" ]; then
-      pass "$label resolves to $skill_path"
+    name="${ref#dockyard:}"
+    skill_path="$REPO_ROOT/plugins/dockyard/skills/$name/SKILL.md"
+    agent_path="$REPO_ROOT/plugins/dockyard/agents/$name.md"
+    command_path="$REPO_ROOT/plugins/dockyard/commands/$name.md"
+    label="$(basename "$file"):$ref"
+    if [ -f "$skill_path" ] || [ -f "$agent_path" ] || [ -f "$command_path" ]; then
+      pass "$label resolves"
     else
-      fail "$label does not resolve (expected $skill_path)"
+      fail "$label does not resolve (expected skill, agent, or command named '$name')"
     fi
   done
 done
