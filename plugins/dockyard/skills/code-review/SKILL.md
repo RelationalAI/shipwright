@@ -56,9 +56,10 @@ Evaluate whether tests accompanying the diff are adequate.
 **What to look for:**
 
 - **Testing the right thing** — do tests exercise the behavior introduced or changed by the diff? A test that passes before AND after the change tests nothing relevant.
-- **Determinism** — flag: time-dependent assertions, random data without seeds, filesystem ordering assumptions, network calls without mocks.
-- **Speed** — flag: sleep/delay in tests, spinning up real servers when mocks suffice, testing large datasets when small ones prove the same thing.
+- **Determinism** — flag: time-dependent assertions, random data without seeds, filesystem ordering assumptions, uncontrolled external dependencies. Prefer contract tests, deterministic test servers, or in-process fakes over mocks for controlling external behavior.
+- **Speed** — flag: sleep/delay in tests, unnecessarily heavy test infrastructure, testing large datasets when small ones prove the same thing. Prefer lightweight real implementations (in-memory databases, local test servers) over mocks for managing test speed.
 - **Behavior over implementation** — do tests assert on observable behavior (output, side effects, state changes) or on implementation details (internal method calls, private state, execution order)?
+- **Mocking discipline** — never mock what you can use for real. Flag tests that mock internal modules, classes, or functions when the real implementation could be used. Acceptable mock targets: external services behind a network boundary, system clocks, hardware interfaces. If a dependency is hard to use in tests without mocking, that's a design smell in the dependency, not a reason to mock.
 - **Coverage of the changes** — are the meaningful code paths introduced by the diff exercised by tests?
 
 Only evaluate tests that are part of the diff or directly related to changed code. Do not flag pre-existing test quality issues.
