@@ -48,9 +48,13 @@ Ask the user what they want to check. Suggest:
 1. Query active alerts/monitors using `generate-query-card`: "active SEV2 and SEV3 alerts in the last hour"
 2. Query error rates: "error rate across all services in the last hour"
 3. Query transaction failure rate: "transaction failure rate in the last hour"
-4. Present results:
+4. **Enrich alert severity:** For each active monitor, determine its true operational severity by checking:
+   - The monitor's configured threshold severity (Error, Critical, Informational) from Monitor Detections
+   - What JIRA incident severity the monitor creates (SEV2, SEV3) — query the JIRA Incidents dataset (42521777) for recent incidents created by the same monitor name to determine the JIRA severity level
+   - Present alerts grouped by effective severity (SEV2 > SEV3 > informational), not just raw count
+5. Present results:
    - **All clear:** "No active alerts. Error rates nominal. Transaction success rate: X%." — Zero active alerts is a positive signal, not silence.
-   - **Issues found:** Summarize alerts, error trends, affected services. Suggest `/investigate` for any specific issue.
+   - **Issues found:** Summarize alerts by severity tier, error trends, affected services. Lead with SEV2 alerts (page-worthy), then SEV3 (ack within 1 business day), then informational. Suggest `/investigate` for any specific issue.
    - **Partial data:** If some queries failed, report health based on available data and note which checks could not be performed.
    - **No data:** If all queries failed, tell the user Observe appears degraded. Do not report "all clear" when you have no data.
 

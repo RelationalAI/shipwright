@@ -21,6 +21,12 @@
 | **Span Event** | 42206250 | Event | event_name, attributes, span_id, trace_id, timestamp | Events within a span (exceptions, state transitions). |
 | **Diagnostic Profiles v2** | 42394246 | Event | PROFILE_START, PROFILE_END, rai_engine_name, ACCOUNT_ALIAS | CPU profiling data. Links to CPU Profiling dashboard. |
 
+### Tier 3 — Cross-System
+
+| Dataset | ID | Kind | Key Fields | Use When |
+|---|---|---|---|---|
+| **JIRA Incidents** | 42521777 | Resource | Key, Summary, Status, Priority, Assignee, Reporter, Created, Updated, FIELDS (nested JSON with full ticket data) | JIRA ticket lookup when Atlassian MCP is unavailable. Query by Key (e.g., `NCDNTS-13047`). Also useful for historical incident pattern searches (e.g., find prior incidents with similar titles). |
+
 ### Dataset Comparison Notes
 
 **Transaction vs Transaction Info:** Use Transaction Info (42728011) for status/abort_reason. Use Transaction (41838769) for maxlevel and host-level correlation. `maxlevel` is NOT status.

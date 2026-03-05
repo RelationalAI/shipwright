@@ -50,7 +50,10 @@ Before any investigation, check the account/engine name against known patterns. 
 
 ### JIRA Ticket Path
 1. Read the JIRA ticket using Atlassian MCP (`getJiraIssue`)
+   - **If Atlassian MCP fails:** Fall back to querying the Observe `JIRA Incidents` dataset (42521777) for the ticket key (e.g., `Key = 'NCDNTS-13047'`). Tell the user: "Atlassian MCP unavailable — reading ticket from Observe JIRA Incidents dataset instead."
+   - **If both Atlassian MCP and Observe JIRA Incidents fail:** Hard stop. Tell the user: "Cannot read JIRA ticket from either Atlassian MCP or Observe. Please check MCP configuration or provide the ticket details manually." Do NOT proceed to investigate a different incident.
 2. Read ticket comments (do NOT call any Atlassian write tools — see Rules section). **Skip OpsAgent comments** — OpsAgent is an automated triage bot whose guesses can bias your independent classification.
+   - If using the Observe fallback, comments are not available — note this limitation and proceed without them.
 3. Read remote issue links (`getJiraIssueRemoteIssueLinks`) — if this call fails, briefly note "Remote links unavailable, continuing without them" and proceed
 4. Extract anchors from ticket body, comments, and remote links:
    - Transaction IDs (UUIDs)
@@ -59,8 +62,9 @@ Before any investigation, check the account/engine name against known patterns. 
    - Observe dashboard/query links
    - Confluence runbook links — save page title and URL for Stage 2 (do NOT fetch or search Confluence now)
    - Ignore external links (GitHub Actions, PRs, etc.) — they are not investigation anchors
-5. Determine time anchor (see Time Anchor Strategy)
-6. Proceed to Stage 1
+5. Also query the Observe JIRA Incidents dataset for prior incidents with similar titles/patterns (e.g., same monitor name, same alert type). If duplicates exist, note them for the Alert Storm / Duplicate Check.
+6. Determine time anchor (see Time Anchor Strategy)
+7. Proceed to Stage 1
 
 ### Transaction ID Path
 1. Use the transaction ID as the primary anchor
@@ -383,7 +387,8 @@ Full severity range, wider time windows, thorough reconstruction. No turn cap. S
 Prerequisites catch missing MCP servers. This section handles errors from servers that are present but return failures.
 
 ### Atlassian MCP call failure
-- If any single Atlassian MCP call errors (e.g., `getJiraIssueRemoteIssueLinks`, `searchConfluenceUsingCql`), tell the user in one line what failed and that you're working around it — e.g., "Remote links unavailable, continuing without them"
+- **For `getJiraIssue` failure (JIRA Ticket Path):** Fall back to querying the Observe `JIRA Incidents` dataset (42521777) — see JIRA Ticket Path step 1 for details. If both fail, hard stop.
+- If any other single Atlassian MCP call errors (e.g., `getJiraIssueRemoteIssueLinks`, `searchConfluenceUsingCql`), tell the user in one line what failed and that you're working around it — e.g., "Remote links unavailable, continuing without them"
 - Do NOT surface raw MCP error details to the user
 - If `searchConfluenceUsingCql` fails, try `getConfluencePage` with the page ID if available, or skip the runbook and fall back to knowledge files
 - Continue investigation with available data
