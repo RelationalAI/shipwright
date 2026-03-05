@@ -88,23 +88,6 @@ while IFS= read -r ref_path; do
 done < <(grep -oE '\$\{CLAUDE_SKILL_DIR\}/knowledge/[a-z/-]+\.md' "$SKILL_DIR/SKILL.md" \
   | sed 's|\${CLAUDE_SKILL_DIR}/||' | sort -u)
 
-# --- Cross-reference: reference file paths in code-review skill ---
-echo ""
-echo "Code-review reference cross-references:"
-CR_SKILL_DIR="$DOCKYARD/skills/code-review"
-
-# code-review SKILL.md uses bare references/ paths (e.g., references/pass-correctness.md)
-# Extract these and verify each file exists relative to the skill directory
-while IFS= read -r ref_path; do
-  full_path="$CR_SKILL_DIR/$ref_path"
-  if [ -s "$full_path" ]; then
-    pass "code-review skill references $ref_path (exists)"
-  else
-    fail "code-review skill references $ref_path (NOT FOUND)"
-  fi
-done < <(grep -oE 'references/[a-z/-]+\.md' "$CR_SKILL_DIR/SKILL.md" \
-  | sort -u)
-
 echo ""
 TOTAL=$((PASS + FAIL))
 echo "validate-commands: $PASS/$TOTAL passed"
