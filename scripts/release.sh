@@ -61,7 +61,8 @@ git checkout -b "$branch"
 
 # --- Update all plugin versions in marketplace.json ---
 tmp=$(mktemp)
-jq --arg v "$new_version" '.plugins |= map(.version = $v)' "$MARKETPLACE" > "$tmp"
+jq --arg v "$new_version" --arg ref "v$new_version" \
+  '.plugins |= map(.version = $v | .source.ref = $ref)' "$MARKETPLACE" > "$tmp"
 mv "$tmp" "$MARKETPLACE"
 git add "$MARKETPLACE"
 git commit -m "release: v$new_version"
