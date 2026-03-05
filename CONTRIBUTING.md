@@ -41,3 +41,5 @@ New plugins require CODEOWNERS approval. To request one:
 ## Version Bumps
 
 Claude Code caches installed plugins by version string. If you change any skill, agent, command, or configuration in a plugin, you **must** bump the `version` field in that plugin's `plugin.json`. Without this, users will not see the update until they manually reinstall.
+
+Plugin sources in `marketplace.json` are pinned to release tags via `git-subdir`. The `source.ref` field is updated automatically by `release.sh` — do not change it manually.
