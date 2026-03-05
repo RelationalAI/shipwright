@@ -18,7 +18,7 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
         run: git fetch origin "$BASE_REF" --depth=1
 
-      - name: Compare versions
+      - name: Compare versions and refs
         env:
           BASE_REF: ${{ github.base_ref }}
         run: |
@@ -33,4 +33,15 @@ jobs:
             exit 1
           fi
 
-          echo "No version change detected. OK."
+          base_refs=$(git show "origin/$BASE_REF:.claude-plugin/marketplace.json" | jq -r '[.plugins[].source.ref // empty] | sort | unique | .[]')
+          pr_refs=$(jq -r '[.plugins[].source.ref // empty] | sort | unique | .[]' .claude-plugin/marketplace.json)
+
+          if [ "$base_refs" != "$pr_refs" ]; then
+            echo "::error::Source ref change detected in a non-release PR."
+            echo ""
+            echo "Do not change source.ref in feature PRs."
+            echo "To release, run: ./scripts/release.sh <patch|minor|major>"
+            exit 1
+          fi
+
+          echo "No version or ref change detected. OK."
