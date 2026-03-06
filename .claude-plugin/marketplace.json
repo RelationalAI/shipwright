@@ -11,13 +11,23 @@
       "name": "dockyard",
       "description": "Standalone skills and commands for engineering workflows — brownfield analysis, observability, debugging, codebase profiling, document review",
       "version": "0.4.0",
-      "source": "./plugins/dockyard"
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/RelationalAI/shipwright.git",
+        "path": "plugins/dockyard",
+        "ref": "v0.4.0"
+      }
     },
     {
       "name": "shipwright",
       "description": "Orchestrated agentic development framework — TDD-enforced bug fix workflows with triage, implementation, review, and validation agents",
       "version": "0.4.0",
-      "source": "./plugins/shipwright"
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/RelationalAI/shipwright.git",
+        "path": "plugins/shipwright",
+        "ref": "v0.4.0"
+      }
     }
   ]
 }

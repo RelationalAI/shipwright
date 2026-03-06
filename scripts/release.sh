@@ -56,12 +56,13 @@ echo "Bumping version: $current_version -> $new_version"
 # --- Create branch, then modify files ---
 branch="release/v$new_version"
 original_branch=$(git rev-parse --abbrev-ref HEAD)
-trap 'git checkout "$original_branch" 2>/dev/null' ERR
+trap 'git checkout "$original_branch" 2>/dev/null; git branch -D "$branch" 2>/dev/null' ERR
 git checkout -b "$branch"
 
 # --- Update all plugin versions in marketplace.json ---
 tmp=$(mktemp)
-jq --arg v "$new_version" '.plugins |= map(.version = $v)' "$MARKETPLACE" > "$tmp"
+jq --arg v "$new_version" --arg ref "v$new_version" \
+  '.plugins |= map(.version = $v | .source.ref = $ref)' "$MARKETPLACE" > "$tmp"
 mv "$tmp" "$MARKETPLACE"
 git add "$MARKETPLACE"
 git commit -m "release: v$new_version"

@@ -171,6 +171,39 @@ else
   FAIL=$((FAIL + 2))
 fi
 
+# --- Validate marketplace.json source format ---
+echo ""
+echo "Marketplace source format validation:"
+if command -v jq &>/dev/null && [ -f "$REPO_ROOT/.claude-plugin/marketplace.json" ]; then
+  # Check that every plugin source is a git-subdir object with a ref
+  plugin_count=$(jq '.plugins | length' "$REPO_ROOT/.claude-plugin/marketplace.json")
+  subdir_count=$(jq '[.plugins[] | select(.source.source == "git-subdir" and .source.ref != null)] | length' "$REPO_ROOT/.claude-plugin/marketplace.json")
+  if [ "$plugin_count" -eq "$subdir_count" ]; then
+    echo "  PASS  All $plugin_count plugin sources use git-subdir with ref"
+    PASS=$((PASS + 1))
+  else
+    echo "  FAIL  Only $subdir_count/$plugin_count plugin sources use git-subdir with ref"
+    FAIL=$((FAIL + 1))
+  fi
+
+  # Check that source.ref matches "v" + version for each plugin
+  mismatches=$(jq -r '.plugins[] | select(.source.ref != "v" + .version) | .name' "$REPO_ROOT/.claude-plugin/marketplace.json")
+  if [ -z "$mismatches" ]; then
+    echo "  PASS  All plugin source.ref values match their version"
+    PASS=$((PASS + 1))
+  else
+    echo "  FAIL  source.ref does not match version for: $mismatches"
+    FAIL=$((FAIL + 1))
+  fi
+else
+  if ! command -v jq &>/dev/null; then
+    echo "  SKIP  Source format checks (jq not available)"
+  else
+    echo "  SKIP  Source format checks (file missing)"
+  fi
+  FAIL=$((FAIL + 2))
+fi
+
 # --- .gitignore includes .workflow/ ---
 echo ""
 echo "Gitignore:"
