@@ -42,6 +42,7 @@ Orchestrated bug-fix workflows. Requires dockyard.
 
 | Command | Description |
 |---------|-------------|
+| [`/shipwright:brainstorm`](plugins/shipwright/commands/brainstorm.md) | Turn ideas into designs through collaborative dialogue. Explores your codebase, asks clarifying questions one at a time, proposes 2-3 approaches with trade-offs, and walks through the design section by section. Writes the approved design to `docs/plans/` for you to commit when ready. |
 | [`/shipwright:shipwright`](plugins/shipwright/commands/shipwright.md) | Orchestrated Tier 1 bug-fix pipeline. Hand it a bug description or JIRA ticket and it dispatches four specialized agents in sequence — Triage, Implement, Review, Validate — with recovery state so you can resume if interrupted. One challenge round between Reviewer and Implementer keeps quality high without infinite loops. |
 | [`/shipwright:feedback`](plugins/shipwright/commands/feedback.md) | File bug reports, feature requests, or suggestions against the Shipwright plugin directly from your Claude session. Same workflow as dockyard feedback — auto-detects type, drafts a GitHub issue, creates it after confirmation. |
 
