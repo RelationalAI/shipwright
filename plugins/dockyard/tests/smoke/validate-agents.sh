@@ -53,14 +53,19 @@ validate_agent() {
 
 echo "=== validate-agents ==="
 
-# --- Dockyard public agents ---
+# --- Dockyard public agents (discover from directory) ---
 echo ""
 echo "Dockyard public agents:"
-
-validate_agent \
-  "$REPO_ROOT/plugins/dockyard/agents/code-reviewer.md" \
-  "dockyard/code-reviewer.md" \
-  "no"
+dockyard_agent_found=false
+for agent_file in "$REPO_ROOT"/plugins/dockyard/agents/*.md; do
+  [ -f "$agent_file" ] || continue
+  dockyard_agent_found=true
+  agent_name=$(basename "$agent_file")
+  validate_agent "$agent_file" "dockyard/$agent_name" "no"
+done
+if [ "$dockyard_agent_found" = false ]; then
+  echo "  (none)"
+fi
 
 # --- Shipwright internal agents ---
 echo ""
