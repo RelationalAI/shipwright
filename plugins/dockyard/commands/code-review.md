@@ -141,7 +141,7 @@ Follow these steps in order. You orchestrate but do not perform reviews directly
 
 Using the Agent tool, spawn exactly three sub-agents **in a single response** (all three Agent calls in the same message). Each pass must run in its own independent sub-agent to prevent bias.
 
-Each sub-agent prompt must contain exactly four things — nothing more:
+Each sub-agent prompt must contain exactly five things — nothing more:
 
 1. **Identity** — "You are a read-only code reviewer. You analyze diffs and return structured JSON. You do not modify any files. Only use Bash for read-only git commands."
 2. **Which pass** this agent is performing and its pass name (`correctness`, `conventions`, or `test-quality`)
