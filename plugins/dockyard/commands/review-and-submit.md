@@ -55,15 +55,7 @@ Do NOT read the full diff here — that happens inside the review sub-agents in 
 
 **Do NOT review the code inline. Do NOT run tests or linting.**
 
-Invoke the `dockyard:code-review` skill using the Skill tool. That skill defines the 3-pass review process, confidence scoring, and output format. Follow all of its rules.
-
-Follow the skill's Orchestration section exactly. Spawn exactly **three** parallel sub-agents — one per review pass (correctness, conventions, test quality). Do not split by file or change area.
-
-Each sub-agent runs `git diff "$BASE_BRANCH"...HEAD` itself to get the full diff. This keeps the full diff out of the main context.
-
-After all three return, spawn one scorer sub-agent to filter findings by confidence.
-
-Present findings to the developer in the format defined by the skill.
+Run the `/dockyard:code-review $BASE_BRANCH` command. It handles the full review: spawning 3 parallel sub-agents (correctness, conventions, test-quality), confidence scoring, and aggregation into `{recommendation, findings, summary}` JSON.
 
 ## Step 3: Fix Loop
 
